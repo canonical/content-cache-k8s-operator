@@ -1,36 +1,80 @@
-# Copyright 2020 hloeung
-# See LICENSE file for licensing details.
-
 import unittest
-from unittest.mock import Mock
+from unittest import mock
 
+from ops.model import (
+    ActiveStatus,
+    MaintenanceStatus,
+)
 from ops.testing import Harness
 from charm import CharmK8SContentCacheCharm
 
 
 class TestCharm(unittest.TestCase):
-    def test_config_changed(self):
-        harness = Harness(CharmK8SContentCacheCharm)
+    def setUp(self):
+        self.maxDiff = None
+
+        self.harness = Harness(CharmK8SContentCacheCharm)
         # from 0.8 you should also do:
         # self.addCleanup(harness.cleanup)
-        harness.begin()
-        self.assertEqual(list(harness.charm._stored.things), [])
-        harness.update_config({"thing": "foo"})
-        self.assertEqual(list(harness.charm._stored.things), ["foo"])
+        self.harness.begin()
 
-    def test_action(self):
-        harness = Harness(CharmK8SContentCacheCharm)
-        harness.begin()
-        # the harness doesn't (yet!) help much with actions themselves
-        action_event = Mock(params={"fail": ""})
-        harness.charm._on_fortune_action(action_event)
+    def tearDown(self):
+        self.harness.cleanup()
 
-        self.assertTrue(action_event.set_results.called)
+    def test_start(self):
+        harness = self.harness
+        action_event = mock.Mock()
+        harness.charm._on_start(action_event)
+        self.assertEqual(harness.charm.unit.status, ActiveStatus('Started'))
 
-    def test_action_fail(self):
-        harness = Harness(CharmK8SContentCacheCharm)
-        harness.begin()
-        action_event = Mock(params={"fail": "fail this"})
-        harness.charm._on_fortune_action(action_event)
+    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    def test_config_changed(self, configure_pod):
+        harness = self.harness
+        action_event = mock.Mock()
 
-        self.assertEqual(action_event.fail.call_args, [("fail this",)])
+        # Unit is not leader
+        harness.set_leader(False)
+        harness.charm._on_config_changed(action_event)
+        self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
+        configure_pod.assert_not_called()
+
+        # Unit is leader
+        harness.set_leader(True)
+        harness.charm._on_config_changed(action_event)
+        self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
+        configure_pod.assert_called_once()
+
+    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    def test_leader_elected(self, configure_pod):
+        harness = self.harness
+        action_event = mock.Mock()
+
+        # Unit is not leader
+        harness.set_leader(False)
+        harness.charm._on_leader_elected(action_event)
+        self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (leader-elected)'))
+        configure_pod.assert_not_called()
+
+        # Unit is leader
+        harness.set_leader(True)
+        harness.charm._on_leader_elected(action_event)
+        self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (leader-elected)'))
+        configure_pod.assert_called_once()
+
+
+    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    def test_upgrade_charm(self, configure_pod):
+        harness = self.harness
+        action_event = mock.Mock()
+
+        # Unit is not leader
+        harness.set_leader(False)
+        harness.charm._on_upgrade_charm(action_event)
+        self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
+        configure_pod.assert_not_called()
+
+        # Unit is leader
+        harness.set_leader(True)
+        harness.charm._on_upgrade_charm(action_event)
+        self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
+        configure_pod.assert_called_once()
