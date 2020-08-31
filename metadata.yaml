@@ -1,0 +1,8 @@
+name: charm-k8s-content-cache
+description: |
+  Useful for providing local mirrors of HTTP servers and building
+  content delivery networks (CDN).
+summary: |
+  Content caching charm for Kubernetes
+series: [kubernetes]
+min-juju-version: 2.8.0  # charm storage in state

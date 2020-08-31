@@ -1,0 +1,6 @@
+options:
+  sites:
+    type: string
+    description: >
+      YAML-formatted virtual hosts/sites. See the README.md for more details
+      and examples.
