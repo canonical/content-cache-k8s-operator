@@ -22,28 +22,30 @@ class CharmK8SContentCacheCharm(CharmBase):
         self.framework.observe(self.on.leader_elected, self.on_leader_elected)
         self.framework.observe(self.on.upgrade_charm, self.on_upgrade_charm)
 
-    def on_start(self, event):
+    def on_start(self, event) -> None:
         self.model.unit.status = ActiveStatus("Started")
 
-    def on_config_changed(self, event):
+    def on_config_changed(self, event) -> None:
         if not self.model.unit.is_leader():
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (config-changed)")
         self.configure_pod(self, event)
 
-    def on_leader_elected(self, event):
+    def on_leader_elected(self, event) -> None:
         if not self.model.unit.is_leader():
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (leader-elected)")
         self.configure_pod(self, event)
 
-    def on_upgrade_charm(self, event):
+    def on_upgrade_charm(self, event) -> None:
         if not self.model.unit.is_leader():
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (upgrade-charm)")
         self.configure_pod(self, event)
 
-    def configure_pod(self, event):
+    def configure_pod(self, event) -> None:
+        if not self.model.unit.is_leader():
+            return
         self.unit.status = MaintenanceStatus("Assembling pod spec")
         pod_spec = self._make_pod_spec()
 
@@ -52,7 +54,7 @@ class CharmK8SContentCacheCharm(CharmBase):
 
         self.unit.status = ActiveStatus()
 
-    def _make_pod_spec(self):
+    def _make_pod_spec(self) -> dict:
         # config = self.model.config
         pod_config = self._make_pod_config()
 
@@ -80,7 +82,7 @@ class CharmK8SContentCacheCharm(CharmBase):
 
         return pod_spec
 
-    def _make_pod_config(self):
+    def _make_pod_config(self) -> dict:
         # config = self.model.config
         pod_config = {
             'TEST_CONFIG': 'false',

@@ -104,6 +104,16 @@ class TestCharm(unittest.TestCase):
         k8s_resources = None
         self.assertEqual(harness.get_pod_spec(), (pod_spec, k8s_resources))
 
+    @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
+    def test_configure_pod_not_leader(self, make_pod_spec):
+        harness = self.harness
+        action_event = mock.Mock()
+
+        harness.disable_hooks()  # we don't want leader-set to fire
+        harness.set_leader(False)
+        harness.charm.configure_pod(action_event)
+        make_pod_spec.assert_not_called()
+
     def test_make_pod_spec(self):
         harness = self.harness
         harness.charm._make_pod_spec()
