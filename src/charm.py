@@ -17,27 +17,27 @@ CONTAINER_PORT = 80
 class CharmK8SContentCacheCharm(CharmBase):
     def __init__(self, *args):
         super().__init__(*args)
-        self.framework.observe(self.on.start, self._on_start)
-        self.framework.observe(self.on.config_changed, self._on_config_changed)
-        self.framework.observe(self.on.leader_elected, self._on_leader_elected)
-        self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
+        self.framework.observe(self.on.start, self.on_start)
+        self.framework.observe(self.on.config_changed, self.on_config_changed)
+        self.framework.observe(self.on.leader_elected, self.on_leader_elected)
+        self.framework.observe(self.on.upgrade_charm, self.on_upgrade_charm)
 
-    def _on_start(self, event):
+    def on_start(self, event):
         self.model.unit.status = ActiveStatus("Started")
 
-    def _on_config_changed(self, event):
+    def on_config_changed(self, event):
         if not self.model.unit.is_leader():
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (config-changed)")
         self.configure_pod(self, event)
 
-    def _on_leader_elected(self, event):
+    def on_leader_elected(self, event):
         if not self.model.unit.is_leader():
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (leader-elected)")
         self.configure_pod(self, event)
 
-    def _on_upgrade_charm(self, event):
+    def on_upgrade_charm(self, event):
         if not self.model.unit.is_leader():
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (upgrade-charm)")
