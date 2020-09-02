@@ -13,7 +13,7 @@ class TestCharm(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
 
-        self.harness = Harness(CharmK8SContentCacheCharm)
+        self.harness = Harness(CharmK8SContentCacheCharm, meta='name: test-app')
         self.harness.begin()
 
     def tearDown(self):
@@ -99,6 +99,10 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm.unit.status, ActiveStatus())
 
         make_pod_spec.assert_called_once()
+
+        pod_spec = harness.charm._make_pod_spec()
+        k8s_resources = None
+        self.assertEqual(harness.get_pod_spec(), (pod_spec, k8s_resources))
 
     def test_make_pod_spec(self):
         harness = self.harness
