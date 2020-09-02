@@ -87,3 +87,23 @@ class TestCharm(unittest.TestCase):
         harness.charm._on_upgrade_charm(action_event)
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
         configure_pod.assert_not_called()
+
+    @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
+    def test_configure_pod(self, make_pod_spec):
+        harness = self.harness
+        action_event = mock.Mock()
+
+        harness.disable_hooks()  # we don't want leader-set to fire
+        harness.set_leader(True)
+        harness.charm.configure_pod(action_event)
+        self.assertEqual(harness.charm.unit.status, ActiveStatus())
+
+        make_pod_spec.assert_called_once()
+
+    def test_make_pod_spec(self):
+        harness = self.harness
+        harness.charm._make_pod_spec()
+
+    def test_make_pod_config(self):
+        harness = self.harness
+        harness.charm._make_pod_config()

@@ -49,6 +49,7 @@ class CharmK8SContentCacheCharm(CharmBase):
 
         self.unit.status = MaintenanceStatus("Setting pod spec")
         self.model.pod.set_spec(pod_spec)
+
         self.unit.status = ActiveStatus()
 
     def _make_pod_spec(self):
