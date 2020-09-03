@@ -22,7 +22,7 @@ class TestCharm(unittest.TestCase):
     def test_on_start(self):
         harness = self.harness
         action_event = mock.Mock()
-        harness.charm.on_start(action_event)
+        harness.charm._on_start(action_event)
         self.assertEqual(harness.charm.unit.status, ActiveStatus('Started'))
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
@@ -32,7 +32,7 @@ class TestCharm(unittest.TestCase):
 
         harness.disable_hooks()  # we don't want leader-set to fire
         harness.set_leader(True)
-        harness.charm.on_config_changed(action_event)
+        harness.charm._on_config_changed(action_event)
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
         configure_pod.assert_called_once()
 
@@ -42,7 +42,7 @@ class TestCharm(unittest.TestCase):
         action_event = mock.Mock()
 
         harness.set_leader(False)
-        harness.charm.on_config_changed(action_event)
+        harness.charm._on_config_changed(action_event)
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
         configure_pod.assert_not_called()
 
@@ -53,7 +53,7 @@ class TestCharm(unittest.TestCase):
 
         harness.disable_hooks()  # we don't want leader-set to fire
         harness.set_leader(True)
-        harness.charm.on_leader_elected(action_event)
+        harness.charm._on_leader_elected(action_event)
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (leader-elected)'))
         configure_pod.assert_called_once()
 
@@ -63,7 +63,7 @@ class TestCharm(unittest.TestCase):
         action_event = mock.Mock()
 
         harness.set_leader(False)
-        harness.charm.on_leader_elected(action_event)
+        harness.charm._on_leader_elected(action_event)
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (leader-elected)'))
         configure_pod.assert_not_called()
 
@@ -74,7 +74,7 @@ class TestCharm(unittest.TestCase):
 
         harness.disable_hooks()  # we don't want leader-set to fire
         harness.set_leader(True)
-        harness.charm.on_upgrade_charm(action_event)
+        harness.charm._on_upgrade_charm(action_event)
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
         configure_pod.assert_called_once()
 
@@ -84,7 +84,7 @@ class TestCharm(unittest.TestCase):
         action_event = mock.Mock()
 
         harness.set_leader(False)
-        harness.charm.on_upgrade_charm(action_event)
+        harness.charm._on_upgrade_charm(action_event)
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
         configure_pod.assert_not_called()
 
