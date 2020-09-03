@@ -9,4 +9,5 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -qy update && \
     apt-get -qy dist-upgrade --no-install-recommends && \
     apt-get -qy install --no-install-recommends nginx && \
+    apt-get -qy clean && \
     rm -f /var/lib/apt/lists/*_*
