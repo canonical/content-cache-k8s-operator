@@ -167,6 +167,25 @@ class TestCharm(unittest.TestCase):
         self.addCleanup(harness.cleanup)
         harness.begin()
 
+        harness.update_config(
+            {"image_path": "localhost:32000/myimage:latest", "site": "mysite.local", "backends": "localhost:80"}
+        )
+        harness.charm._make_pod_spec()
+
+    def test_make_pod_spec_image_username(self):
+        harness = Harness(CharmK8SContentCacheCharm)
+        self.addCleanup(harness.cleanup)
+        harness.begin()
+
+        harness.update_config(
+            {
+                "image_path": "localhost:32000/myimage:latest",
+                "image_username": "myuser",
+                "image_password": "mypassword",
+                "site": "mysite.local",
+                "backends": "localhost:80",
+            }
+        )
         harness.charm._make_pod_spec()
 
     def test_make_pod_config(self):

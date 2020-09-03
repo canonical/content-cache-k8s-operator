@@ -1,6 +1,24 @@
 options:
-  sites:
+  image_path:
     type: string
     description: >
-      YAML-formatted virtual hosts/sites. See the README.md for more details
-      and examples.
+      The location of the image to use, e.g. "localhost:32000/myimage:latest"
+
+      This setting is required.
+  image_username:
+    type: string
+    description: >
+      The username for accessing the registry specified in image_path.
+    default: ""
+  image_password:
+    type: string
+    description: >
+      The password associated with image_username for accessing the registry
+      specified in image_path.
+    default: ""
+  site:
+    type: string
+    description: >
+      The site name, e.g. "mysite.local"
+
+      This setting is required.

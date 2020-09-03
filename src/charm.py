@@ -76,7 +76,14 @@ class CharmK8SContentCacheCharm(CharmBase):
         self.unit.status = ActiveStatus()
 
     def _make_pod_spec(self) -> dict:
-        # config = self.model.config
+        config = self.model.config
+
+        image_details = {
+            'imagePath': config['image_path'],
+        }
+        if config.get('image_username', None):
+            image_details.update({'username': config['image_username'], 'password': config['image_password']})
+
         pod_config = self._make_pod_config()
 
         pod_spec = {
