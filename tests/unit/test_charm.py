@@ -31,11 +31,17 @@ class TestCharm(unittest.TestCase):
 
         action_event = mock.Mock()
 
+        self.assertEqual(list(harness.charm._stored.things), [])
+        harness.update_config({"thing": "foo"})
+
         harness.disable_hooks()  # we don't want leader-set to fire
         harness.set_leader(True)
         harness.charm._on_config_changed(action_event)
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
         configure_pod.assert_called_once()
+
+        harness.charm._on_config_changed(action_event)
+        self.assertEqual(list(harness.charm._stored.things), ["foo"])
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
     def test_on_config_changed_not_leader(self, configure_pod):
@@ -49,9 +55,6 @@ class TestCharm(unittest.TestCase):
         harness.charm._on_config_changed(action_event)
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
         configure_pod.assert_not_called()
-
-        self.assertEqual(list(harness.charm._stored.things), [])
-        harness.update_config({"thing": "foo"})
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
     def test_on_leader_elected(self, configure_pod):

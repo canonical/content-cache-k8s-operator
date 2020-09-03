@@ -33,6 +33,12 @@ class CharmK8SContentCacheCharm(CharmBase):
         if not self.model.unit.is_leader():
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (config-changed)")
+
+        current = self.model.config["thing"]
+        if current not in self._stored.things:
+            logger.debug("found a new thing: %r", current)
+            self._stored.things.append(current)
+
         self.configure_pod(self, event)
 
     def _on_leader_elected(self, event) -> None:
