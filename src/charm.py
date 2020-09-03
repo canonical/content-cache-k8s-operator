@@ -110,7 +110,11 @@ class CharmK8SContentCacheCharm(CharmBase):
                     },
                     'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
                     'volumeConfig': [
-                        {'name': 'cache-volume', 'mountPath': '/nginx-cache', 'emptyDir': {'medium': 'Memory'}}
+                        {
+                            'name': 'cache-volume',
+                            'mountPath': '/nginx-cache',
+                            'emptyDir': {'medium': 'Memory', 'emptyDir': config['cache_size']},
+                        }
                     ],
                 }
             ],

@@ -142,7 +142,12 @@ class TestCharm(unittest.TestCase):
         harness = self.harness
 
         harness.update_config(
-            {"image_path": "localhost:32000/myimage:latest", "site": "mysite.local", "backends": "localhost:80"}
+            {
+                "image_path": "localhost:32000/myimage:latest",
+                "site": "mysite.local",
+                "backends": "localhost:80",
+                "cache_size": "10G",
+            }
         )
         harness.charm._make_pod_spec()
 
@@ -156,6 +161,7 @@ class TestCharm(unittest.TestCase):
                 "image_password": "mypassword",
                 "site": "mysite.local",
                 "backends": "localhost:80",
+                "cache_size": "10G",
             }
         )
         harness.charm._make_pod_spec()

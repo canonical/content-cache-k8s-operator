@@ -28,6 +28,11 @@ options:
       The backends to use for site, e.g. "mybackend.local:80"
 
       This setting is required.
+  cache_size:
+    type: string
+    description: >
+      The size of the Nginx storage cache.
+    default: "10G"
   thing:
     type: string
     desciption: >
