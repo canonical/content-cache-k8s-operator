@@ -22,10 +22,12 @@ class CharmK8SContentCacheCharm(CharmBase):
 
     def __init__(self, *args):
         super().__init__(*args)
+
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.config_changed, self._on_config_changed)
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
+
         self._stored.set_default(things=[])
 
     def _on_start(self, event) -> None:
@@ -94,7 +96,6 @@ class CharmK8SContentCacheCharm(CharmBase):
                     'envConfig': pod_config,
                     'imageDetails': image_details,
                     'imagePullPolicy': 'Always',
-                    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
                     'kubernetes': {
                         'livenessProbe': {
                             'httpGet': {'path': '/', 'port': CONTAINER_PORT},
@@ -107,6 +108,10 @@ class CharmK8SContentCacheCharm(CharmBase):
                             'periodSeconds': 3,
                         },
                     },
+                    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
+                    'volumeConfig': [
+                        {'name': 'cache-volume', 'mountPath': '/nginx-cache', 'emptyDir': {'medium': 'Memory'}}
+                    ],
                 }
             ],
         }
