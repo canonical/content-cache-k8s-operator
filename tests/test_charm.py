@@ -13,12 +13,15 @@ from charm import CharmK8SContentCacheCharm
 class TestCharm(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
+        self.harness = Harness(CharmK8SContentCacheCharm)
+        self.harness.begin()
+
+    def tearDown(self):
+        # starting from ops 0.8, we also need to do:
+        self.addCleanup(self.harness.cleanup)
 
     def test_on_start(self):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
 
         harness.charm._on_start(action_event)
@@ -26,10 +29,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
     def test_on_config_changed(self, configure_pod):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
 
         self.assertEqual(list(harness.charm._stored.things), [])
@@ -46,10 +46,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
     def test_on_config_changed_not_leader(self, configure_pod):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
 
         harness.set_leader(False)
@@ -59,10 +56,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
     def test_on_leader_elected(self, configure_pod):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
 
         harness.disable_hooks()  # we don't want leader-set to fire
@@ -73,10 +67,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
     def test_on_leader_elected_not_leader(self, configure_pod):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
 
         harness.set_leader(False)
@@ -86,10 +77,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
     def test_on_upgrade_charm(self, configure_pod):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
 
         harness.disable_hooks()  # we don't want leader-set to fire
@@ -100,10 +88,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
     def test_on_upgrade_charm_not_leader(self, configure_pod):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
 
         harness.set_leader(False)
@@ -113,15 +98,12 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
     def test_configure_pod(self, make_pod_spec):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
+
         harness.update_config(
             {"image_path": "localhost:32000/myimage:latest", "site": "mysite.local", "backends": "localhost:80"}
         )
-
         harness.disable_hooks()  # we don't want leader-set to fire
         harness.set_leader(True)
         harness.charm.configure_pod(action_event)
@@ -135,15 +117,12 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
     def test_configure_pod_missing_configs(self, make_pod_spec):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
+
         harness.update_config(
             {"image_path": "localhost:32000/myimage:latest", "site": None, "backends": "localhost:80"}
         )
-
         harness.disable_hooks()  # we don't want leader-set to fire
         harness.set_leader(True)
         harness.charm.configure_pod(action_event)
@@ -151,10 +130,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
     def test_configure_pod_not_leader(self, make_pod_spec):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
-
+        harness = self.harness
         action_event = mock.Mock()
 
         harness.disable_hooks()  # we don't want leader-set to fire
@@ -163,9 +139,7 @@ class TestCharm(unittest.TestCase):
         make_pod_spec.assert_not_called()
 
     def test_make_pod_spec(self):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
+        harness = self.harness
 
         harness.update_config(
             {"image_path": "localhost:32000/myimage:latest", "site": "mysite.local", "backends": "localhost:80"}
@@ -173,9 +147,7 @@ class TestCharm(unittest.TestCase):
         harness.charm._make_pod_spec()
 
     def test_make_pod_spec_image_username(self):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
+        harness = self.harness
 
         harness.update_config(
             {
@@ -189,16 +161,12 @@ class TestCharm(unittest.TestCase):
         harness.charm._make_pod_spec()
 
     def test_make_pod_config(self):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
+        harness = self.harness
 
         harness.charm._make_pod_config()
 
     def test_missing_charm_configs(self):
-        harness = Harness(CharmK8SContentCacheCharm)
-        self.addCleanup(harness.cleanup)
-        harness.begin()
+        harness = self.harness
 
         harness.update_config(
             {"image_path": "localhost:32000/myimage:latest", "site": "mysite.local", "backends": "localhost:80"}
