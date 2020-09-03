@@ -22,3 +22,14 @@ options:
       The site name, e.g. "mysite.local"
 
       This setting is required.
+  backends:
+    type: string
+    description: >
+      The backends to use for site, e.g. "mybackend.local:80"
+
+      This setting is required.
+  thing:
+    type: string
+    desciption: >
+      Used for testing
+    default: ""

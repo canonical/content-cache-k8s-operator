@@ -42,21 +42,21 @@ class CharmK8SContentCacheCharm(CharmBase):
             logger.debug("found a new thing: %r", current)
             self._stored.things.append(current)
 
-        self.configure_pod(self, event)
+        self.configure_pod(event)
 
     def _on_leader_elected(self, event) -> None:
         if not self.model.unit.is_leader():
             self.unit.status = ActiveStatus()
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (leader-elected)")
-        self.configure_pod(self, event)
+        self.configure_pod(event)
 
     def _on_upgrade_charm(self, event) -> None:
         if not self.model.unit.is_leader():
             self.unit.status = ActiveStatus()
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (upgrade-charm)")
-        self.configure_pod(self, event)
+        self.configure_pod(event)
 
     def configure_pod(self, event) -> None:
         if not self.model.unit.is_leader():
@@ -91,18 +91,21 @@ class CharmK8SContentCacheCharm(CharmBase):
             'containers': [
                 {
                     'name': self.app.name,
-                    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
                     'envConfig': pod_config,
+                    'imageDetails': image_details,
                     'imagePullPolicy': 'Always',
-                    'livenessProbe': {
-                        'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-                        'initialDelaySeconds': 3,
-                        'periodSeconds': 3,
-                    },
-                    'readinessProbe': {
-                        'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-                        'initialDelaySeconds': 3,
-                        'periodSeconds': 3,
+                    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
+                    'kubernetes': {
+                        'livenessProbe': {
+                            'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+                            'initialDelaySeconds': 3,
+                            'periodSeconds': 3,
+                        },
+                        'readinessProbe': {
+                            'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+                            'initialDelaySeconds': 3,
+                            'periodSeconds': 3,
+                        },
                     },
                 }
             ],
