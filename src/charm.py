@@ -7,12 +7,14 @@ from ops.main import main
 from ops.framework import StoredState
 from ops.model import (
     ActiveStatus,
+    BlockedStatus,
     MaintenanceStatus,
 )
 
 logger = logging.getLogger(__name__)
 
 CONTAINER_PORT = 80
+REQUIRED_JUJU_CONFIGS = ['image_path', 'site', 'backends']
 
 
 class CharmK8SContentCacheCharm(CharmBase):
@@ -31,6 +33,7 @@ class CharmK8SContentCacheCharm(CharmBase):
 
     def _on_config_changed(self, event) -> None:
         if not self.model.unit.is_leader():
+            self.unit.status = ActiveStatus()
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (config-changed)")
 
@@ -43,12 +46,14 @@ class CharmK8SContentCacheCharm(CharmBase):
 
     def _on_leader_elected(self, event) -> None:
         if not self.model.unit.is_leader():
+            self.unit.status = ActiveStatus()
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (leader-elected)")
         self.configure_pod(self, event)
 
     def _on_upgrade_charm(self, event) -> None:
         if not self.model.unit.is_leader():
+            self.unit.status = ActiveStatus()
             return
         self.model.unit.status = MaintenanceStatus("Configuring pod (upgrade-charm)")
         self.configure_pod(self, event)
@@ -56,6 +61,12 @@ class CharmK8SContentCacheCharm(CharmBase):
     def configure_pod(self, event) -> None:
         if not self.model.unit.is_leader():
             return
+
+        missing = self._missing_charm_configs()
+        if missing:
+            self.unit.status = BlockedStatus("Required config(s) empty: {}".format(", ".join(sorted(missing))))
+            return
+
         self.unit.status = MaintenanceStatus("Assembling pod spec")
         pod_spec = self._make_pod_spec()
 
@@ -99,6 +110,14 @@ class CharmK8SContentCacheCharm(CharmBase):
         }
 
         return pod_config
+
+    def _missing_charm_configs(self) -> list:
+        config = self.model.config
+        missing = []
+
+        missing.extend([setting for setting in REQUIRED_JUJU_CONFIGS if not config[setting]])
+
+        return sorted(list(set(missing)))
 
 
 if __name__ == "__main__":  # pragma: no cover

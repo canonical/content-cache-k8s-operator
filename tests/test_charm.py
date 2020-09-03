@@ -3,6 +3,7 @@ from unittest import mock
 
 from ops.model import (
     ActiveStatus,
+    BlockedStatus,
     MaintenanceStatus,
 )
 from ops.testing import Harness
@@ -117,6 +118,9 @@ class TestCharm(unittest.TestCase):
         harness.begin()
 
         action_event = mock.Mock()
+        harness.update_config(
+            {"image_path": "localhost:32000/myimage:latest", "site": "mysite.local", "backends": "localhost:80"}
+        )
 
         harness.disable_hooks()  # we don't want leader-set to fire
         harness.set_leader(True)
@@ -128,6 +132,22 @@ class TestCharm(unittest.TestCase):
         pod_spec = harness.charm._make_pod_spec()
         k8s_resources = None
         self.assertEqual(harness.get_pod_spec(), (pod_spec, k8s_resources))
+
+    @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
+    def test_configure_pod_missing_configs(self, make_pod_spec):
+        harness = Harness(CharmK8SContentCacheCharm)
+        self.addCleanup(harness.cleanup)
+        harness.begin()
+
+        action_event = mock.Mock()
+        harness.update_config(
+            {"image_path": "localhost:32000/myimage:latest", "site": None, "backends": "localhost:80"}
+        )
+
+        harness.disable_hooks()  # we don't want leader-set to fire
+        harness.set_leader(True)
+        harness.charm.configure_pod(action_event)
+        self.assertEqual(harness.charm.unit.status, BlockedStatus("Required config(s) empty: site"))
 
     @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
     def test_configure_pod_not_leader(self, make_pod_spec):
@@ -155,3 +175,24 @@ class TestCharm(unittest.TestCase):
         harness.begin()
 
         harness.charm._make_pod_config()
+
+    def test_missing_charm_configs(self):
+        harness = Harness(CharmK8SContentCacheCharm)
+        self.addCleanup(harness.cleanup)
+        harness.begin()
+
+        harness.update_config(
+            {"image_path": "localhost:32000/myimage:latest", "site": "mysite.local", "backends": "localhost:80"}
+        )
+        expected = []
+        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+
+        harness.update_config(
+            {"image_path": "localhost:32000/myimage:latest", "site": None, "backends": "localhost:80"}
+        )
+        expected = ["site"]
+        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+
+        harness.update_config({"image_path": "localhost:32000/myimage:latest", "site": "", "backends": "localhost:80"})
+        expected = ["site"]
+        self.assertEqual(harness.charm._missing_charm_configs(), expected)
