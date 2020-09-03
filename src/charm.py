@@ -4,6 +4,7 @@ import logging
 
 from ops.charm import CharmBase
 from ops.main import main
+from ops.framework import StoredState
 from ops.model import (
     ActiveStatus,
     MaintenanceStatus,
@@ -15,12 +16,15 @@ CONTAINER_PORT = 80
 
 
 class CharmK8SContentCacheCharm(CharmBase):
+    _stored = StoredState()
+
     def __init__(self, *args):
         super().__init__(*args)
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.config_changed, self._on_config_changed)
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
+        self._stored.set_default(things=[])
 
     def _on_start(self, event) -> None:
         self.model.unit.status = ActiveStatus("Started")
