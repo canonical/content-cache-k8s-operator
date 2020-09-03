@@ -1,3 +1,10 @@
 /venv
-*.py[cod]
+*~
 *.charm
+*.py[cod]
+*.swp
+.coverage
+.tox/
+build/
+docker/
+__pycache__/

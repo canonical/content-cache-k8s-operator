@@ -1,6 +1,8 @@
 *~
 *.charm
+*.py[cod]
+*.swp
 .coverage
-.tox
+.tox/
 build/
 __pycache__/
