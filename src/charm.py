@@ -113,7 +113,7 @@ class CharmK8SContentCacheCharm(CharmBase):
                         {
                             'name': 'cache-volume',
                             'mountPath': '/nginx-cache',
-                            'emptyDir': {'medium': 'Memory', 'emptyDir': config['cache_size']},
+                            'emptyDir': {'medium': 'Memory', 'sizeLimit': config['cache_size']},
                         }
                     ],
                 }
