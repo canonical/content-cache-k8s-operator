@@ -9,6 +9,28 @@ from ops.model import (
 from ops.testing import Harness
 from charm import CharmK8SContentCacheCharm
 
+CONTAINER_PORT = 80
+CONTAINER_SPEC_TMPL = {
+    'name': 'charm-k8s-content-cache',
+    'envConfig': None,
+    'imageDetails': None,
+    'imagePullPolicy': 'Always',
+    'kubernetes': {
+        'livenessProbe': {
+            'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+            'initialDelaySeconds': 3,
+            'periodSeconds': 3,
+        },
+        'readinessProbe': {
+            'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+            'initialDelaySeconds': 3,
+            'periodSeconds': 3,
+        },
+    },
+    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
+    'volumeConfig': None,
+}
+
 
 class TestCharm(unittest.TestCase):
     def setUp(self):
@@ -149,37 +171,13 @@ class TestCharm(unittest.TestCase):
                 "cache_size": "10G",
             }
         )
-        expected = {
-            'version': 3,
-            'containers': [
-                {
-                    'name': 'charm-k8s-content-cache',
-                    'envConfig': harness.charm._make_pod_config(),
-                    'imageDetails': {'imagePath': 'localhost:32000/myimage:latest'},
-                    'imagePullPolicy': 'Always',
-                    'kubernetes': {
-                        'livenessProbe': {
-                            'httpGet': {'path': '/', 'port': 80},
-                            'initialDelaySeconds': 3,
-                            'periodSeconds': 3,
-                        },
-                        'readinessProbe': {
-                            'httpGet': {'path': '/', 'port': 80},
-                            'initialDelaySeconds': 3,
-                            'periodSeconds': 3,
-                        },
-                    },
-                    'ports': [{'containerPort': 80, 'protocol': 'TCP'}],
-                    'volumeConfig': [
-                        {
-                            'name': 'cache-volume',
-                            'mountPath': '/nginx-cache',
-                            'emptyDir': {'medium': 'Memory', 'sizeLimit': '10G'},
-                        }
-                    ],
-                }
-            ],
-        }
+        t = CONTAINER_SPEC_TMPL
+        t['envConfig'] = harness.charm._make_pod_config()
+        t['imageDetails'] = {'imagePath': 'localhost:32000/myimage:latest'}
+        t['volumeConfig'] = [
+            {'name': 'cache-volume', 'mountPath': '/nginx-cache', 'emptyDir': {'medium': 'Memory', 'sizeLimit': '10G'}}
+        ]
+        expected = {'version': 3, 'containers': [t]}
         self.assertEqual(harness.charm._make_pod_spec(), expected)
 
     def test_make_pod_spec_image_username(self):
@@ -195,41 +193,17 @@ class TestCharm(unittest.TestCase):
                 "cache_size": "10G",
             }
         )
-        expected = {
-            'version': 3,
-            'containers': [
-                {
-                    'name': 'charm-k8s-content-cache',
-                    'envConfig': harness.charm._make_pod_config(),
-                    'imageDetails': {
-                        'imagePath': 'localhost:32000/myimage:latest',
-                        'username': 'myuser',
-                        'password': 'mypassword',
-                    },
-                    'imagePullPolicy': 'Always',
-                    'kubernetes': {
-                        'livenessProbe': {
-                            'httpGet': {'path': '/', 'port': 80},
-                            'initialDelaySeconds': 3,
-                            'periodSeconds': 3,
-                        },
-                        'readinessProbe': {
-                            'httpGet': {'path': '/', 'port': 80},
-                            'initialDelaySeconds': 3,
-                            'periodSeconds': 3,
-                        },
-                    },
-                    'ports': [{'containerPort': 80, 'protocol': 'TCP'}],
-                    'volumeConfig': [
-                        {
-                            'name': 'cache-volume',
-                            'mountPath': '/nginx-cache',
-                            'emptyDir': {'medium': 'Memory', 'sizeLimit': '10G'},
-                        }
-                    ],
-                }
-            ],
+        t = CONTAINER_SPEC_TMPL
+        t['envConfig'] = harness.charm._make_pod_config()
+        t['imageDetails'] = {
+            'imagePath': 'localhost:32000/myimage:latest',
+            'username': 'myuser',
+            'password': 'mypassword',
         }
+        t['volumeConfig'] = [
+            {'name': 'cache-volume', 'mountPath': '/nginx-cache', 'emptyDir': {'medium': 'Memory', 'sizeLimit': '10G'}}
+        ]
+        expected = {'version': 3, 'containers': [t]}
         self.assertEqual(harness.charm._make_pod_spec(), expected)
 
     def test_make_pod_spec_cache_size(self):
@@ -243,37 +217,13 @@ class TestCharm(unittest.TestCase):
                 "cache_size": "201G",
             }
         )
-        expected = {
-            'version': 3,
-            'containers': [
-                {
-                    'name': 'charm-k8s-content-cache',
-                    'envConfig': harness.charm._make_pod_config(),
-                    'imageDetails': {'imagePath': 'localhost:32000/myimage:latest'},
-                    'imagePullPolicy': 'Always',
-                    'kubernetes': {
-                        'livenessProbe': {
-                            'httpGet': {'path': '/', 'port': 80},
-                            'initialDelaySeconds': 3,
-                            'periodSeconds': 3,
-                        },
-                        'readinessProbe': {
-                            'httpGet': {'path': '/', 'port': 80},
-                            'initialDelaySeconds': 3,
-                            'periodSeconds': 3,
-                        },
-                    },
-                    'ports': [{'containerPort': 80, 'protocol': 'TCP'}],
-                    'volumeConfig': [
-                        {
-                            'name': 'cache-volume',
-                            'mountPath': '/nginx-cache',
-                            'emptyDir': {'medium': 'Memory', 'sizeLimit': '201G'},
-                        }
-                    ],
-                }
-            ],
-        }
+        t = CONTAINER_SPEC_TMPL
+        t['envConfig'] = harness.charm._make_pod_config()
+        t['imageDetails'] = {'imagePath': 'localhost:32000/myimage:latest'}
+        t['volumeConfig'] = [
+            {'name': 'cache-volume', 'mountPath': '/nginx-cache', 'emptyDir': {'medium': 'Memory', 'sizeLimit': '201G'}}
+        ]
+        expected = {'version': 3, 'containers': [t]}
         self.assertEqual(harness.charm._make_pod_spec(), expected)
 
     def test_make_pod_config(self):
