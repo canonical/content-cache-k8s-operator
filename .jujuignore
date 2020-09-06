@@ -1,10 +1,12 @@
-/venv
+/venv/
 *~
 *.charm
 *.py[cod]
 *.swp
 .coverage
+.gitignore
 .tox/
 build/
 docker/
+tests/
 __pycache__/
