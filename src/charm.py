@@ -28,51 +28,40 @@ class CharmK8SContentCacheCharm(CharmBase):
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
 
-        self._stored.set_default(things=[])
+        self._stored.set_default()
 
     def _on_start(self, event) -> None:
-        self.model.unit.status = ActiveStatus("Started")
+        self.model.unit.status = ActiveStatus('Started')
 
     def _on_config_changed(self, event) -> None:
         if not self.model.unit.is_leader():
             self.unit.status = ActiveStatus()
             return
-        self.model.unit.status = MaintenanceStatus("Configuring pod (config-changed)")
-
-        current = self.model.config["thing"]
-        if current not in self._stored.things:
-            logger.debug("found a new thing: %r", current)
-            self._stored.things.append(current)
+        self.model.unit.status = MaintenanceStatus('Configuring pod (config-changed)')
 
         self.configure_pod(event)
 
     def _on_leader_elected(self, event) -> None:
-        if not self.model.unit.is_leader():
-            self.unit.status = ActiveStatus()
-            return
-        self.model.unit.status = MaintenanceStatus("Configuring pod (leader-elected)")
+        self.model.unit.status = MaintenanceStatus('Configuring pod (leader-elected)')
         self.configure_pod(event)
 
     def _on_upgrade_charm(self, event) -> None:
         if not self.model.unit.is_leader():
             self.unit.status = ActiveStatus()
             return
-        self.model.unit.status = MaintenanceStatus("Configuring pod (upgrade-charm)")
+        self.model.unit.status = MaintenanceStatus('Configuring pod (upgrade-charm)')
         self.configure_pod(event)
 
     def configure_pod(self, event) -> None:
-        if not self.model.unit.is_leader():
-            return
-
         missing = self._missing_charm_configs()
         if missing:
-            self.unit.status = BlockedStatus("Required config(s) empty: {}".format(", ".join(sorted(missing))))
+            self.unit.status = BlockedStatus('Required config(s) empty: {}'.format(', '.join(sorted(missing))))
             return
 
-        self.unit.status = MaintenanceStatus("Assembling pod spec")
+        self.unit.status = MaintenanceStatus('Assembling pod spec')
         pod_spec = self._make_pod_spec()
 
-        self.unit.status = MaintenanceStatus("Setting pod spec")
+        self.unit.status = MaintenanceStatus('Setting pod spec')
         self.model.pod.set_spec(pod_spec)
 
         self.unit.status = ActiveStatus()
@@ -139,5 +128,5 @@ class CharmK8SContentCacheCharm(CharmBase):
         return sorted(list(set(missing)))
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     main(CharmK8SContentCacheCharm)
