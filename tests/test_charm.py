@@ -162,6 +162,19 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm.unit.status, BlockedStatus('Required config(s) empty: site'))
         self.assertEqual(harness.get_pod_spec(), None)
 
+    def test_generate_keys_zone(self):
+        harness = self.harness
+
+        harness.disable_hooks()
+        harness.begin()
+
+        expected = '39c631ffb52d-cache'
+        self.assertEqual(harness.charm._generate_keys_zone('mysite.local'), expected)
+        expected = '8b79f9e4b3e8-cache'
+        self.assertEqual(harness.charm._generate_keys_zone('my-really-really-really-long-site-name.local'), expected)
+        expected ='d41d8cd98f00-cache'
+        self.assertEqual(harness.charm._generate_keys_zone(''), expected)
+
     def test_make_pod_spec(self):
         harness = self.harness
 
@@ -236,6 +249,7 @@ class TestCharm(unittest.TestCase):
             'NGINX_CACHE_INACTIVE_TIME': '10m',
             'NGINX_CACHE_MAX_SIZE': '10G',
             'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_KEYS_ZONE': '39c631ffb52d-cache',
             'NGINX_SITE_NAME': 'mysite.local',
         }
         self.assertEqual(harness.charm._make_pod_config(), expected)

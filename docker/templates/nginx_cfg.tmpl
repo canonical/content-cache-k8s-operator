@@ -1,4 +1,4 @@
-proxy_cache_path ${NGINX_CACHE_PATH} use_temp_path=off levels=1:2 keys_zone=zone:10m inactive=${NGINX_CACHE_INACTIVE_TIME} max_size=${NGINX_CACHE_MAX_SIZE};
+proxy_cache_path ${NGINX_CACHE_PATH} use_temp_path=off levels=1:2 keys_zone=${NGINX_KEYS_ZONE}:10m inactive=${NGINX_CACHE_INACTIVE_TIME} max_size=${NGINX_CACHE_MAX_SIZE};
 
 server {
     server_name ${NGINX_SITE_NAME};
@@ -18,8 +18,9 @@ server {
         proxy_set_header X-Forwarded-Scheme \"\";
 
         add_header X-Cache-Status \"\$upstream_cache_status from ${HOSTNAME}\";
+
         proxy_force_ranges on;
-        proxy_cache zone;
+        proxy_cache ${NGINX_KEYS_ZONE};
     }
 
     access_log /dev/stdout content_cache;

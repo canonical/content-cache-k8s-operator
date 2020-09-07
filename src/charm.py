@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import hashlib
 import logging
 
 from ops.charm import CharmBase
@@ -67,6 +68,9 @@ class CharmK8SContentCacheCharm(CharmBase):
 
         self.unit.status = ActiveStatus()
 
+    def _generate_keys_zone(self, name):
+        return '{}-cache'.format(hashlib.md5(name.encode('UTF-8')).hexdigest()[0:12])
+
     def _make_pod_spec(self) -> dict:
         config = self.model.config
 
@@ -119,6 +123,7 @@ class CharmK8SContentCacheCharm(CharmBase):
             'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),
             'NGINX_CACHE_MAX_SIZE': config.get('cache_max_size', '10G'),
             'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_KEYS_ZONE': self._generate_keys_zone(config['site']),
             'NGINX_SITE_NAME': config['site'],
         }
 
