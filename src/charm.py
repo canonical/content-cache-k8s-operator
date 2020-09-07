@@ -13,7 +13,7 @@ from ops.model import (
 
 logger = logging.getLogger(__name__)
 
-CACHE_PATH = '/var/lib/nginx/proxy'
+CACHE_PATH = '/var/lib/nginx/proxy/cache'
 CONTAINER_PORT = 80
 REQUIRED_JUJU_CONFIGS = ['image_path', 'site', 'backends']
 

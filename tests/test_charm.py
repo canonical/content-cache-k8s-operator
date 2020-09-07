@@ -16,7 +16,7 @@ BASE_CONFIG = {
     'backends': 'localhost:80',
     'cache_max_size': '10G',
 }
-CACHE_PATH = '/var/lib/nginx/proxy'
+CACHE_PATH = '/var/lib/nginx/proxy/cache'
 CONTAINER_PORT = 80
 CONTAINER_SPEC_TMPL = {
     'name': 'charm-k8s-content-cache',
@@ -174,7 +174,7 @@ class TestCharm(unittest.TestCase):
         t['envConfig'] = harness.charm._make_pod_config()
         t['imageDetails'] = {'imagePath': 'localhost:32000/myimage:latest'}
         t['volumeConfig'] = [
-            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy', 'emptyDir': {'sizeLimit': '10G'}}
+            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '10G'}}
         ]
         k8s_resources = None
         expected = ({'version': 3, 'containers': [t]}, k8s_resources)
@@ -198,7 +198,7 @@ class TestCharm(unittest.TestCase):
             'password': 'mypassword',
         }
         t['volumeConfig'] = [
-            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy', 'emptyDir': {'sizeLimit': '10G'}}
+            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '10G'}}
         ]
         k8s_resources = None
         expected = ({'version': 3, 'containers': [t]}, k8s_resources)
@@ -217,7 +217,7 @@ class TestCharm(unittest.TestCase):
         t['envConfig'] = harness.charm._make_pod_config()
         t['imageDetails'] = {'imagePath': 'localhost:32000/myimage:latest'}
         t['volumeConfig'] = [
-            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy', 'emptyDir': {'sizeLimit': '201G'}}
+            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '201G'}}
         ]
         k8s_resources = None
         expected = ({'version': 3, 'containers': [t]}, k8s_resources)
