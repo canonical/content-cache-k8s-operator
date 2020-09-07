@@ -44,3 +44,8 @@ options:
       Determines in which cases a stale cached response can be used
       during communication with the proxied server.
     default: "error timeout updating http_500 http_502 http_503 http_504"
+  cache_valid:
+    type: string
+    decription: >
+      Sets caching time for different response codes
+    default: "200 1h"

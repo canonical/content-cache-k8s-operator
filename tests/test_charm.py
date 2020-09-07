@@ -16,6 +16,7 @@ BASE_CONFIG = {
     'backends': 'localhost:80',
     'cache_max_size': '10G',
     'cache_use_stale': 'error timeout updating http_500 http_502 http_503 http_504',
+    'cache_valid': '200 1h',
 }
 CACHE_PATH = '/var/lib/nginx/proxy/cache'
 CONTAINER_PORT = 80
@@ -251,6 +252,7 @@ class TestCharm(unittest.TestCase):
             'NGINX_CACHE_MAX_SIZE': '10G',
             'NGINX_CACHE_PATH': CACHE_PATH,
             'NGINX_CACHE_USE_STALE': 'error timeout updating http_500 http_502 http_503 http_504',
+            'NGINX_CACHE_VALID': '200 1h',
             'NGINX_KEYS_ZONE': '39c631ffb52d-cache',
             'NGINX_SITE_NAME': 'mysite.local',
         }
