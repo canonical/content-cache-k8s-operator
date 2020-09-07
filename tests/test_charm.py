@@ -173,7 +173,7 @@ class TestCharm(unittest.TestCase):
         t['envConfig'] = harness.charm._make_pod_config()
         t['imageDetails'] = {'imagePath': 'localhost:32000/myimage:latest'}
         t['volumeConfig'] = [
-            {'name': 'cache-volume', 'mountPath': '/nginx-cache', 'emptyDir': {'medium': 'Memory', 'sizeLimit': '10G'}}
+            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy', 'emptyDir': {'sizeLimit': '10G'}}
         ]
         k8s_resources = None
         expected = ({'version': 3, 'containers': [t]}, k8s_resources)
@@ -197,7 +197,7 @@ class TestCharm(unittest.TestCase):
             'password': 'mypassword',
         }
         t['volumeConfig'] = [
-            {'name': 'cache-volume', 'mountPath': '/nginx-cache', 'emptyDir': {'medium': 'Memory', 'sizeLimit': '10G'}}
+            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy', 'emptyDir': {'sizeLimit': '10G'}}
         ]
         k8s_resources = None
         expected = ({'version': 3, 'containers': [t]}, k8s_resources)
@@ -216,7 +216,7 @@ class TestCharm(unittest.TestCase):
         t['envConfig'] = harness.charm._make_pod_config()
         t['imageDetails'] = {'imagePath': 'localhost:32000/myimage:latest'}
         t['volumeConfig'] = [
-            {'name': 'cache-volume', 'mountPath': '/nginx-cache', 'emptyDir': {'medium': 'Memory', 'sizeLimit': '201G'}}
+            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy', 'emptyDir': {'sizeLimit': '201G'}}
         ]
         k8s_resources = None
         expected = ({'version': 3, 'containers': [t]}, k8s_resources)
