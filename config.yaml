@@ -28,7 +28,12 @@ options:
       The backends to use for site, e.g. "mybackend.local:80"
 
       This setting is required.
-  cache_size:
+  cache_inactive_time:
+    type: string
+    description: >
+      The maximum age/time inactive objects are stored in cache.
+    default: "10m"
+  cache_max_size:
     type: string
     description: >
       The size of the Nginx storage cache.

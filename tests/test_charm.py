@@ -14,7 +14,7 @@ BASE_CONFIG = {
     'image_path': 'localhost:32000/myimage:latest',
     'site': 'mysite.local',
     'backends': 'localhost:80',
-    'cache_size': '10G',
+    'cache_max_size': '10G',
 }
 CONTAINER_PORT = 80
 CONTAINER_SPEC_TMPL = {
@@ -203,14 +203,14 @@ class TestCharm(unittest.TestCase):
         expected = ({'version': 3, 'containers': [t]}, k8s_resources)
         self.assertEqual(harness.get_pod_spec(), expected)
 
-    def test_make_pod_spec_cache_size(self):
+    def test_make_pod_spec_cache_max_size(self):
         harness = self.harness
 
         harness.set_leader(True)
         harness.begin()
 
         config = copy.deepcopy(BASE_CONFIG)
-        config['cache_size'] = '201G'
+        config['cache_max_size'] = '201G'
         harness.update_config(config)
         t = copy.deepcopy(CONTAINER_SPEC_TMPL)
         t['envConfig'] = harness.charm._make_pod_config()
