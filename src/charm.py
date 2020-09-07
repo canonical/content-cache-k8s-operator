@@ -123,6 +123,7 @@ class CharmK8SContentCacheCharm(CharmBase):
             'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),
             'NGINX_CACHE_MAX_SIZE': config.get('cache_max_size', '10G'),
             'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_CACHE_USE_STALE': config['cache_use_stale'],
             'NGINX_KEYS_ZONE': self._generate_keys_zone(config['site']),
             'NGINX_SITE_NAME': config['site'],
         }

@@ -38,8 +38,9 @@ options:
     description: >
       The size of the Nginx storage cache.
     default: "10G"
-  thing:
+  cache_use_stale:
     type: string
-    desciption: >
-      Used for testing
-    default: ""
+    description: >
+      Determines in which cases a stale cached response can be used
+      during communication with the proxied server.
+    default: "error timeout updating http_500 http_502 http_503 http_504"

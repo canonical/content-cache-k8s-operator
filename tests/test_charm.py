@@ -15,6 +15,7 @@ BASE_CONFIG = {
     'site': 'mysite.local',
     'backends': 'localhost:80',
     'cache_max_size': '10G',
+    'cache_use_stale': 'error timeout updating http_500 http_502 http_503 http_504',
 }
 CACHE_PATH = '/var/lib/nginx/proxy/cache'
 CONTAINER_PORT = 80
@@ -172,7 +173,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm._generate_keys_zone('mysite.local'), expected)
         expected = '8b79f9e4b3e8-cache'
         self.assertEqual(harness.charm._generate_keys_zone('my-really-really-really-long-site-name.local'), expected)
-        expected ='d41d8cd98f00-cache'
+        expected = 'd41d8cd98f00-cache'
         self.assertEqual(harness.charm._generate_keys_zone(''), expected)
 
     def test_make_pod_spec(self):
@@ -249,6 +250,7 @@ class TestCharm(unittest.TestCase):
             'NGINX_CACHE_INACTIVE_TIME': '10m',
             'NGINX_CACHE_MAX_SIZE': '10G',
             'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_CACHE_USE_STALE': 'error timeout updating http_500 http_502 http_503 http_504',
             'NGINX_KEYS_ZONE': '39c631ffb52d-cache',
             'NGINX_SITE_NAME': 'mysite.local',
         }
