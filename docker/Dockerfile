@@ -1,7 +1,4 @@
-FROM ubuntu:focal
-
-# We use "set -o pipefail"
-SHELL ["/bin/bash", "-c"]
+FROM ubuntu:latest
 
 ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
@@ -12,11 +9,10 @@ RUN apt-get -qy update && \
     apt-get -qy clean && \
     rm -f /var/lib/apt/lists/*_*
 
-RUN rm -f /etc/nginx/sites-enabled/*
+COPY files/nginx-logging-format.conf /etc/nginx/conf.d/nginx-logging-format.conf
 
 WORKDIR /srv/content-cache
 
-# COPY nginx-logging-format.conf /etc/nginx/conf.d/nginx-logging-format.conf
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+CMD ["nginx", "-g", "daemon off;"]
 
-CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
+EXPOSE 80
