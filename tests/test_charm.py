@@ -16,6 +16,7 @@ BASE_CONFIG = {
     'backends': 'localhost:80',
     'cache_max_size': '10G',
 }
+CACHE_PATH = '/var/lib/nginx/proxy'
 CONTAINER_PORT = 80
 CONTAINER_SPEC_TMPL = {
     'name': 'charm-k8s-content-cache',
@@ -230,7 +231,14 @@ class TestCharm(unittest.TestCase):
 
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
-        self.assertEqual(harness.charm._make_pod_config(), {'TEST_CONFIG': 'false'})
+        expected = {
+            'NGINX_BACKEND': 'localhost:80',
+            'NGINX_CACHE_INACTIVE_TIME': '10m',
+            'NGINX_CACHE_MAX_SIZE': '10G',
+            'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_SITE_NAME': 'mysite.local',
+        }
+        self.assertEqual(harness.charm._make_pod_config(), expected)
 
     def test_missing_charm_configs(self):
         harness = self.harness

@@ -13,6 +13,7 @@ from ops.model import (
 
 logger = logging.getLogger(__name__)
 
+CACHE_PATH = '/var/lib/nginx/proxy'
 CONTAINER_PORT = 80
 REQUIRED_JUJU_CONFIGS = ['image_path', 'site', 'backends']
 
@@ -101,7 +102,7 @@ class CharmK8SContentCacheCharm(CharmBase):
                     'volumeConfig': [
                         {
                             'name': 'cache-volume',
-                            'mountPath': '/var/lib/nginx/proxy',
+                            'mountPath': CACHE_PATH,
                             'emptyDir': {'sizeLimit': config['cache_max_size']},
                         }
                     ],
@@ -112,9 +113,13 @@ class CharmK8SContentCacheCharm(CharmBase):
         return pod_spec
 
     def _make_pod_config(self) -> dict:
-        # config = self.model.config
+        config = self.model.config
         pod_config = {
-            'TEST_CONFIG': 'false',
+            'NGINX_BACKEND': config['backends'],
+            'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),
+            'NGINX_CACHE_MAX_SIZE': config.get('cache_max_size', '10G'),
+            'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_SITE_NAME': config['site'],
         }
 
         return pod_config
