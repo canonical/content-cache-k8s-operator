@@ -8,16 +8,16 @@ server {
     absolute_redirect off;
 
     location / {
-        proxy_pass ${NGINX_BACKEND};
-        proxy_set_header Host "${NGINX_SITE_NAME}";
+        proxy_pass \"${NGINX_BACKEND}\";
+        proxy_set_header Host \"${NGINX_SITE_NAME}\";
         # Removed the following headers to avoid cache poisoning.
-        proxy_set_header Forwarded "";
-        proxy_set_header X-Forwarded-Host "";
-        proxy_set_header X-Forwarded-Port "";
-        proxy_set_header X-Forwarded-Proto "";
-        proxy_set_header X-Forwarded-Scheme "";
+        proxy_set_header Forwarded \"\";
+        proxy_set_header X-Forwarded-Host \"\";
+        proxy_set_header X-Forwarded-Port \"\";
+        proxy_set_header X-Forwarded-Proto \"\";
+        proxy_set_header X-Forwarded-Scheme \"\";
 
-        add_header X-Cache-Status "\$upstream_cache_status from ${HOSTNAME}";
+        add_header X-Cache-Status \"\$upstream_cache_status from ${HOSTNAME}\";
         proxy_force_ranges on;
         proxy_cache mysitezone;
     }
