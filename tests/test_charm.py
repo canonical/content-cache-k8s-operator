@@ -45,6 +45,31 @@ POD_SPEC_TMPL = {
         }
     ],
 }
+K8S_RESOURCES_TMPL = {
+    'kubernetesResources': {
+        'ingressResources': [
+            {
+                'annotations': {'nginx.ingress.kubernetes.io/ssl-redirect': 'false'},
+                'name': 'charm-k8s-content-cache-ingress',
+                'spec': {
+                    'rules': [
+                        {
+                            'host': 'mysite.local',
+                            'http': {
+                                'paths': [
+                                    {
+                                        'backend': {'serviceName': 'charm-k8s-content-cache', 'servicePort': 80},
+                                        'path': '/',
+                                    }
+                                ]
+                            },
+                        }
+                    ]
+                },
+            }
+        ]
+    }
+}
 
 
 class TestCharm(unittest.TestCase):
@@ -152,7 +177,7 @@ class TestCharm(unittest.TestCase):
         make_pod_spec.assert_called_once()
         self.assertEqual(harness.charm.unit.status, ActiveStatus())
         pod_spec = harness.charm._make_pod_spec()
-        k8s_resources = None
+        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
         self.assertEqual(harness.get_pod_spec(), (pod_spec, k8s_resources))
 
     @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
@@ -182,6 +207,34 @@ class TestCharm(unittest.TestCase):
         expected = 'd41d8cd98f00-cache'
         self.assertEqual(harness.charm._generate_keys_zone(''), expected)
 
+    def test_make_k8s_ingress_spec(self):
+        harness = self.harness
+
+        harness.disable_hooks()
+        harness.begin()
+
+        config = copy.deepcopy(BASE_CONFIG)
+        harness.update_config(config)
+        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
+        expected = k8s_resources['kubernetesResources']['ingressResources']
+        self.assertEqual(harness.charm._make_k8s_ingress_spec(), expected)
+
+    def test_make_k8s_ingress_spec_tls_secrets(self):
+        harness = self.harness
+
+        harness.disable_hooks()
+        harness.begin()
+
+        config = copy.deepcopy(BASE_CONFIG)
+        config['tls_secret_name'] = '{}-tls'.format(config['site'])
+        harness.update_config(config)
+        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
+        t = k8s_resources['kubernetesResources']['ingressResources'][0]
+        t.pop('annotations')
+        t['spec']['tls'] = [{'hosts': 'mysite.local', 'secretName': 'mysite.local-tls'}]
+        expected = k8s_resources['kubernetesResources']['ingressResources']
+        self.assertEqual(harness.charm._make_k8s_ingress_spec(), expected)
+
     def test_make_pod_spec(self):
         harness = self.harness
 
@@ -197,7 +250,7 @@ class TestCharm(unittest.TestCase):
         t['volumeConfig'] = [
             {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '10G'}}
         ]
-        k8s_resources = None
+        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
         expected = (spec, k8s_resources)
         self.assertEqual(harness.get_pod_spec(), expected)
 
@@ -222,7 +275,7 @@ class TestCharm(unittest.TestCase):
         t['volumeConfig'] = [
             {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '10G'}}
         ]
-        k8s_resources = None
+        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
         expected = (spec, k8s_resources)
         self.assertEqual(harness.get_pod_spec(), expected)
 
@@ -242,7 +295,7 @@ class TestCharm(unittest.TestCase):
         t['volumeConfig'] = [
             {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '201G'}}
         ]
-        k8s_resources = None
+        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
         expected = (spec, k8s_resources)
         self.assertEqual(harness.get_pod_spec(), expected)
 

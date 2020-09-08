@@ -60,16 +60,51 @@ class CharmK8SContentCacheCharm(CharmBase):
             self.unit.status = BlockedStatus('Required config(s) empty: {}'.format(', '.join(sorted(missing))))
             return
 
+        self.unit.status = MaintenanceStatus('Assembling K8s ingress spec')
+        ingress_spec = self._make_k8s_ingress_spec()
+        k8s_resources = {'kubernetesResources': {'ingressResources': ingress_spec}}
+
         self.unit.status = MaintenanceStatus('Assembling pod spec')
         pod_spec = self._make_pod_spec()
 
         self.unit.status = MaintenanceStatus('Setting pod spec')
-        self.model.pod.set_spec(pod_spec)
+        self.model.pod.set_spec(pod_spec, k8s_resources=k8s_resources)
 
         self.unit.status = ActiveStatus()
 
     def _generate_keys_zone(self, name):
         return '{}-cache'.format(hashlib.md5(name.encode('UTF-8')).hexdigest()[0:12])
+
+    def _make_k8s_ingress_spec(self) -> list:
+        config = self.model.config
+
+        annotations = {}
+        ingress = {
+            'name': '{}-ingress'.format(self.app.name),
+            'spec': {
+                'rules': [
+                    {
+                        'host': config['site'],
+                        'http': {
+                            'paths': [
+                                {'path': '/', 'backend': {'serviceName': self.app.name, 'servicePort': CONTAINER_PORT}}
+                            ],
+                        },
+                    }
+                ],
+            },
+        }
+
+        tls_secret_name = config.get('tls_secret_name')
+        if tls_secret_name:
+            ingress['spec']['tls'] = [{'hosts': config['site'], 'secretName': tls_secret_name}]
+        else:
+            annotations['nginx.ingress.kubernetes.io/ssl-redirect'] = 'false'
+
+        if annotations:
+            ingress['annotations'] = annotations
+
+        return [ingress]
 
     def _make_pod_spec(self) -> dict:
         config = self.model.config
