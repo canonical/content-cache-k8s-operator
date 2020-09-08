@@ -219,6 +219,21 @@ class TestCharm(unittest.TestCase):
         expected = k8s_resources['kubernetesResources']['ingressResources']
         self.assertEqual(harness.charm._make_k8s_ingress_spec(), expected)
 
+    def test_make_k8s_ingress_spec_client_max_body_size(self):
+        harness = self.harness
+
+        harness.disable_hooks()
+        harness.begin()
+
+        config = copy.deepcopy(BASE_CONFIG)
+        config['client_max_body_size'] = '32m'
+        harness.update_config(config)
+        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
+        t = k8s_resources['kubernetesResources']['ingressResources'][0]['annotations']
+        t['nginx.ingress.kubernetes.io/proxy-body-size'] = '32m'
+        expected = k8s_resources['kubernetesResources']['ingressResources']
+        self.assertEqual(harness.charm._make_k8s_ingress_spec(), expected)
+
     def test_make_k8s_ingress_spec_tls_secrets(self):
         harness = self.harness
 
@@ -314,6 +329,29 @@ class TestCharm(unittest.TestCase):
             'NGINX_CACHE_PATH': CACHE_PATH,
             'NGINX_CACHE_USE_STALE': 'error timeout updating http_500 http_502 http_503 http_504',
             'NGINX_CACHE_VALID': '200 1h',
+            'NGINX_CLIENT_MAX_BODY_SIZE': '1m',
+            'NGINX_KEYS_ZONE': '39c631ffb52d-cache',
+            'NGINX_SITE_NAME': 'mysite.local',
+        }
+        self.assertEqual(harness.charm._make_pod_config(), expected)
+
+    def test_make_pod_config_client_max_body_size(self):
+        harness = self.harness
+
+        harness.disable_hooks()
+        harness.begin()
+
+        config = copy.deepcopy(BASE_CONFIG)
+        config['client_max_body_size'] = '50m'
+        harness.update_config(config)
+        expected = {
+            'NGINX_BACKEND': 'localhost:80',
+            'NGINX_CACHE_INACTIVE_TIME': '10m',
+            'NGINX_CACHE_MAX_SIZE': '10G',
+            'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_CACHE_USE_STALE': 'error timeout updating http_500 http_502 http_503 http_504',
+            'NGINX_CACHE_VALID': '200 1h',
+            'NGINX_CLIENT_MAX_BODY_SIZE': '50m',
             'NGINX_KEYS_ZONE': '39c631ffb52d-cache',
             'NGINX_SITE_NAME': 'mysite.local',
         }

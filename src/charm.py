@@ -95,6 +95,10 @@ class CharmK8SContentCacheCharm(CharmBase):
             },
         }
 
+        client_max_body_size = config.get('client_max_body_size')
+        if client_max_body_size:
+            annotations['nginx.ingress.kubernetes.io/proxy-body-size'] = client_max_body_size
+
         tls_secret_name = config.get('tls_secret_name')
         if tls_secret_name:
             ingress['spec']['tls'] = [{'hosts': config['site'], 'secretName': tls_secret_name}]
@@ -153,6 +157,11 @@ class CharmK8SContentCacheCharm(CharmBase):
 
     def _make_pod_config(self) -> dict:
         config = self.model.config
+
+        client_max_body_size = '1m'
+        if config.get('client_max_body_size', ''):
+            client_max_body_size = config.get('client_max_body_size')
+
         pod_config = {
             'NGINX_BACKEND': config['backends'],
             'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),
@@ -160,6 +169,7 @@ class CharmK8SContentCacheCharm(CharmBase):
             'NGINX_CACHE_PATH': CACHE_PATH,
             'NGINX_CACHE_USE_STALE': config['cache_use_stale'],
             'NGINX_CACHE_VALID': config['cache_valid'],
+            'NGINX_CLIENT_MAX_BODY_SIZE': client_max_body_size,
             'NGINX_KEYS_ZONE': self._generate_keys_zone(config['site']),
             'NGINX_SITE_NAME': config['site'],
         }

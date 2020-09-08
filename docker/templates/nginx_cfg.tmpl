@@ -4,6 +4,8 @@ server {
     server_name ${NGINX_SITE_NAME};
     listen *:80;
 
+    client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE};
+
     port_in_redirect off;
     absolute_redirect off;
 

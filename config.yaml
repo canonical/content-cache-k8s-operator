@@ -49,8 +49,13 @@ options:
     decription: >
       Sets caching time for different response codes
     default: "200 1h"
+  client_max_body_size:
+    type: string
+    description: >
+      Override max. request body size
+    default: ""
   tls_secret_name:
     type: string
     description: >
       The name of the K8s secret to be associated with the ingress resource.
-    default: ''
+    default: ""
