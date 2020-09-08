@@ -85,6 +85,7 @@ class TestCharm(unittest.TestCase):
         self.addCleanup(self.harness.cleanup)
 
     def test_on_start(self):
+        """Test on_start, nothing but setting ActiveStatus"""
         harness = self.harness
         action_event = mock.Mock()
 
@@ -94,6 +95,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_config_changed(self, configure_pod):
+        """Test on_config_changed, ensure configure_pod is called just once"""
         harness = self.harness
 
         # Intentionally before harness.begin() to avoid firing leadership events.
@@ -107,6 +109,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_config_changed_not_leader(self, configure_pod):
+        """Test on_config_chaned, not the leader so configure_pod not called"""
         harness = self.harness
 
         # Intentionally before harness.begin() to avoid firing leadership events.
@@ -120,6 +123,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_leader_elected(self, configure_pod):
+        """Test on_leader_elected, ensure configure_pod is called just once"""
         harness = self.harness
 
         harness.begin()
@@ -130,6 +134,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_leader_elected_not_leader(self, configure_pod):
+        """Test on_leader_elected, not the leader so configure_pod is not called"""
         harness = self.harness
 
         harness.begin()
@@ -140,6 +145,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_upgrade_charm(self, configure_pod):
+        """Test on_upgrade_charm, ensure configure_pod is called just once"""
         harness = self.harness
         action_event = mock.Mock()
 
@@ -155,6 +161,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_upgrade_charm_not_leader(self, configure_pod):
+        """Test on_upgrade_charm, not the leader so configure_pod is not called"""
         harness = self.harness
         action_event = mock.Mock()
 
@@ -170,6 +177,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.ContentCacheCharm._make_pod_spec')
     def test_configure_pod(self, make_pod_spec):
+        """Test configure_pod, ensure make_pod_spec is called and the generated pod spec is correct"""
         harness = self.harness
 
         harness.set_leader(True)
@@ -185,6 +193,7 @@ class TestCharm(unittest.TestCase):
 
     @mock.patch('charm.ContentCacheCharm._make_pod_spec')
     def test_configure_pod_missing_configs(self, make_pod_spec):
+        """Test configure_pod, missing configs so ensure make_pod_spec is not called and no pod spec set"""
         harness = self.harness
 
         harness.set_leader(True)
@@ -198,6 +207,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.get_pod_spec(), None)
 
     def test_generate_keys_zone(self):
+        """Test generating hashed name for Nginx's cache key zone"""
         harness = self.harness
 
         harness.disable_hooks()
@@ -211,6 +221,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm._generate_keys_zone(''), expected)
 
     def test_make_k8s_ingress_spec(self):
+        """Test generation of K8s ingress spec and ensure it is correct"""
         harness = self.harness
 
         harness.disable_hooks()
@@ -223,6 +234,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm._make_k8s_ingress_spec(), expected)
 
     def test_make_k8s_ingress_spec_client_max_body_size(self):
+        """Test charm config's client_max_body_size with correct annotation in generated K8s ingress spec"""
         harness = self.harness
 
         harness.disable_hooks()
@@ -238,6 +250,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm._make_k8s_ingress_spec(), expected)
 
     def test_make_k8s_ingress_spec_tls_secrets(self):
+        """Test charm config's tls_secret_name with TLS/SSL enabled in generated K8s ingress spec"""
         harness = self.harness
 
         harness.disable_hooks()
@@ -254,6 +267,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm._make_k8s_ingress_spec(), expected)
 
     def test_make_pod_spec(self):
+        """Test make_pod_spec, ensure correct spec and is applied and returned by operator's get_pod_spec"""
         harness = self.harness
 
         harness.set_leader(True)
@@ -273,6 +287,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.get_pod_spec(), expected)
 
     def test_make_pod_spec_image_username(self):
+        """Test charm config image_username/image_password, ensure correct pod spec with details to pod image"""
         harness = self.harness
 
         harness.set_leader(True)
@@ -298,6 +313,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.get_pod_spec(), expected)
 
     def test_make_pod_spec_cache_max_size(self):
+        """Test charm config's cache_max_size, ensure correct pod spec utilising volumeConfig with size limit"""
         harness = self.harness
 
         harness.set_leader(True)
@@ -318,6 +334,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.get_pod_spec(), expected)
 
     def test_make_pod_config(self):
+        """Test make_pod_config, ensure envConfig returned is correct"""
         harness = self.harness
 
         harness.disable_hooks()
@@ -339,6 +356,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm._make_pod_config(), expected)
 
     def test_make_pod_config_client_max_body_size(self):
+        """Test make_pod_config with charm config client_max_body_size, ensure envConfig returned is correct"""
         harness = self.harness
 
         harness.disable_hooks()
@@ -361,6 +379,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm._make_pod_config(), expected)
 
     def test_missing_charm_configs(self):
+        """Test missing_charm_config, ensure required configs present and return those missing"""
         harness = self.harness
 
         harness.disable_hooks()
