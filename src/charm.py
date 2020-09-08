@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 CACHE_PATH = '/var/lib/nginx/proxy/cache'
 CONTAINER_PORT = 80
-REQUIRED_JUJU_CONFIGS = ['image_path', 'site', 'backends']
+REQUIRED_JUJU_CONFIGS = ['image_path', 'site', 'backend']
 
 
 class CharmK8SContentCacheCharm(CharmBase):
@@ -163,7 +163,7 @@ class CharmK8SContentCacheCharm(CharmBase):
             client_max_body_size = config.get('client_max_body_size')
 
         pod_config = {
-            'NGINX_BACKEND': config['backends'],
+            'NGINX_BACKEND': config['backend'],
             'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),
             'NGINX_CACHE_MAX_SIZE': config.get('cache_max_size', '10G'),
             'NGINX_CACHE_PATH': CACHE_PATH,

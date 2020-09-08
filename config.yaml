@@ -22,10 +22,10 @@ options:
       The site name, e.g. "mysite.local"
 
       This setting is required.
-  backends:
+  backend:
     type: string
     description: >
-      The backends to use for site, e.g. "mybackend.local:80"
+      The backend to use for site, e.g. "http://mybackend.local:80"
 
       This setting is required.
   cache_inactive_time:

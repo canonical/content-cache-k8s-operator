@@ -13,7 +13,7 @@ from charm import CharmK8SContentCacheCharm
 BASE_CONFIG = {
     'image_path': 'localhost:32000/myimage:latest',
     'site': 'mysite.local',
-    'backends': 'localhost:80',
+    'backend': 'http://mybackend.local:80',
     'cache_max_size': '10G',
     'cache_use_stale': 'error timeout updating http_500 http_502 http_503 http_504',
     'cache_valid': '200 1h',
@@ -323,7 +323,7 @@ class TestCharm(unittest.TestCase):
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
         expected = {
-            'NGINX_BACKEND': 'localhost:80',
+            'NGINX_BACKEND': 'http://mybackend.local:80',
             'NGINX_CACHE_INACTIVE_TIME': '10m',
             'NGINX_CACHE_MAX_SIZE': '10G',
             'NGINX_CACHE_PATH': CACHE_PATH,
@@ -345,7 +345,7 @@ class TestCharm(unittest.TestCase):
         config['client_max_body_size'] = '50m'
         harness.update_config(config)
         expected = {
-            'NGINX_BACKEND': 'localhost:80',
+            'NGINX_BACKEND': 'http://mybackend.local:80',
             'NGINX_CACHE_INACTIVE_TIME': '10m',
             'NGINX_CACHE_MAX_SIZE': '10G',
             'NGINX_CACHE_PATH': CACHE_PATH,
