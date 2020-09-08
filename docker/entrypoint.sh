@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Copyright 2020 Canonical Ltd.
-# Licensed under the GPLv3, see LICENCE file for details.
+# Copyright (C) 2020 Canonical Ltd.
+# See LICENSE file for licensing details.
 
 set -eu
 
