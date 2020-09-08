@@ -19,7 +19,7 @@ server {
         proxy_set_header X-Forwarded-Proto \"\";
         proxy_set_header X-Forwarded-Scheme \"\";
 
-        add_header X-Cache-Status \"\$upstream_cache_status from ${HOSTNAME}\";
+        add_header X-Cache-Status \"\$upstream_cache_status from ${JUJU_UNIT} (${HOSTNAME})\";
 
         proxy_force_ranges on;
         proxy_cache ${NGINX_KEYS_ZONE};

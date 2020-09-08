@@ -1,8 +1,13 @@
+# Copyright 2020 Canonical Ltd.
+# Licensed under the GPLv3, see LICENCE file for details.
+
 FROM ubuntu:latest
 
 ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 
+# Don't install recommends to keep image small and avoid nasty surprises
+# e.g. rpcbind being pulled in by nrpe.
 RUN apt-get -qy update && \
     apt-get -qy dist-upgrade --no-install-recommends && \
     apt-get -qy install --no-install-recommends nginx-light && \

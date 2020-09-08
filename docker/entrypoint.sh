@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Copyright 2020 Canonical Ltd.
+# Licensed under the GPLv3, see LICENCE file for details.
+
 set -eu
 
 # https://pempek.net/articles/2013/07/08/bash-sh-as-template-engine/

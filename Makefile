@@ -1,3 +1,6 @@
+# Copyright 2020 Canonical Ltd.
+# Licensed under the GPLv3, see LICENCE file for details.
+
 lint:
 	@echo "Normalising python layout with black."
 	@tox -e black

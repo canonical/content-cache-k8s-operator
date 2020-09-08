@@ -52,7 +52,7 @@ options:
   client_max_body_size:
     type: string
     description: >
-      Override max. request body size
+      Override max. request body size (default 1m).
     default: ""
   tls_secret_name:
     type: string
