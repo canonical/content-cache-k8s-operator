@@ -12,6 +12,9 @@ render_template() {
 
 cp /srv/content-cache/files/nginx-logging-format.conf /etc/nginx/conf.d/nginx-logging-format.conf
 
+# https://bugs.launchpad.net/juju/+bug/1894782
+export JUJU_UNIT=$(basename /var/lib/juju/tools/unit-* | sed -e 's/^unit-//' -e 's/-\([0-9]\+\)$/\/\1/')
+
 render_template /srv/content-cache/templates/nginx_cfg.tmpl > /etc/nginx/sites-available/default
 
 # Run the real command
