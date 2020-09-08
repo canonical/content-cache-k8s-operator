@@ -66,6 +66,7 @@ class ContentCacheCharm(CharmBase):
         self.configure_pod(event)
 
     def configure_pod(self, event) -> None:
+        """Assemble both K8s ingress and pod spec and apply"""
         missing = self._missing_charm_configs()
         if missing:
             msg = 'Required config(s) empty: {}'.format(', '.join(sorted(missing)))
@@ -94,9 +95,11 @@ class ContentCacheCharm(CharmBase):
         self.unit.status = ActiveStatus('Ready')
 
     def _generate_keys_zone(self, name):
+        """Generate hashed name to be used by Nginx's key zone"""
         return '{}-cache'.format(hashlib.md5(name.encode('UTF-8')).hexdigest()[0:12])
 
     def _make_k8s_ingress_spec(self) -> list:
+        """Return an assembled K8s ingress spec to be used by pod.set_spec()'s k8s_resources"""
         config = self.model.config
 
         annotations = {}
@@ -132,6 +135,7 @@ class ContentCacheCharm(CharmBase):
         return [ingress]
 
     def _make_pod_spec(self) -> dict:
+        """Return an assembled K8s pod spec with appropriate configs set"""
         config = self.model.config
 
         image_details = {
@@ -177,6 +181,7 @@ class ContentCacheCharm(CharmBase):
         return pod_spec
 
     def _make_pod_config(self) -> dict:
+        """Return dict to be used as pod spec's envConfig"""
         config = self.model.config
 
         client_max_body_size = '1m'
@@ -198,6 +203,7 @@ class ContentCacheCharm(CharmBase):
         return pod_config
 
     def _missing_charm_configs(self) -> list:
+        """Check and return list of required missing configs"""
         config = self.model.config
         missing = []
 
