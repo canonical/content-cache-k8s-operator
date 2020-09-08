@@ -38,7 +38,7 @@ class CharmK8SContentCacheCharm(CharmBase):
     def _on_config_changed(self, event) -> None:
         if not self.model.unit.is_leader():
             logger.info('Spec changes ignored by non-leader')
-            self.unit.status = ActiveStatus()
+            self.unit.status = ActiveStatus('Ready')
             return
         msg = 'Configuring pod (config-changed)'
         logger.info(msg)
@@ -55,7 +55,7 @@ class CharmK8SContentCacheCharm(CharmBase):
     def _on_upgrade_charm(self, event) -> None:
         if not self.model.unit.is_leader():
             logger.info('Spec changes ignored by non-leader')
-            self.unit.status = ActiveStatus()
+            self.unit.status = ActiveStatus('Ready')
             return
         msg = 'Configuring pod (upgrade-charm)'
         logger.info(msg)
@@ -88,7 +88,7 @@ class CharmK8SContentCacheCharm(CharmBase):
 
         msg = 'Done applying updated pod spec'
         logger.info(msg)
-        self.unit.status = ActiveStatus()
+        self.unit.status = ActiveStatus('Ready')
 
     def _generate_keys_zone(self, name):
         return '{}-cache'.format(hashlib.md5(name.encode('UTF-8')).hexdigest()[0:12])

@@ -175,7 +175,7 @@ class TestCharm(unittest.TestCase):
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
         make_pod_spec.assert_called_once()
-        self.assertEqual(harness.charm.unit.status, ActiveStatus())
+        self.assertEqual(harness.charm.unit.status, ActiveStatus('Ready'))
         pod_spec = harness.charm._make_pod_spec()
         k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
         self.assertEqual(harness.get_pod_spec(), (pod_spec, k8s_resources))
