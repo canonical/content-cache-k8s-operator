@@ -1,61 +1,61 @@
 options:
   image_path:
     type: string
-    description: >
+    description: >-
       The location of the image to use, e.g. "localhost:32000/myimage:latest"
 
       This setting is required.
   image_username:
     type: string
-    description: >
+    description: >-
       The username for accessing the registry specified in image_path.
     default: ""
   image_password:
     type: string
-    description: >
+    description: >-
       The password associated with image_username for accessing the registry
       specified in image_path.
     default: ""
   site:
     type: string
-    description: >
+    description: >-
       The site name, e.g. "mysite.local"
 
       This setting is required.
   backend:
     type: string
-    description: >
+    description: >-
       The backend to use for site, e.g. "http://mybackend.local:80"
 
       This setting is required.
   cache_inactive_time:
     type: string
-    description: >
+    description: >-
       The maximum age/time inactive objects are stored in cache.
     default: "10m"
   cache_max_size:
     type: string
-    description: >
+    description: >-
       The size of the Nginx storage cache.
     default: "10G"
   cache_use_stale:
     type: string
-    description: >
+    description: >-
       Determines in which cases a stale cached response can be used
       during communication with the proxied server.
     default: "error timeout updating http_500 http_502 http_503 http_504"
   cache_valid:
     type: string
-    decription: >
+    decription: >-
       Sets caching time for different response codes
     default: "200 1h"
   client_max_body_size:
     type: string
-    description: >
+    description: >-
       Override max. request body size (default 1m).
     default: ""
   tls_secret_name:
     type: string
-    description: >
+    description: >-
       The name of the K8s secret to be associated with the ingress resource.
     default: ""
