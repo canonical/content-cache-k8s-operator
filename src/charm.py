@@ -37,39 +37,57 @@ class CharmK8SContentCacheCharm(CharmBase):
 
     def _on_config_changed(self, event) -> None:
         if not self.model.unit.is_leader():
+            logger.info('Spec changes ignored by non-leader')
             self.unit.status = ActiveStatus()
             return
-        self.model.unit.status = MaintenanceStatus('Configuring pod (config-changed)')
+        msg = 'Configuring pod (config-changed)'
+        logger.info(msg)
+        self.model.unit.status = MaintenanceStatus(msg)
 
         self.configure_pod(event)
 
     def _on_leader_elected(self, event) -> None:
-        self.model.unit.status = MaintenanceStatus('Configuring pod (leader-elected)')
+        msg = 'Configuring pod (leader-elected)'
+        logger.info(msg)
+        self.model.unit.status = MaintenanceStatus(msg)
         self.configure_pod(event)
 
     def _on_upgrade_charm(self, event) -> None:
         if not self.model.unit.is_leader():
+            logger.info('Spec changes ignored by non-leader')
             self.unit.status = ActiveStatus()
             return
-        self.model.unit.status = MaintenanceStatus('Configuring pod (upgrade-charm)')
+        msg = 'Configuring pod (upgrade-charm)'
+        logger.info(msg)
+        self.model.unit.status = MaintenanceStatus(msg)
         self.configure_pod(event)
 
     def configure_pod(self, event) -> None:
         missing = self._missing_charm_configs()
         if missing:
-            self.unit.status = BlockedStatus('Required config(s) empty: {}'.format(', '.join(sorted(missing))))
+            msg = 'Required config(s) empty: {}'.format(', '.join(sorted(missing)))
+            logger.warning(msg)
+            self.unit.status = BlockedStatus(msg)
             return
 
-        self.unit.status = MaintenanceStatus('Assembling K8s ingress spec')
+        msg = 'Assembling K8s ingress spec'
+        logger.info(msg)
+        self.unit.status = MaintenanceStatus(msg)
         ingress_spec = self._make_k8s_ingress_spec()
         k8s_resources = {'kubernetesResources': {'ingressResources': ingress_spec}}
 
-        self.unit.status = MaintenanceStatus('Assembling pod spec')
+        msg = 'Assembling pod spec'
+        logger.info(msg)
+        self.unit.status = MaintenanceStatus(msg)
         pod_spec = self._make_pod_spec()
 
-        self.unit.status = MaintenanceStatus('Setting pod spec')
+        msg = 'Setting pod spec'
+        logger.info(msg)
+        self.unit.status = MaintenanceStatus(msg)
         self.model.pod.set_spec(pod_spec, k8s_resources=k8s_resources)
 
+        msg = 'Done applying updated pod spec'
+        logger.info(msg)
         self.unit.status = ActiveStatus()
 
     def _generate_keys_zone(self, name):
