@@ -20,25 +20,30 @@ BASE_CONFIG = {
 }
 CACHE_PATH = '/var/lib/nginx/proxy/cache'
 CONTAINER_PORT = 80
-CONTAINER_SPEC_TMPL = {
-    'name': 'charm-k8s-content-cache',
-    'envConfig': None,
-    'imageDetails': None,
-    'imagePullPolicy': 'Always',
-    'kubernetes': {
-        'livenessProbe': {
-            'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-            'initialDelaySeconds': 3,
-            'periodSeconds': 3,
-        },
-        'readinessProbe': {
-            'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-            'initialDelaySeconds': 3,
-            'periodSeconds': 3,
-        },
-    },
-    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
-    'volumeConfig': None,
+POD_SPEC_TMPL = {
+    'version': 3,
+    'containers': [
+        {
+            'name': 'charm-k8s-content-cache',
+            'envConfig': None,
+            'imageDetails': None,
+            'imagePullPolicy': 'Always',
+            'kubernetes': {
+                'livenessProbe': {
+                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+                    'initialDelaySeconds': 3,
+                    'periodSeconds': 3,
+                },
+                'readinessProbe': {
+                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+                    'initialDelaySeconds': 3,
+                    'periodSeconds': 3,
+                },
+            },
+            'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
+            'volumeConfig': None,
+        }
+    ],
 }
 
 
@@ -185,14 +190,15 @@ class TestCharm(unittest.TestCase):
 
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
-        t = copy.deepcopy(CONTAINER_SPEC_TMPL)
+        spec = copy.deepcopy(POD_SPEC_TMPL)
+        t = spec['containers'][0]
         t['envConfig'] = harness.charm._make_pod_config()
         t['imageDetails'] = {'imagePath': 'localhost:32000/myimage:latest'}
         t['volumeConfig'] = [
             {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '10G'}}
         ]
         k8s_resources = None
-        expected = ({'version': 3, 'containers': [t]}, k8s_resources)
+        expected = (spec, k8s_resources)
         self.assertEqual(harness.get_pod_spec(), expected)
 
     def test_make_pod_spec_image_username(self):
@@ -205,7 +211,8 @@ class TestCharm(unittest.TestCase):
         config['image_username'] = 'myuser'
         config['image_password'] = 'mypassword'
         harness.update_config(config)
-        t = copy.deepcopy(CONTAINER_SPEC_TMPL)
+        spec = copy.deepcopy(POD_SPEC_TMPL)
+        t = spec['containers'][0]
         t['envConfig'] = harness.charm._make_pod_config()
         t['imageDetails'] = {
             'imagePath': 'localhost:32000/myimage:latest',
@@ -216,7 +223,7 @@ class TestCharm(unittest.TestCase):
             {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '10G'}}
         ]
         k8s_resources = None
-        expected = ({'version': 3, 'containers': [t]}, k8s_resources)
+        expected = (spec, k8s_resources)
         self.assertEqual(harness.get_pod_spec(), expected)
 
     def test_make_pod_spec_cache_max_size(self):
@@ -228,14 +235,15 @@ class TestCharm(unittest.TestCase):
         config = copy.deepcopy(BASE_CONFIG)
         config['cache_max_size'] = '201G'
         harness.update_config(config)
-        t = copy.deepcopy(CONTAINER_SPEC_TMPL)
+        spec = copy.deepcopy(POD_SPEC_TMPL)
+        t = spec['containers'][0]
         t['envConfig'] = harness.charm._make_pod_config()
         t['imageDetails'] = {'imagePath': 'localhost:32000/myimage:latest'}
         t['volumeConfig'] = [
             {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '201G'}}
         ]
         k8s_resources = None
-        expected = ({'version': 3, 'containers': [t]}, k8s_resources)
+        expected = (spec, k8s_resources)
         self.assertEqual(harness.get_pod_spec(), expected)
 
     def test_make_pod_config(self):
