@@ -1,4 +1,4 @@
-name: charm-k8s-content-cache
+name: content-cache
 description: |
   Useful for providing local mirrors of HTTP servers and building
   content delivery networks (CDN).

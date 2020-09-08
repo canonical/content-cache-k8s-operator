@@ -11,7 +11,7 @@ from ops.model import (
     MaintenanceStatus,
 )
 from ops.testing import Harness
-from charm import CharmK8SContentCacheCharm
+from charm import ContentCacheCharm
 
 BASE_CONFIG = {
     'image_path': 'localhost:32000/myimage:latest',
@@ -27,7 +27,7 @@ POD_SPEC_TMPL = {
     'version': 3,
     'containers': [
         {
-            'name': 'charm-k8s-content-cache',
+            'name': 'content-cache',
             'envConfig': None,
             'imageDetails': None,
             'imagePullPolicy': 'Always',
@@ -53,7 +53,7 @@ K8S_RESOURCES_TMPL = {
         'ingressResources': [
             {
                 'annotations': {'nginx.ingress.kubernetes.io/ssl-redirect': 'false'},
-                'name': 'charm-k8s-content-cache-ingress',
+                'name': 'content-cache-ingress',
                 'spec': {
                     'rules': [
                         {
@@ -61,7 +61,7 @@ K8S_RESOURCES_TMPL = {
                             'http': {
                                 'paths': [
                                     {
-                                        'backend': {'serviceName': 'charm-k8s-content-cache', 'servicePort': 80},
+                                        'backend': {'serviceName': 'content-cache', 'servicePort': 80},
                                         'path': '/',
                                     }
                                 ]
@@ -78,7 +78,7 @@ K8S_RESOURCES_TMPL = {
 class TestCharm(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
-        self.harness = Harness(CharmK8SContentCacheCharm)
+        self.harness = Harness(ContentCacheCharm)
 
     def tearDown(self):
         # starting from ops 0.8, we also need to do:
@@ -92,7 +92,7 @@ class TestCharm(unittest.TestCase):
         harness.charm._on_start(action_event)
         self.assertEqual(harness.charm.unit.status, ActiveStatus('Started'))
 
-    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_config_changed(self, configure_pod):
         harness = self.harness
 
@@ -105,7 +105,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
         configure_pod.assert_called_once()
 
-    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_config_changed_not_leader(self, configure_pod):
         harness = self.harness
 
@@ -118,7 +118,7 @@ class TestCharm(unittest.TestCase):
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
         configure_pod.assert_not_called()
 
-    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_leader_elected(self, configure_pod):
         harness = self.harness
 
@@ -128,7 +128,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (leader-elected)'))
         configure_pod.assert_called_once()
 
-    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_leader_elected_not_leader(self, configure_pod):
         harness = self.harness
 
@@ -138,7 +138,7 @@ class TestCharm(unittest.TestCase):
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (leader-elected)'))
         configure_pod.assert_not_called()
 
-    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_upgrade_charm(self, configure_pod):
         harness = self.harness
         action_event = mock.Mock()
@@ -153,7 +153,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
         configure_pod.assert_called_once()
 
-    @mock.patch('charm.CharmK8SContentCacheCharm.configure_pod')
+    @mock.patch('charm.ContentCacheCharm.configure_pod')
     def test_on_upgrade_charm_not_leader(self, configure_pod):
         harness = self.harness
         action_event = mock.Mock()
@@ -168,7 +168,7 @@ class TestCharm(unittest.TestCase):
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
         configure_pod.assert_not_called()
 
-    @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
+    @mock.patch('charm.ContentCacheCharm._make_pod_spec')
     def test_configure_pod(self, make_pod_spec):
         harness = self.harness
 
@@ -183,7 +183,7 @@ class TestCharm(unittest.TestCase):
         k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
         self.assertEqual(harness.get_pod_spec(), (pod_spec, k8s_resources))
 
-    @mock.patch('charm.CharmK8SContentCacheCharm._make_pod_spec')
+    @mock.patch('charm.ContentCacheCharm._make_pod_spec')
     def test_configure_pod_missing_configs(self, make_pod_spec):
         harness = self.harness
 

@@ -22,7 +22,7 @@ CONTAINER_PORT = 80
 REQUIRED_JUJU_CONFIGS = ['image_path', 'site', 'backend']
 
 
-class CharmK8SContentCacheCharm(CharmBase):
+class ContentCacheCharm(CharmBase):
     _stored = StoredState()
 
     def __init__(self, *args):
@@ -207,4 +207,4 @@ class CharmK8SContentCacheCharm(CharmBase):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    main(CharmK8SContentCacheCharm)
+    main(ContentCacheCharm)
