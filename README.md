@@ -2,27 +2,33 @@
 
 ## Description
 
-TODO: fill out the description
+Deploy content caching layer into K8s.
 
 ## Usage
 
-TODO: explain how to use the charm
+Build the docker image:
+
+    `cd docker`
+    `docker build . -t myimage:v<revision>`
+    `docker tag myimage:v<revision> localhost:32000/myimage:v<revision>`
+    `docker push localhost:32000/myimage:v<revision>`
+
+Deploy:
+
+    `juju deploy content-cache.charm --config image_path=localhost:32000/myimage:v<revision> --config site=mysite.local --config backend=http://mybackend.local:80`
+
+### Test Deployment
+
+`curl --resolve mysite.local:80:<ingress IP> http://mysite.local`
 
 ### Scale Out Usage
 
-...
+Just run `juju add-unit <application name>`.
 
 ## Developing
 
-Create and activate a virtualenv,
-and install the development requirements,
-
-    virtualenv -p python3 venv
-    source venv/bin/activate
-    pip install -r requirements-dev.txt
+Just run `make lint`.
 
 ## Testing
 
-Just run `run_tests`:
-
-    ./run_tests
+Just run `make unittest`.
