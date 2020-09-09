@@ -214,13 +214,13 @@ class ContentCacheCharm(CharmBase):
         return pod_config
 
     def _missing_charm_configs(self) -> list:
-        """Check and return list of required missing configs"""
+        """Check and return list of required but missing configs"""
         config = self.model.config
-        missing = []
+        missing = [setting for setting in REQUIRED_JUJU_CONFIGS if not config[setting]]
 
-        missing.extend([setting for setting in REQUIRED_JUJU_CONFIGS if not config[setting]])
-
-        return sorted(list(set(missing)))
+        if config.get('image_username') and not config.get('image_password'):
+            missing.append('image_password')
+        return sorted(missing)
 
 
 if __name__ == '__main__':  # pragma: no cover

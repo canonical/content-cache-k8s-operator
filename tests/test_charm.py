@@ -394,20 +394,40 @@ class TestCharm(unittest.TestCase):
         harness.disable_hooks()
         harness.begin()
 
+        # None missing.
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
         expected = []
         self.assertEqual(harness.charm._missing_charm_configs(), expected)
 
+        # One missing.
         config = copy.deepcopy(BASE_CONFIG)
         config['site'] = None
         harness.update_config(config)
         expected = ['site']
         self.assertEqual(harness.charm._missing_charm_configs(), expected)
 
+        # More than one missing.
         config = copy.deepcopy(BASE_CONFIG)
         config['image_path'] = None
         config['site'] = None
         harness.update_config(config)
         expected = ['image_path', 'site']
+        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+
+        # All missing, should be sorted.
+        config = copy.deepcopy(BASE_CONFIG)
+        config['image_path'] = None
+        config['image_username'] = 'myuser'
+        config['backend'] = None
+        config['site'] = None
+        harness.update_config(config)
+        expected = ['backend', 'image_password', 'image_path', 'site']
+        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+
+        # image_password missing when image_username present.
+        config = copy.deepcopy(BASE_CONFIG)
+        config['image_username'] = 'myuser'
+        harness.update_config(config)
+        expected = ['image_password']
         self.assertEqual(harness.charm._missing_charm_configs(), expected)
