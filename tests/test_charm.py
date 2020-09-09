@@ -30,6 +30,17 @@ JUJU_ENV_CONFIG = {
     'JUJU_POD_IP': {'field': {'api-version': 'v1', 'path': 'status.podIP'}},
     'JUJU_POD_SERVICE_ACCOUNT': {'field': {'api-version': 'v1', 'path': 'spec.serviceAccountName'}},
 }
+K8S_RESOURCES_INGRESS_RULES = {
+    'host': 'mysite.local',
+    'http': {
+        'paths': [
+            {
+                'backend': {'serviceName': 'content-cache', 'servicePort': 80},
+                'path': '/',
+            }
+        ]
+    },
+}
 K8S_RESOURCES_TMPL = {
     'kubernetesResources': {
         'ingressResources': [
@@ -37,19 +48,7 @@ K8S_RESOURCES_TMPL = {
                 'annotations': {'nginx.ingress.kubernetes.io/ssl-redirect': 'false'},
                 'name': 'content-cache-ingress',
                 'spec': {
-                    'rules': [
-                        {
-                            'host': 'mysite.local',
-                            'http': {
-                                'paths': [
-                                    {
-                                        'backend': {'serviceName': 'content-cache', 'servicePort': 80},
-                                        'path': '/',
-                                    }
-                                ]
-                            },
-                        }
-                    ]
+                    'rules': [K8S_RESOURCES_INGRESS_RULES],
                 },
             }
         ]
