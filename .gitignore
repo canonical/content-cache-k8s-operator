@@ -1,13 +1,8 @@
-/venv/
 *~
 *.charm
 *.py[cod]
 *.swp
 .coverage
-.gitignore
 .tox/
-Makefile
 build/
-docker/
-tests/
 __pycache__/
