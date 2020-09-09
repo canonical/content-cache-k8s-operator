@@ -13,9 +13,13 @@ Build the docker image:
     `docker tag myimage:v<revision> localhost:32000/myimage:v<revision>`
     `docker push localhost:32000/myimage:v<revision>`
 
+Build the charm:
+
+    `charmcraft build`
+
 Deploy:
 
-    `juju deploy content-cache.charm --config image_path=localhost:32000/myimage:v<revision> --config site=mysite.local --config backend=http://mybackend.local:80`
+    `juju deploy ./content-cache.charm --config image_path=localhost:32000/myimage:v<revision> --config site=mysite.local --config backend=http://mybackend.local:80`
 
 ### Test Deployment
 
