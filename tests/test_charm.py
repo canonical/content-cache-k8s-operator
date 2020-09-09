@@ -23,30 +23,12 @@ BASE_CONFIG = {
 }
 CACHE_PATH = '/var/lib/nginx/proxy/cache'
 CONTAINER_PORT = 80
-POD_SPEC_TMPL = {
-    'version': 3,
-    'containers': [
-        {
-            'name': 'content-cache',
-            'envConfig': None,
-            'imageDetails': None,
-            'imagePullPolicy': 'Always',
-            'kubernetes': {
-                'livenessProbe': {
-                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-                    'initialDelaySeconds': 3,
-                    'periodSeconds': 3,
-                },
-                'readinessProbe': {
-                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-                    'initialDelaySeconds': 3,
-                    'periodSeconds': 3,
-                },
-            },
-            'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
-            'volumeConfig': None,
-        }
-    ],
+JUJU_ENV_CONFIG = {
+    'JUJU_NODE_NAME': {'field': {'api-version': 'v1', 'path': 'spec.nodeName'}},
+    'JUJU_POD_NAME': {'field': {'api-version': 'v1', 'path': 'metadata.name'}},
+    'JUJU_POD_NAMESPACE': {'field': {'api-version': 'v1', 'path': 'metadata.namespace'}},
+    'JUJU_POD_IP': {'field': {'api-version': 'v1', 'path': 'status.podIP'}},
+    'JUJU_POD_SERVICE_ACCOUNT': {'field': {'api-version': 'v1', 'path': 'spec.serviceAccountName'}},
 }
 K8S_RESOURCES_TMPL = {
     'kubernetesResources': {
@@ -72,6 +54,31 @@ K8S_RESOURCES_TMPL = {
             }
         ]
     }
+}
+POD_SPEC_TMPL = {
+    'version': 3,
+    'containers': [
+        {
+            'name': 'content-cache',
+            'envConfig': None,
+            'imageDetails': None,
+            'imagePullPolicy': 'Always',
+            'kubernetes': {
+                'livenessProbe': {
+                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+                    'initialDelaySeconds': 3,
+                    'periodSeconds': 3,
+                },
+                'readinessProbe': {
+                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+                    'initialDelaySeconds': 3,
+                    'periodSeconds': 3,
+                },
+            },
+            'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
+            'volumeConfig': None,
+        }
+    ],
 }
 
 
@@ -353,6 +360,7 @@ class TestCharm(unittest.TestCase):
             'NGINX_KEYS_ZONE': '39c631ffb52d-cache',
             'NGINX_SITE_NAME': 'mysite.local',
         }
+        expected.update(JUJU_ENV_CONFIG)
         self.assertEqual(harness.charm._make_pod_config(), expected)
 
     def test_make_pod_config_client_max_body_size(self):
@@ -376,6 +384,7 @@ class TestCharm(unittest.TestCase):
             'NGINX_KEYS_ZONE': '39c631ffb52d-cache',
             'NGINX_SITE_NAME': 'mysite.local',
         }
+        expected.update(JUJU_ENV_CONFIG)
         self.assertEqual(harness.charm._make_pod_config(), expected)
 
     def test_missing_charm_configs(self):
