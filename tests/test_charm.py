@@ -153,15 +153,10 @@ class TestCharm(unittest.TestCase):
     def test_on_upgrade_charm(self, configure_pod):
         """Test on_upgrade_charm, ensure configure_pod is called just once."""
         harness = self.harness
-        action_event = mock.Mock()
 
-        # Disable hooks and fire them manually as that seems to be the
-        # only way to test upgrade-charm.
-        harness.disable_hooks()
         harness.set_leader(True)
         harness.begin()
-
-        harness.charm._on_upgrade_charm(action_event)
+        harness.charm.on.upgrade_charm.emit()
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
         configure_pod.assert_called_once()
 
@@ -169,15 +164,10 @@ class TestCharm(unittest.TestCase):
     def test_on_upgrade_charm_not_leader(self, configure_pod):
         """Test on_upgrade_charm, not the leader so configure_pod is not called."""
         harness = self.harness
-        action_event = mock.Mock()
 
-        # Disable hooks and fire them manually as that seems to be the
-        # only way to test upgrade-charm.
-        harness.disable_hooks()
         harness.set_leader(False)
         harness.begin()
-
-        harness.charm._on_upgrade_charm(action_event)
+        harness.charm.on.upgrade_charm.emit()
         self.assertNotEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (upgrade-charm)'))
         configure_pod.assert_not_called()
 
