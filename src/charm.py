@@ -8,7 +8,6 @@ import logging
 
 from ops.charm import CharmBase
 from ops.main import main
-from ops.framework import StoredState
 from ops.model import (
     ActiveStatus,
     BlockedStatus,
@@ -23,8 +22,6 @@ REQUIRED_JUJU_CONFIGS = ['image_path', 'site', 'backend']
 
 
 class ContentCacheCharm(CharmBase):
-    _stored = StoredState()
-
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -33,15 +30,13 @@ class ContentCacheCharm(CharmBase):
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
 
-        self._stored.set_default()
-
     def _on_start(self, event) -> None:
         """Handle pod started."""
         self.model.unit.status = ActiveStatus('Started')
 
     def _on_config_changed(self, event) -> None:
         """Check that we're the leader, and if so, configure/set up pod."""
-        if not self.model.unit.is_leader():
+        if not self.unit.is_leader():
             logger.info('Spec changes ignored by non-leader')
             self.unit.status = ActiveStatus('Ready')
             return
@@ -60,7 +55,7 @@ class ContentCacheCharm(CharmBase):
 
     def _on_upgrade_charm(self, event) -> None:
         """Check that we're the leader, and if so, configure/set up pod."""
-        if not self.model.unit.is_leader():
+        if not self.unit.is_leader():
             logger.info('Spec changes ignored by non-leader')
             self.unit.status = ActiveStatus('Ready')
             return
@@ -189,7 +184,7 @@ class ContentCacheCharm(CharmBase):
         config = self.model.config
 
         client_max_body_size = '1m'
-        if config.get('client_max_body_size', ''):
+        if config.get('client_max_body_size'):
             client_max_body_size = config.get('client_max_body_size')
 
         pod_config = {
