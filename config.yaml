@@ -5,6 +5,7 @@ options:
       The location of the image to use, e.g. "localhost:32000/myimage:latest"
 
       This setting is required.
+    default: contentcachecharmers/content-cache:edge
   image_username:
     type: string
     description: >-
