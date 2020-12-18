@@ -20,7 +20,8 @@ cluster and its ingress controllers have a fast connection to the Internet.
 For details on using Kubernetes with Juju [see here](https://juju.is/docs/kubernetes), and for
 details on using Juju with MicroK8s for easy local testing [see here](https://juju.is/docs/microk8s-cloud).
 
-To deploy this charm into a k8s model:
+To deploy this charm into a k8s model, with sample configuration set up to
+cache `archive.ubuntu.com`:
 
     juju deploy cs:~content-cache-charmers/content-cache-k8s --config site=archive.ubuntu.com --config backend=http://archive.ubuntu.com:80
 
