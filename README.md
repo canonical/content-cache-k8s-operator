@@ -1,50 +1,49 @@
-# charm-k8s-content-cache
+# Content Cache Operator
 
-## Description
+A Juju charm deploying and managing a content cache.
 
-Deploy content caching layer into K8s.
+## Overview
+
+The content-cache service was developed to provide front-end caching for
+services run by Canonical's IS team, and to reduce the need for third-party
+CDNs to provide high-bandwidth access to those services. It's currently used
+in production for a number of services including [the Snapstore](https://snapcraft.io/store),
+the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
+[canonical.com](https://canonical.com), and [Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
+
+This Kubernetes-based version is built using that same approach, and can be
+used as a front-end caching service in a situation where your Kubernetes
+cluster and its ingress controllers have a fast connection to the Internet.
 
 ## Usage
 
+For details on using Kubernetes with Juju [see here](https://juju.is/docs/kubernetes), and for
+details on using Juju with MicroK8s for easy local testing [see here](https://juju.is/docs/microk8s-cloud).
+
 To deploy this charm into a k8s model:
 
-    juju deploy cs:~content-cache-charmers/content-cache-k8s --config site=mysite.local --config backend=http://mybackend.local:80
+    juju deploy cs:~content-cache-charmers/content-cache-k8s --config site=archive.ubuntu.com --config backend=http://archive.ubuntu.com:80
 
 And then you can test the deployment with:
 
-    curl --resolve mysite.local:80:<ingress IP> http://mysite.local
+    # Set this as appropriate
+    UNIT_IP=10.1.234.11
 
-### Scale Out Usage
+First let's request a resource with headers telling us not to cache (with
+sample output):
 
-Just run `juju scale-application <application name> 3`.
+    curl -v --resolve archive.ubuntu.com:80:${UNIT_IP} http://archive.ubuntu.com/ubuntu/dists/focal/Release -o /dev/null 2>&1 | grep 'X-Cache-Status'
+    # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
+    curl -v --resolve archive.ubuntu.com:80:${UNIT_IP} http://archive.ubuntu.com/ubuntu/dists/focal/Release -o /dev/null 2>&1 | grep 'X-Cache-Status'
+    # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
 
-## Using a Custom Image
+And now let's request a resource with headers that will allow us to cache:
 
-Build the docker image:
+    curl -v --resolve archive.ubuntu.com:80:${UNIT_IP} http://archive.ubuntu.com/ubuntu/dists/focal/Contents-i386.gz -o /dev/null 2>&1 | grep 'X-Cache-Status'
+    # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
+    curl -v --resolve archive.ubuntu.com:80:${UNIT_IP} http://archive.ubuntu.com/ubuntu/dists/focal/Contents-i386.gz -o /dev/null 2>&1 | grep 'X-Cache-Status'
+    # < X-Cache-Status: HIT from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
 
-    git clone https://git.launchpad.net/charm-k8s-content-cache
-    cd charm-k8s-content-cache/docker
-    docker build . -t myimage:v<revision>
-    docker tag myimage:v<revision> localhost:32000/myimage:v<revision>
-    docker push localhost:32000/myimage:v<revision>
+---
 
-Then, to use your new image, either replace the `deploy` step above with
-
-    juju deploy cs:~content-cache-charmers/content-cache-k8s --config image_path=localhost:32000/myimage:v<revision> --config site=mysite.local --config backend=http://mybackend.local:80
-
-Or, if you have already deployed content-cache:
-
-    juju config content-cache image_path=localhost:32000/myimage:v<revision>
-
-## Developing
-
-To build the charm locally, just run `charmcraft build`. You can then deploy
-using:
-
-    juju deploy ./content-cache.charm
-
-To run lint against the code, run `make lint`.
-
-## Testing
-
-Just run `make unittest`.
+For more details, [see here](https://charmhub.io/content-cache)
