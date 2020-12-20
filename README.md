@@ -5,8 +5,8 @@ A Juju charm deploying and managing a content cache.
 ## Overview
 
 A content-caching service, built on top of [Nginx](https://www.nginx.com/)
-that can be simply configured to cache any http or https web site. Offers a
-configurable cache storage size, and cache validity duration.
+configurable to cache any http or https web site. Tuning options include
+cache storage size, maximum request size to cache and cache validity duration.
 
 The content-cache service was developed to provide front-end caching for
 services run by Canonical's IS team, and to reduce the need for third-party
