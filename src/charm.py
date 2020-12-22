@@ -187,9 +187,9 @@ class ContentCacheCharm(CharmBase):
         backend_site_name = config.get('backend_site_name')
         if not backend_site_name:
             # Strip scheme/protocol.
-            backend_site_name = backend.split('/')[2]
+            backend_site_name = backend[backend.rindex('/') + 1 :]  # NOQA: E203
             # Strip port.
-            backend_site_name = backend_site_name[: backend_site_name.index(':')]
+            backend_site_name = backend_site_name[: backend_site_name.rindex(':')]
 
         client_max_body_size = '1m'
         if config.get('client_max_body_size'):
