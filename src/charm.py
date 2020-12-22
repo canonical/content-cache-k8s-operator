@@ -5,6 +5,7 @@
 
 import hashlib
 import logging
+from urllib.parse import urlparse
 
 from ops.charm import CharmBase
 from ops.main import main
@@ -186,10 +187,7 @@ class ContentCacheCharm(CharmBase):
         backend = config['backend']
         backend_site_name = config.get('backend_site_name')
         if not backend_site_name:
-            # Strip scheme/protocol.
-            backend_site_name = backend[backend.rindex('/') + 1 :]  # NOQA: E203
-            # Strip port.
-            backend_site_name = backend_site_name[: backend_site_name.rindex(':')]
+            backend_site_name = urlparse(backend).hostname
 
         client_max_body_size = '1m'
         if config.get('client_max_body_size'):
