@@ -11,7 +11,7 @@ server {
 
     location / {
         proxy_pass \"${NGINX_BACKEND}\";
-        proxy_set_header Host \"${NGINX_SITE_NAME}\";
+        proxy_set_header Host \"${NGINX_BACKEND_SITE_NAME}\";
         # Removed the following headers to avoid cache poisoning.
         proxy_set_header Forwarded \"\";
         proxy_set_header X-Forwarded-Host \"\";

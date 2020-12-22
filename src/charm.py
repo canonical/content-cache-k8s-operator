@@ -183,12 +183,21 @@ class ContentCacheCharm(CharmBase):
         """Return dict to be used as pod spec's envConfig."""
         config = self.model.config
 
+        backend = config['backend']
+        backend_site_name = config.get('backend_site_name')
+        if not backend_site_name:
+            # Strip scheme/protocol.
+            backend_site_name = backend.split('/')[2]
+            # Strip port.
+            backend_site_name = backend_site_name[: backend_site_name.index(':')]
+
         client_max_body_size = '1m'
         if config.get('client_max_body_size'):
             client_max_body_size = config.get('client_max_body_size')
 
         pod_config = {
-            'NGINX_BACKEND': config['backend'],
+            'NGINX_BACKEND': backend,
+            'NGINX_BACKEND_SITE_NAME': backend_site_name,
             'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),
             'NGINX_CACHE_MAX_SIZE': config.get('cache_max_size', '10G'),
             'NGINX_CACHE_PATH': CACHE_PATH,
