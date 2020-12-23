@@ -63,4 +63,4 @@ And now let's request a resource which has headers telling us not to cache:
 
 ---
 
-For more details, [see here](https://charmhub.io/content-cache)
+For more details, [see here](https://charmhub.io/content-cache/docs)
