@@ -1,8 +1,8 @@
 name: content-cache
 description: |
-  Useful for providing local mirrors of HTTP servers and building
-  content delivery networks (CDN).
+  A service providing local caches of HTTP servers and useful for building content delivery networks (CDN).
 summary: |
-  Content caching charm for Kubernetes
+  A service providing local caches of HTTP servers and useful for building content delivery networks (CDN).
+docs: https://discourse.charmhub.io/t/content-cache-documentation-overview/3992
 series: [kubernetes]
 min-juju-version: 2.8.0  # charm storage in state
