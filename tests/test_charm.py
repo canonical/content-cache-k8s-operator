@@ -340,6 +340,32 @@ class TestCharm(unittest.TestCase):
         harness.update_config(config)
         expected = {
             'NGINX_BACKEND': 'http://mybackend.local:80',
+            'NGINX_BACKEND_SITE_NAME': 'mybackend.local',
+            'NGINX_CACHE_INACTIVE_TIME': '10m',
+            'NGINX_CACHE_MAX_SIZE': '10G',
+            'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_CACHE_USE_STALE': 'error timeout updating http_500 http_502 http_503 http_504',
+            'NGINX_CACHE_VALID': '200 1h',
+            'NGINX_CLIENT_MAX_BODY_SIZE': '1m',
+            'NGINX_KEYS_ZONE': '39c631ffb52d-cache',
+            'NGINX_SITE_NAME': 'mysite.local',
+        }
+        expected.update(JUJU_ENV_CONFIG)
+        self.assertEqual(harness.charm._make_pod_config(), expected)
+
+    def test_make_pod_config_backend_site_name(self):
+        """Test make_pod_config with charm config backend_site_config, ensure envConfig returned is correct."""
+        harness = self.harness
+
+        harness.disable_hooks()
+        harness.begin()
+
+        config = copy.deepcopy(BASE_CONFIG)
+        config['backend_site_name'] = 'myoverridebackendsitename.local'
+        harness.update_config(config)
+        expected = {
+            'NGINX_BACKEND': 'http://mybackend.local:80',
+            'NGINX_BACKEND_SITE_NAME': 'myoverridebackendsitename.local',
             'NGINX_CACHE_INACTIVE_TIME': '10m',
             'NGINX_CACHE_MAX_SIZE': '10G',
             'NGINX_CACHE_PATH': CACHE_PATH,
@@ -364,6 +390,7 @@ class TestCharm(unittest.TestCase):
         harness.update_config(config)
         expected = {
             'NGINX_BACKEND': 'http://mybackend.local:80',
+            'NGINX_BACKEND_SITE_NAME': 'mybackend.local',
             'NGINX_CACHE_INACTIVE_TIME': '10m',
             'NGINX_CACHE_MAX_SIZE': '10G',
             'NGINX_CACHE_PATH': CACHE_PATH,

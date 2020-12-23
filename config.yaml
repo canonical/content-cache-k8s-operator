@@ -29,6 +29,12 @@ options:
       The backend to use for site, e.g. "http://mybackend.local:80"
 
       This setting is required.
+  backend_site_name:
+    type: string
+    description: >-
+      Backend site name, e.g. mybackend.local. If none given, will
+      work out from the configured 'backend' config above.
+    default: ""
   cache_inactive_time:
     type: string
     description: >-
