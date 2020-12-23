@@ -1,17 +1,17 @@
 # Content Cache Operator
 
-A Juju charm deploying and managing a content cache.
+A Juju charm for deploying and managing a content cache.
 
 ## Overview
 
-A content-caching service, built on top of [Nginx](https://www.nginx.com/)
+A service for caching content, built on top of [Nginx](https://www.nginx.com/)
 configurable to cache any http or https web site. Tuning options include
 cache storage size, maximum request size to cache and cache validity duration.
 
-The content-cache service was developed to provide front-end caching for
-services run by Canonical's IS team, and to reduce the need for third-party
-CDNs by providing high-bandwidth access to web sites via this caching front-end.
-Currently used for a number of services including [the Snap Store](https://snapcraft.io/store),
+This service was developed to provide front-end caching for web sites run by
+Canonical's IS team, and to reduce the need for third-party CDNs by providing
+high-bandwidth access to web sites via this caching front-end. Currently used
+for a number of services including [the Snap Store](https://snapcraft.io/store),
 the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
 [canonical.com](https://canonical.com), and [Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
 
@@ -25,12 +25,12 @@ For details on using Kubernetes with Juju [see here](https://juju.is/docs/kubern
 details on using Juju with MicroK8s for easy local testing [see here](https://juju.is/docs/microk8s-cloud).
 
 To deploy this charm into a k8s model, with sample configuration set up to
-cache `archive.ubuntu.com`:
+cache `archive.ubuntu.com` on `archive.local`:
 
     juju deploy cs:~content-cache-charmers/content-cache-k8s \
-        --config site=archive.ubuntu.com \
+        --config site=archive.local \
         --config backend=http://archive.ubuntu.com:80 \
-        --config juju-external-hostname=archive.ubuntu.com
+        --config juju-external-hostname=archive.local
     juju expose content-cache
 
 And then you can test the deployment with:
@@ -41,21 +41,25 @@ And then you can test the deployment with:
 First let's request a resource with headers that will allow us to cache (with
 sample output):
 
-    curl -v --resolve archive.ubuntu.com:80:${APP_IP} http://archive.ubuntu.com/ubuntu/dists/focal/Contents-i386.gz -o /dev/null 2>&1 | grep 'X-Cache-Status'
+    curl -v --resolve archive.local:80:${APP_IP} http://archive.local/ubuntu/dists/focal/Contents-i386.gz -o /dev/null 2>&1 | grep 'X-Cache-Status'
     # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
-    curl -v --resolve archive.ubuntu.com:80:${APP_IP} http://archive.ubuntu.com/ubuntu/dists/focal/Contents-i386.gz -o /dev/null 2>&1 | grep 'X-Cache-Status'
+    #  First result is a cache MISS
+    curl -v --resolve archive.local:80:${APP_IP} http://archive.local/ubuntu/dists/focal/Contents-i386.gz -o /dev/null 2>&1 | grep 'X-Cache-Status'
     # < X-Cache-Status: HIT from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
+    #  Second result is a cache HIT
 
-And now let's request a resource with headers telling us not to cache:
+And now let's request a resource which has headers telling us not to cache:
 
-    # Verify cache control headers
+    # Verify cache control headers on the upstream resource
     curl -v http://archive.ubuntu.com/ubuntu/dists/focal/Release 2>&1 | grep 'Cache-Control'
     #   output: < Cache-Control: max-age=0, proxy-revalidate
-    # And now perform the requests through the content-caching service.
-    curl -v --resolve archive.ubuntu.com:80:${APP_IP} http://archive.ubuntu.com/ubuntu/dists/focal/Release -o /dev/null 2>&1 | grep 'X-Cache-Status'
+    # And now perform the requests through the content-caching service
+    curl -v --resolve archive.local:80:${APP_IP} http://archive.local/ubuntu/dists/focal/Release -o /dev/null 2>&1 | grep 'X-Cache-Status'
     # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
-    curl -v --resolve archive.ubuntu.com:80:${APP_IP} http://archive.ubuntu.com/ubuntu/dists/focal/Release -o /dev/null 2>&1 | grep 'X-Cache-Status'
+    #  First result is a cache MISS
+    curl -v --resolve archive.local:80:${APP_IP} http://archive.local/ubuntu/dists/focal/Release -o /dev/null 2>&1 | grep 'X-Cache-Status'
     # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
+    #  Second result still a cache MISS
 
 ---
 
