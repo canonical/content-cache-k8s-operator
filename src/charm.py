@@ -102,20 +102,15 @@ class ContentCacheCharm(CharmBase):
         config = self.model.config
 
         annotations = {}
+        rules_spec = {
+            'host': config['site'],
+            'http': {
+                'paths': [{'path': '/', 'backend': {'serviceName': self.app.name, 'servicePort': CONTAINER_PORT}}],
+            },
+        }
         ingress = {
             'name': '{}-ingress'.format(self.app.name),
-            'spec': {
-                'rules': [
-                    {
-                        'host': config['site'],
-                        'http': {
-                            'paths': [
-                                {'path': '/', 'backend': {'serviceName': self.app.name, 'servicePort': CONTAINER_PORT}}
-                            ],
-                        },
-                    }
-                ],
-            },
+            'spec': {'rules': [rules_spec]},
         }
 
         client_max_body_size = config.get('client_max_body_size')
@@ -145,37 +140,34 @@ class ContentCacheCharm(CharmBase):
 
         pod_config = self._make_pod_config()
 
-        pod_spec = {
-            'version': 3,  # otherwise resources are ignored
-            'containers': [
+        containers_spec = {
+            'name': self.app.name,
+            'envConfig': pod_config,
+            'imageDetails': image_details,
+            'imagePullPolicy': 'Always',
+            'kubernetes': {
+                'livenessProbe': {
+                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+                    'initialDelaySeconds': 3,
+                    'periodSeconds': 3,
+                },
+                'readinessProbe': {
+                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
+                    'initialDelaySeconds': 3,
+                    'periodSeconds': 3,
+                },
+            },
+            'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
+            'volumeConfig': [
                 {
-                    'name': self.app.name,
-                    'envConfig': pod_config,
-                    'imageDetails': image_details,
-                    'imagePullPolicy': 'Always',
-                    'kubernetes': {
-                        'livenessProbe': {
-                            'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-                            'initialDelaySeconds': 3,
-                            'periodSeconds': 3,
-                        },
-                        'readinessProbe': {
-                            'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-                            'initialDelaySeconds': 3,
-                            'periodSeconds': 3,
-                        },
-                    },
-                    'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
-                    'volumeConfig': [
-                        {
-                            'name': 'cache-volume',
-                            'mountPath': CACHE_PATH,
-                            'emptyDir': {'sizeLimit': config['cache_max_size']},
-                        }
-                    ],
+                    'name': 'cache-volume',
+                    'mountPath': CACHE_PATH,
+                    'emptyDir': {'sizeLimit': config['cache_max_size']},
                 }
             ],
         }
+        # version 3, otherwise resources are ignored
+        pod_spec = {'version': 3, 'containers': [containers_spec]}
 
         return pod_spec
 
