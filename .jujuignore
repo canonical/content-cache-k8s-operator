@@ -9,6 +9,7 @@
 Makefile
 build/
 docker/
+htmlcov/
 requirements.txt
 tox.ini
 tests/
