@@ -9,5 +9,6 @@
 Makefile
 build/
 docker/
+htmlcov/
 tests/
 __pycache__/
