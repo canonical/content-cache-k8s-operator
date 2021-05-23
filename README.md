@@ -31,7 +31,7 @@ cache `archive.ubuntu.com` on `archive.local`:
         --config site=archive.local \
         --config backend=http://archive.ubuntu.com:80 \
         --config juju-external-hostname=archive.local
-    juju expose content-cache
+    juju expose content-cache-k8s
 
 And then you can test the deployment with:
 
@@ -63,4 +63,4 @@ And now let's request a resource which has headers telling us not to cache:
 
 ---
 
-For more details, [see here](https://charmhub.io/content-cache/docs)
+For more details, [see here](https://charmhub.io/content-cache-k8s/docs)
