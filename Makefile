@@ -11,7 +11,7 @@ lint: blacken
 
 # We actually use the build directory created by charmcraft,
 # but the .charm file makes a much more convenient sentinel.
-unittest: content-cache-k8s.charm
+unittest: charm-fetch‐lib content-cache-k8s.charm
 	@tox -e unit
 
 test: lint unittest
@@ -20,7 +20,10 @@ clean:
 	@echo "Cleaning files"
 	@git clean -fXd
 
+charm-fetch‐lib:
+	charmcraft fetch-lib charms.nginx_ingress_integrator.v0.ingress
+
 content-cache-k8s.charm: src/*.py requirements.txt
 	charmcraft build
 
-.PHONY: lint test unittest clean
+.PHONY: lint unittest test clean charm-fetch‐lib
