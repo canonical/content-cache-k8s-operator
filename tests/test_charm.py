@@ -35,7 +35,7 @@ K8S_RESOURCES_INGRESS_RULES = {
     'http': {
         'paths': [
             {
-                'backend': {'serviceName': 'content-cache', 'servicePort': 80},
+                'backend': {'serviceName': 'content-cache-k8s', 'servicePort': 80},
                 'path': '/',
             }
         ]
@@ -46,7 +46,7 @@ K8S_RESOURCES_TMPL = {
         'ingressResources': [
             {
                 'annotations': {'nginx.ingress.kubernetes.io/ssl-redirect': 'false'},
-                'name': 'content-cache-ingress',
+                'name': 'content-cache-k8s-ingress',
                 'spec': {
                     'rules': [K8S_RESOURCES_INGRESS_RULES],
                 },
@@ -58,7 +58,7 @@ POD_SPEC_TMPL = {
     'version': 3,
     'containers': [
         {
-            'name': 'content-cache',
+            'name': 'content-cache-k8s',
             'envConfig': None,
             'imageDetails': None,
             'imagePullPolicy': 'Always',
