@@ -20,7 +20,7 @@ clean:
 	@echo "Cleaning files"
 	@git clean -fXd
 
-content-cache-k8s.charm: lib/charms/*/v*/*.py src/*.py requirements.txt
+content-cache-k8s.charm: src/*.py requirements.txt
 	charmcraft build
 
 .PHONY: lint test unittest clean
