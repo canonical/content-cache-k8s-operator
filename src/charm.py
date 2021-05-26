@@ -41,7 +41,7 @@ class ContentCacheCharm(CharmBase):
         self.framework.observe(self.on.content_cache_pebble_ready, self._on_content_cache_pebble_ready)
         self._stored.set_default(content_cache_pebble_ready=False)
 
-        self.ingress = IngressRequires(self, self._make_ingress_config()[0])
+        self.ingress = IngressRequires(self, self._make_ingress_config())
 
     def _on_content_cache_pebble_ready(self, event) -> None:
         """Configure/set up pod."""
@@ -88,7 +88,7 @@ class ContentCacheCharm(CharmBase):
         msg = 'Assembling K8s ingress spec'
         logger.info(msg)
         self.unit.status = MaintenanceStatus(msg)
-        self.ingress.update_config(self._make_ingress_config()[0])
+        self.ingress.update_config(self._make_ingress_config())
 
         container = self.unit.get_container(CONTAINER_NAME)
         env_config = self._make_env_config()
@@ -161,21 +161,21 @@ class ContentCacheCharm(CharmBase):
         if tls_secret_name:
             ingress['tls-secret-name'] = tls_secret_name
 
-        return [ingress]
+        return ingress
 
     def _make_pebble_config(self) -> dict:
         """Generate our pebble config layer."""
         env_config = self._make_env_config()
         pebble_config = {
-            "summary": "content-cache layer",
-            "description": "Pebble config layer for content-cache",
-            "services": {
-                "content-cache": {
-                    "override": "replace",
-                    "summary": "content-cache",
-                    "command": "/usr/sbin/nginx -g 'daemon off;'",
-                    "startup": "false",
-                    "environment": env_config,
+            'summary': 'content-cache layer',
+            'description': 'Pebble config layer for content-cache',
+            'services': {
+                CONTAINER_NAME: {
+                    'override': 'replace',
+                    'summary': 'content-cache',
+                    'command': "/usr/sbin/nginx -g 'daemon off;'",
+                    "startup": 'false',
+                    'environment': env_config,
                 },
             },
         }

@@ -21,60 +21,30 @@ BASE_CONFIG = {
     'cache_valid': '200 1h',
 }
 CACHE_PATH = '/var/lib/nginx/proxy/cache'
+CONTAINER_NAME = 'content-cache'
 CONTAINER_PORT = 80
 JUJU_ENV_CONFIG = {
-    'JUJU_NODE_NAME': {'field': {'api-version': 'v1', 'path': 'spec.nodeName'}},
-    'JUJU_POD_NAME': {'field': {'api-version': 'v1', 'path': 'metadata.name'}},
-    'JUJU_POD_NAMESPACE': {'field': {'api-version': 'v1', 'path': 'metadata.namespace'}},
-    'JUJU_POD_IP': {'field': {'api-version': 'v1', 'path': 'status.podIP'}},
-    'JUJU_POD_SERVICE_ACCOUNT': {'field': {'api-version': 'v1', 'path': 'spec.serviceAccountName'}},
+    'JUJU_POD_NAME': 'content-cache-k8s/0',
+    'JUJU_POD_NAMESPACE': None,
+    'JUJU_POD_SERVICE_ACCOUNT': 'content-cache-k8s',
 }
-K8S_RESOURCES_INGRESS_RULES = {
-    'host': 'mysite.local',
-    'http': {
-        'paths': [
-            {
-                'backend': {'serviceName': 'content-cache-k8s', 'servicePort': 80},
-                'path': '/',
-            }
-        ]
+INGRESS_CONFIG = {
+    'service-hostname': 'mysite.local',
+    'service-name': 'content-cache-k8s',
+    'service-port': CONTAINER_PORT,
+}
+PEBBLE_CONFIG = {
+    'summary': 'content-cache layer',
+    'description': 'Pebble config layer for content-cache',
+    'services': {
+        CONTAINER_NAME: {
+            'override': 'replace',
+            'summary': 'content-cache',
+            'command': "/usr/sbin/nginx -g 'daemon off;'",
+            "startup": 'false',
+            'environment': '',
+        },
     },
-}
-K8S_RESOURCES_TMPL = {
-    'kubernetesResources': {
-        'ingressResources': [
-            {
-                'name': 'content-cache-k8s-ingress',
-                'spec': {
-                    'rules': [K8S_RESOURCES_INGRESS_RULES],
-                },
-            }
-        ]
-    }
-}
-POD_SPEC_TMPL = {
-    'version': 3,
-    'containers': [
-        {
-            'name': 'content-cache-k8s',
-            'envConfig': None,
-            'imagePullPolicy': 'Always',
-            'kubernetes': {
-                'livenessProbe': {
-                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-                    'initialDelaySeconds': 3,
-                    'periodSeconds': 3,
-                },
-                'readinessProbe': {
-                    'httpGet': {'path': '/', 'port': CONTAINER_PORT},
-                    'initialDelaySeconds': 3,
-                    'periodSeconds': 3,
-                },
-            },
-            'ports': [{'containerPort': CONTAINER_PORT, 'protocol': 'TCP'}],
-            'volumeConfig': None,
-        }
-    ],
 }
 
 
@@ -116,9 +86,7 @@ class TestCharm(unittest.TestCase):
         harness = self.harness
 
         harness.begin()
-
         config = copy.deepcopy(BASE_CONFIG)
-        config['content_cache_pebble_ready'] = True
         harness.update_config(config)
         self.assertEqual(harness.charm.unit.status, MaintenanceStatus('Configuring pod (config-changed)'))
         configure_pod.assert_called_once()
@@ -134,21 +102,70 @@ class TestCharm(unittest.TestCase):
         configure_pod.assert_called_once()
 
     @mock.patch('charm.ContentCacheCharm._make_pebble_config')
-    def test_configure_pod(self, make_pebble_config):
+    @mock.patch('ops.model.Container.add_layer')
+    @mock.patch('ops.model.Container.get_service')
+    @mock.patch('ops.model.Container.make_dir')
+    @mock.patch('ops.model.Container.push')
+    @mock.patch('ops.model.Container.start')
+    @mock.patch('ops.model.Container.stop')
+    def test_configure_pod(self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config):
         """Test configure_pod, ensure make_pod_spec is called and the generated pod spec is correct."""
         harness = self.harness
 
         harness.begin()
-
+        harness.charm._stored.content_cache_pebble_ready = True
         config = copy.deepcopy(BASE_CONFIG)
-        config['content_cache_pebble_ready'] = True
         harness.update_config(config)
         make_pebble_config.assert_called_once()
+        add_layer.assert_called_once()
+        get_service.assert_called_once()
+        stop.assert_called_once()
+        start.assert_called_once()
         self.assertEqual(harness.charm.unit.status, ActiveStatus('Ready'))
-        # XXX:
-        # pebble_config = harness.charm._make_pebble_config()
-        # k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
-        # self.assertEqual(harness.get_pod_spec(), (pod_spec, k8s_resources))
+
+    @mock.patch('charm.ContentCacheCharm._make_pebble_config')
+    @mock.patch('ops.model.Container.add_layer')
+    @mock.patch('ops.model.Container.get_service')
+    @mock.patch('ops.model.Container.make_dir')
+    @mock.patch('ops.model.Container.push')
+    @mock.patch('ops.model.Container.start')
+    @mock.patch('ops.model.Container.stop')
+    def test_configure_pod_container_not_running(
+        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+    ):
+        """Test configure_pod, ensure make_pod_spec is called and the generated pod spec is correct."""
+        harness = self.harness
+
+        harness.begin()
+        harness.charm._stored.content_cache_pebble_ready = True
+        config = copy.deepcopy(BASE_CONFIG)
+        harness.update_config(config)
+        make_pebble_config.assert_called_once()
+        get_service.return_value.is_running.return_value = False
+        harness.update_config(config)
+        stop.assert_called_once()
+
+    @mock.patch('charm.ContentCacheCharm._make_pebble_config')
+    @mock.patch('ops.model.Container.add_layer')
+    @mock.patch('ops.model.Container.get_service')
+    @mock.patch('ops.model.Container.make_dir')
+    @mock.patch('ops.model.Container.push')
+    @mock.patch('ops.model.Container.start')
+    @mock.patch('ops.model.Container.stop')
+    def test_configure_pod_pebble_services_already_configured(
+        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+    ):
+        """Test configure_pod, ensure make_pod_spec is called and the generated pod spec is correct."""
+        harness = self.harness
+
+        harness.begin()
+        harness.charm._stored.content_cache_pebble_ready = True
+        config = copy.deepcopy(BASE_CONFIG)
+        make_pebble_config.return_value = {'services': {}}
+        harness.update_config(config)
+        make_pebble_config.assert_called_once()
+        add_layer.assert_not_called()
+        self.assertEqual(harness.charm.unit.status, ActiveStatus('Ready'))
 
     @mock.patch('charm.ContentCacheCharm._make_pebble_config')
     def test_configure_pod_missing_configs(self, make_pebble_config):
@@ -179,7 +196,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm._generate_keys_zone(''), expected)
 
     def test_make_ingress_config(self):
-        """Test generation of K8s ingress spec and ensure it is correct."""
+        """Test generation ingress config and ensure it is correct."""
         harness = self.harness
 
         harness.disable_hooks()
@@ -187,62 +204,48 @@ class TestCharm(unittest.TestCase):
 
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
-        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
-        expected = k8s_resources['kubernetesResources']['ingressResources']
+        expected = copy.deepcopy(INGRESS_CONFIG)
         self.assertEqual(harness.charm._make_ingress_config(), expected)
 
     def test_make_ingress_config_client_max_body_size(self):
-        """Test charm config's client_max_body_size with correct annotation in generated K8s ingress spec."""
+        """Test generation ingress config overriding client_max_body_size and ensure it is correct."""
         harness = self.harness
 
         harness.disable_hooks()
         harness.begin()
 
         config = copy.deepcopy(BASE_CONFIG)
-        config['client_max_body_size'] = '32m'
+        config['client_max_body_size'] = '50m'
         harness.update_config(config)
-        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
-        t = k8s_resources['kubernetesResources']['ingressResources'][0]['annotations']
-        t['nginx.ingress.kubernetes.io/proxy-body-size'] = '32m'
-        expected = k8s_resources['kubernetesResources']['ingressResources']
+        expected = copy.deepcopy(INGRESS_CONFIG)
+        expected['max-body-size'] = '50m'
         self.assertEqual(harness.charm._make_ingress_config(), expected)
 
-    def test_make_pod_spec(self):
-        """Test make_pod_spec, ensure correct spec and is applied and returned by operator's get_pod_spec."""
+    def test_make_ingress_config_tls_secret(self):
+        """Test generation ingress config setting tls_secret_name and ensure it is correct."""
+        harness = self.harness
+
+        harness.disable_hooks()
+        harness.begin()
+
+        config = copy.deepcopy(BASE_CONFIG)
+        config['tls_secret_name'] = 'mysite-com-tls'
+        harness.update_config(config, unset=['client_max_body_size'])
+        expected = copy.deepcopy(INGRESS_CONFIG)
+        expected['tls-secret-name'] = 'mysite-com-tls'
+        self.assertEqual(harness.charm._make_ingress_config(), expected)
+
+    def test_make_pebble_config(self):
+        """Test make_pebble_config, ensure correct."""
         harness = self.harness
 
         harness.begin()
 
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
-        spec = copy.deepcopy(POD_SPEC_TMPL)
-        t = spec['containers'][0]
-        t['envConfig'] = harness.charm._make_env_config()
-        t['volumeConfig'] = [
-            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '10G'}}
-        ]
-        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
-        expected = (spec, k8s_resources)
-        self.assertEqual(harness.get_pod_spec(), expected)
-
-    def test_make_pod_spec_cache_max_size(self):
-        """Test charm config's cache_max_size, ensure correct pod spec utilising volumeConfig with size limit."""
-        harness = self.harness
-
-        harness.begin()
-
-        config = copy.deepcopy(BASE_CONFIG)
-        config['cache_max_size'] = '201G'
-        harness.update_config(config)
-        spec = copy.deepcopy(POD_SPEC_TMPL)
-        t = spec['containers'][0]
-        t['envConfig'] = harness.charm._make_env_config()
-        t['volumeConfig'] = [
-            {'name': 'cache-volume', 'mountPath': '/var/lib/nginx/proxy/cache', 'emptyDir': {'sizeLimit': '201G'}}
-        ]
-        k8s_resources = copy.deepcopy(K8S_RESOURCES_TMPL)
-        expected = (spec, k8s_resources)
-        self.assertEqual(harness.get_pod_spec(), expected)
+        expected = copy.deepcopy(PEBBLE_CONFIG)
+        expected['services']['content-cache']['environment'] = harness.charm._make_env_config()
+        self.assertEqual(harness.charm._make_pebble_config(), expected)
 
     def test_make_env_config(self):
         """Test make_env_config, ensure envConfig returned is correct."""
@@ -325,30 +328,38 @@ class TestCharm(unittest.TestCase):
         harness.disable_hooks()
         harness.begin()
 
-        # None missing.
+        # All missing, should be sorted.
         config = copy.deepcopy(BASE_CONFIG)
+        config.pop('backend')
+        config.pop('site')
         harness.update_config(config)
-        expected = []
+        expected = ['backend', 'site']
         self.assertEqual(harness.charm._missing_charm_configs(), expected)
 
         # One missing.
         config = copy.deepcopy(BASE_CONFIG)
-        config['site'] = None
+        config.pop('site')
         harness.update_config(config)
         expected = ['site']
         self.assertEqual(harness.charm._missing_charm_configs(), expected)
 
-        # More than one missing.
-        config = copy.deepcopy(BASE_CONFIG)
-        config['site'] = None
-        harness.update_config(config)
-        expected = ['site']
-        self.assertEqual(harness.charm._missing_charm_configs(), expected)
-
-        # All missing, should be sorted.
+        # All set to None, should be sorted.
         config = copy.deepcopy(BASE_CONFIG)
         config['backend'] = None
         config['site'] = None
         harness.update_config(config)
         expected = ['backend', 'site']
+        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+
+        # One set to None
+        config = copy.deepcopy(BASE_CONFIG)
+        config['site'] = None
+        harness.update_config(config)
+        expected = ['site']
+        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+
+        # None missing, all required configs set.
+        config = copy.deepcopy(BASE_CONFIG)
+        harness.update_config(config)
+        expected = []
         self.assertEqual(harness.charm._missing_charm_configs(), expected)
