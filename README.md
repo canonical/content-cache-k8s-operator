@@ -27,15 +27,16 @@ details on using Juju with MicroK8s for easy local testing [see here](https://ju
 To deploy this charm into a k8s model, with sample configuration set up to
 cache `archive.ubuntu.com` on `archive.local`:
 
-    juju deploy cs:~content-cache-charmers/content-cache-k8s \
+    juju deploy content-cache-k8s --channel edge \
         --config site=archive.local \
         --config backend=http://archive.ubuntu.com:80 \
-        --config juju-external-hostname=archive.local
-    juju expose content-cache-k8s
+        content-cache
+    juju deploy nginx-ingress-integrator content-cache-ingress
+    juju relate content-cache content-cache-ingress
 
 And then you can test the deployment with:
 
-    # Set this to to the "Address" value in the "App" section of `juju status`
+    # Set this to to the "Ingress with service IP" value from the content-cache-ingress service from `juju status`
     APP_IP=10.152.183.117
 
 First let's request a resource with headers that will allow us to cache (with

@@ -26,4 +26,7 @@ charm-fetch‐lib:
 content-cache-k8s.charm: src/*.py requirements.txt
 	charmcraft build
 
-.PHONY: lint unittest test clean charm-fetch‐lib
+build: clean charm-fetch‐lib
+	charmcraft build
+
+.PHONY: lint unittest test clean build charm-fetch‐lib
