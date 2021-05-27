@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 
 from charms.nginx_ingress_integrator.v0.ingress import IngressRequires
 from ops.charm import CharmBase
-from ops.framework import StoredState
 from ops.main import main
 from ops.model import (
     ActiveStatus,
@@ -29,8 +28,6 @@ REQUIRED_JUJU_CONFIGS = ['site', 'backend']
 class ContentCacheCharm(CharmBase):
     """Charm the service."""
 
-    _stored = StoredState()
-
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -39,39 +36,37 @@ class ContentCacheCharm(CharmBase):
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
 
         self.framework.observe(self.on.content_cache_pebble_ready, self._on_content_cache_pebble_ready)
-        self._stored.set_default(content_cache_pebble_ready=False)
 
         self.ingress = IngressRequires(self, self._make_ingress_config())
 
     def _on_content_cache_pebble_ready(self, event) -> None:
-        """Configure/set up pod."""
-        msg = 'Configuring pod (content-cache-pebble-ready)'
+        """Handle content_cache_pebble_ready event and configure workload container."""
+        msg = 'Configuring workload container (content-cache-pebble-ready)'
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
-        self._stored.content_cache_pebble_ready = True
-        self.configure_pod(event)
+        self.on.config_changed.emit()
 
     def _on_start(self, event) -> None:
-        """Handle pod started."""
-        logger.info('Starting pod (start)')
+        """Handle workload containter started."""
+        logger.info('Starting workload container (start)')
         self.model.unit.status = ActiveStatus('Started')
 
     def _on_config_changed(self, event) -> None:
-        """Configure/set up pod."""
-        msg = 'Configuring pod (config-changed)'
+        """Handle config_changed event and reconfigure workload container."""
+        msg = 'Configuring workload container (config-changed)'
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
-        self.configure_pod(event)
+        self.configure_workload_container(event)
 
     def _on_upgrade_charm(self, event) -> None:
-        """Configure/set up pod."""
-        msg = 'Configuring pod (upgrade-charm)'
+        """Handle upgrade_charm event and reconfigure workload container."""
+        msg = 'Configuring workload container (upgrade-charm)'
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
-        self.configure_pod(event)
+        self.configure_workload_container(event)
 
-    def configure_pod(self, event) -> None:
-        """Assemble both K8s ingress and pod spec and apply."""
+    def configure_workload_container(self, event) -> None:
+        """Configure/set up workload container inside pod."""
         missing = self._missing_charm_configs()
         if missing:
             msg = 'Required config(s) empty: {}'.format(', '.join(sorted(missing)))
@@ -79,61 +74,66 @@ class ContentCacheCharm(CharmBase):
             self.unit.status = BlockedStatus(msg)
             return
 
-        pebble_config = self._make_pebble_config()
-        if not self._stored.content_cache_pebble_ready or not pebble_config:
-            self.unit.status = WaitingStatus('Waiting for pebble')
-            event.defer()
-            return
-
-        msg = 'Assembling K8s ingress spec'
+        msg = 'Assembling k8s ingress config'
         logger.info(msg)
         self.unit.status = MaintenanceStatus(msg)
         self.ingress.update_config(self._make_ingress_config())
 
-        container = self.unit.get_container(CONTAINER_NAME)
-        env_config = self._make_env_config()
-
-        msg = 'Updating Nginx site config'
+        msg = 'Assembling environment configs'
         logger.info(msg)
         self.unit.status = MaintenanceStatus(msg)
-        container.make_dir(env_config['NGINX_CACHE_PATH'], make_parents=True)
-        with open('files/nginx-logging-format.conf', 'r') as f:
-            container.push('/etc/nginx/conf.d/nginx-logging-format.conf', f)
-        with open('templates/nginx_cfg.tmpl', 'r') as f:
-            content = f.read()
-            content = content.format(
-                JUJU_POD_NAME=env_config['JUJU_POD_NAME'],
-                JUJU_POD_NAMESPACE=env_config['JUJU_POD_NAMESPACE'],
-                NGINX_BACKEND=env_config['NGINX_BACKEND'],
-                NGINX_BACKEND_SITE_NAME=env_config['NGINX_BACKEND_SITE_NAME'],
-                NGINX_CACHE_INACTIVE_TIME=env_config['NGINX_CACHE_INACTIVE_TIME'],
-                NGINX_CACHE_MAX_SIZE=env_config['NGINX_CACHE_MAX_SIZE'],
-                NGINX_CACHE_PATH=env_config['NGINX_CACHE_PATH'],
-                NGINX_CACHE_USE_STALE=env_config['NGINX_CACHE_USE_STALE'],
-                NGINX_CACHE_VALID=env_config['NGINX_CACHE_VALID'],
-                NGINX_CLIENT_MAX_BODY_SIZE=env_config['NGINX_CLIENT_MAX_BODY_SIZE'],
-                NGINX_KEYS_ZONE=env_config['NGINX_KEYS_ZONE'],
-                NGINX_SITE_NAME=env_config['NGINX_SITE_NAME'],
-            )
-            container.push('/etc/nginx/sites-available/default', content)
+        env_config = self._make_env_config()
 
         msg = 'Assembling pebble layer config'
         logger.info(msg)
         self.unit.status = MaintenanceStatus(msg)
-        services = container.get_plan().to_dict().get('services', {})
-        if services != pebble_config["services"]:
-            self.unit.status = MaintenanceStatus('Adding config layer to Pebble')
-            # Add intial Pebble config layer using the Pebble API
-            container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
-            self.unit.status = MaintenanceStatus('Restarting content-cache')
-            service = container.get_service(CONTAINER_NAME)
-            if service.is_running():
-                container.stop(CONTAINER_NAME)
-            container.start(CONTAINER_NAME)
+        pebble_config = self._make_pebble_config(env_config)
 
-        msg = 'Done applying updated pod spec'
+        msg = 'Assembling Nginx config'
         logger.info(msg)
-        self.unit.status = ActiveStatus('Ready')
+        self.unit.status = MaintenanceStatus(msg)
+        nginx_config = self._make_nginx_config(env_config)
+
+        try:
+            container = self.unit.get_container(CONTAINER_NAME)
+
+            msg = 'Updating Nginx site config'
+            logger.info(msg)
+            self.unit.status = MaintenanceStatus(msg)
+            container.push('/etc/nginx/sites-available/default', nginx_config)
+            with open('files/nginx-logging-format.conf', 'r') as f:
+                container.push('/etc/nginx/conf.d/nginx-logging-format.conf', f)
+            container.make_dir(CACHE_PATH, make_parents=True)
+
+            services = container.get_plan().to_dict().get('services', {})
+            if services != pebble_config["services"]:
+
+                msg = 'Updating pebble layer config'
+                logger.info(msg)
+                self.unit.status = MaintenanceStatus(msg)
+                container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
+
+                service = container.get_service(CONTAINER_NAME)
+                if service.is_running():
+                    msg = 'Stopping content-cache'
+                    logger.info(msg)
+                    self.unit.status = MaintenanceStatus(msg)
+                    container.stop(CONTAINER_NAME)
+
+                msg = 'Starting content-cache'
+                logger.info(msg)
+                self.unit.status = MaintenanceStatus(msg)
+                container.start(CONTAINER_NAME)
+        except ConnectionError:
+            msg = 'Pebble is not ready, deferring event'
+            logger.info(msg)
+            self.unit.status = WaitingStatus(msg)
+            event.defer()
+            return
+
+        msg = 'Ready'
+        logger.info(msg)
+        self.unit.status = ActiveStatus(msg)
 
     def _generate_keys_zone(self, name):
         """Generate hashed name to be used by Nginx's key zone."""
@@ -163,9 +163,19 @@ class ContentCacheCharm(CharmBase):
 
         return ingress
 
-    def _make_pebble_config(self) -> dict:
+    def _make_env_config(self) -> dict:
+        """Return dict to be used as as runtime environment variables."""
+        env_config = {
+            # https://bugs.launchpad.net/juju/+bug/1894782
+            "JUJU_POD_NAME": self.unit.name,
+            "JUJU_POD_NAMESPACE": self.model.name,
+            "JUJU_POD_SERVICE_ACCOUNT": self.app.name,
+        }
+
+        return env_config
+
+    def _make_pebble_config(self, env_config) -> dict:
         """Generate our pebble config layer."""
-        env_config = self._make_env_config()
         pebble_config = {
             'summary': 'content-cache layer',
             'description': 'Pebble config layer for content-cache',
@@ -181,9 +191,11 @@ class ContentCacheCharm(CharmBase):
         }
         return pebble_config
 
-    def _make_env_config(self) -> dict:
-        """Return dict to be used as pod spec's envConfig."""
+    def _make_nginx_config(self, env_config) -> str:
         config = self.model.config
+
+        with open('templates/nginx_cfg.tmpl', 'r') as f:
+            content = f.read()
 
         backend = config['backend']
         backend_site_name = config.get('backend_site_name')
@@ -194,30 +206,22 @@ class ContentCacheCharm(CharmBase):
         if config.get('client_max_body_size'):
             client_max_body_size = config.get('client_max_body_size')
 
-        pod_config = {
-            'NGINX_BACKEND': backend,
-            'NGINX_BACKEND_SITE_NAME': backend_site_name,
-            'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),
-            'NGINX_CACHE_MAX_SIZE': config.get('cache_max_size', '10G'),
-            'NGINX_CACHE_PATH': CACHE_PATH,
-            'NGINX_CACHE_USE_STALE': config['cache_use_stale'],
-            'NGINX_CACHE_VALID': config['cache_valid'],
-            'NGINX_CLIENT_MAX_BODY_SIZE': client_max_body_size,
-            'NGINX_KEYS_ZONE': self._generate_keys_zone(config['site']),
-            'NGINX_SITE_NAME': config['site'],
-        }
+        nginx_config = content.format(
+            JUJU_POD_NAME=env_config['JUJU_POD_NAME'],
+            JUJU_POD_NAMESPACE=env_config['JUJU_POD_NAMESPACE'],
+            NGINX_BACKEND=backend,
+            NGINX_BACKEND_SITE_NAME=backend_site_name,
+            NGINX_CACHE_INACTIVE_TIME=config.get('cache_inactive_time', '10m'),
+            NGINX_CACHE_MAX_SIZE=config.get('cache_max_size', '10G'),
+            NGINX_CACHE_PATH=CACHE_PATH,
+            NGINX_CACHE_USE_STALE=config['cache_use_stale'],
+            NGINX_CACHE_VALID=config['cache_valid'],
+            NGINX_CLIENT_MAX_BODY_SIZE=client_max_body_size,
+            NGINX_KEYS_ZONE=self._generate_keys_zone(config['site']),
+            NGINX_SITE_NAME=config['site'],
+        )
 
-        # https://bugs.launchpad.net/juju/+bug/1894782
-        juju_env_config = {
-            # "JUJU_NODE_NAME": "spec.nodeName",
-            "JUJU_POD_NAME": self.unit.name,
-            "JUJU_POD_NAMESPACE": self.model.name,
-            # "JUJU_POD_IP": "status.podIP",
-            "JUJU_POD_SERVICE_ACCOUNT": self.app.name,
-        }
-        pod_config.update(juju_env_config)
-
-        return pod_config
+        return nginx_config
 
     def _missing_charm_configs(self) -> list:
         """Check and return list of required but missing configs."""
