@@ -227,6 +227,8 @@ class TestCharm(unittest.TestCase):
         harness.disable_hooks()
         harness.update_config(config)
         expected = JUJU_ENV_CONFIG
+        expected['CONTENT_CACHE_BACKEND'] = 'http://mybackend.local:80'
+        expected['CONTENT_CACHE_SITE'] = 'mysite.local'
         self.assertEqual(harness.charm._make_env_config(), expected)
 
     def test_make_pebble_config(self):
@@ -234,8 +236,8 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
         harness.disable_hooks()
-        env_config = harness.charm._make_env_config()
         harness.update_config(config)
+        env_config = harness.charm._make_env_config()
         expected = PEBBLE_CONFIG
         expected['services']['content-cache']['environment'] = harness.charm._make_env_config()
         self.assertEqual(harness.charm._make_pebble_config(env_config), expected)
@@ -245,8 +247,8 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
         harness.disable_hooks()
-        env_config = harness.charm._make_env_config()
         harness.update_config(config)
+        env_config = harness.charm._make_env_config()
         with open('tests/files/nginx_config.txt', 'r') as f:
             expected = f.read()
             self.assertEqual(harness.charm._make_nginx_config(env_config), expected)
@@ -256,9 +258,9 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
         harness.disable_hooks()
-        env_config = harness.charm._make_env_config()
         config['backend_site_name'] = 'myoverridebackendsitename.local'
         harness.update_config(config)
+        env_config = harness.charm._make_env_config()
         with open('tests/files/nginx_config_backend_site_name.txt', 'r') as f:
             expected = f.read()
             self.assertEqual(harness.charm._make_nginx_config(env_config), expected)
@@ -268,9 +270,9 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
         harness.disable_hooks()
-        env_config = harness.charm._make_env_config()
         config['client_max_body_size'] = '50m'
         harness.update_config(config)
+        env_config = harness.charm._make_env_config()
         with open('tests/files/nginx_config_client_max_body_size.txt', 'r') as f:
             expected = f.read()
             self.assertEqual(harness.charm._make_nginx_config(env_config), expected)

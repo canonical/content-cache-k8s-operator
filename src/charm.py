@@ -106,7 +106,7 @@ class ContentCacheCharm(CharmBase):
             container.make_dir(CACHE_PATH, make_parents=True)
 
             services = container.get_plan().to_dict().get('services', {})
-            if services != pebble_config["services"]:
+            if services != pebble_config['services']:
 
                 msg = 'Updating pebble layer config'
                 logger.info(msg)
@@ -165,11 +165,14 @@ class ContentCacheCharm(CharmBase):
 
     def _make_env_config(self) -> dict:
         """Return dict to be used as as runtime environment variables."""
+        config = self.model.config
         env_config = {
+            'CONTENT_CACHE_BACKEND': config.get('backend'),
+            'CONTENT_CACHE_SITE': config.get('site'),
             # https://bugs.launchpad.net/juju/+bug/1894782
-            "JUJU_POD_NAME": self.unit.name,
-            "JUJU_POD_NAMESPACE": self.model.name,
-            "JUJU_POD_SERVICE_ACCOUNT": self.app.name,
+            'JUJU_POD_NAME': self.unit.name,
+            'JUJU_POD_NAMESPACE': self.model.name,
+            'JUJU_POD_SERVICE_ACCOUNT': self.app.name,
         }
 
         return env_config
