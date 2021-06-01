@@ -27,6 +27,13 @@ JUJU_ENV_CONFIG = {
     'JUJU_POD_NAME': 'content-cache-k8s/0',
     'JUJU_POD_NAMESPACE': None,
     'JUJU_POD_SERVICE_ACCOUNT': 'content-cache-k8s',
+    'NGINX_BACKEND_SITE_NAME': 'mybackend.local',
+    'NGINX_CACHE_INACTIVE_TIME': '10m',
+    'NGINX_CACHE_MAX_SIZE': '10G',
+    'NGINX_CACHE_PATH': '/var/lib/nginx/proxy/cache',
+    'NGINX_CACHE_USE_STALE': 'error timeout updating http_500 http_502 http_503 http_504',
+    'NGINX_CACHE_VALID': '200 1h',
+    'NGINX_CLIENT_MAX_BODY_SIZE': '1m',
 }
 INGRESS_CONFIG = {
     'service-hostname': 'mysite.local',
@@ -159,7 +166,6 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
 
-        return
         # harness.charm._stored.content_cache_pebble_ready = True
         config = copy.deepcopy(BASE_CONFIG)
         make_pebble_config.return_value = {'services': {}}
@@ -229,6 +235,9 @@ class TestCharm(unittest.TestCase):
         expected = JUJU_ENV_CONFIG
         expected['CONTENT_CACHE_BACKEND'] = 'http://mybackend.local:80'
         expected['CONTENT_CACHE_SITE'] = 'mysite.local'
+        expected['NGINX_BACKEND'] = 'http://mybackend.local:80'
+        expected['NGINX_KEYS_ZONE'] = harness.charm._generate_keys_zone('mysite.local')
+        expected['NGINX_SITE_NAME'] = 'mysite.local'
         self.assertEqual(harness.charm._make_env_config(), expected)
 
     def test_make_pebble_config(self):

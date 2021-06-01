@@ -166,6 +166,16 @@ class ContentCacheCharm(CharmBase):
     def _make_env_config(self) -> dict:
         """Return dict to be used as as runtime environment variables."""
         config = self.model.config
+
+        backend = config['backend']
+        backend_site_name = config.get('backend_site_name')
+        if not backend_site_name:
+            backend_site_name = urlparse(backend).hostname
+
+        client_max_body_size = '1m'
+        if config.get('client_max_body_size'):
+            client_max_body_size = config.get('client_max_body_size')
+
         env_config = {
             'CONTENT_CACHE_BACKEND': config.get('backend'),
             'CONTENT_CACHE_SITE': config.get('site'),
@@ -173,6 +183,16 @@ class ContentCacheCharm(CharmBase):
             'JUJU_POD_NAME': self.unit.name,
             'JUJU_POD_NAMESPACE': self.model.name,
             'JUJU_POD_SERVICE_ACCOUNT': self.app.name,
+            'NGINX_BACKEND': backend,
+            'NGINX_BACKEND_SITE_NAME': backend_site_name,
+            'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),
+            'NGINX_CACHE_MAX_SIZE': config.get('cache_max_size', '10G'),
+            'NGINX_CACHE_PATH': CACHE_PATH,
+            'NGINX_CACHE_USE_STALE': config['cache_use_stale'],
+            'NGINX_CACHE_VALID': config['cache_valid'],
+            'NGINX_CLIENT_MAX_BODY_SIZE': client_max_body_size,
+            'NGINX_KEYS_ZONE': self._generate_keys_zone(config['site']),
+            'NGINX_SITE_NAME': config['site'],
         }
 
         return env_config
@@ -195,35 +215,10 @@ class ContentCacheCharm(CharmBase):
         return pebble_config
 
     def _make_nginx_config(self, env_config) -> str:
-        config = self.model.config
-
         with open('templates/nginx_cfg.tmpl', 'r') as f:
             content = f.read()
 
-        backend = config['backend']
-        backend_site_name = config.get('backend_site_name')
-        if not backend_site_name:
-            backend_site_name = urlparse(backend).hostname
-
-        client_max_body_size = '1m'
-        if config.get('client_max_body_size'):
-            client_max_body_size = config.get('client_max_body_size')
-
-        nginx_config = content.format(
-            JUJU_POD_NAME=env_config['JUJU_POD_NAME'],
-            JUJU_POD_NAMESPACE=env_config['JUJU_POD_NAMESPACE'],
-            NGINX_BACKEND=backend,
-            NGINX_BACKEND_SITE_NAME=backend_site_name,
-            NGINX_CACHE_INACTIVE_TIME=config.get('cache_inactive_time', '10m'),
-            NGINX_CACHE_MAX_SIZE=config.get('cache_max_size', '10G'),
-            NGINX_CACHE_PATH=CACHE_PATH,
-            NGINX_CACHE_USE_STALE=config['cache_use_stale'],
-            NGINX_CACHE_VALID=config['cache_valid'],
-            NGINX_CLIENT_MAX_BODY_SIZE=client_max_body_size,
-            NGINX_KEYS_ZONE=self._generate_keys_zone(config['site']),
-            NGINX_SITE_NAME=config['site'],
-        )
-
+        nginx_config = content.format(**env_config)
         return nginx_config
 
     def _missing_charm_configs(self) -> list:
