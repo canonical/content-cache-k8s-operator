@@ -183,6 +183,9 @@ class ContentCacheCharm(CharmBase):
             'JUJU_POD_NAME': self.unit.name,
             'JUJU_POD_NAMESPACE': self.model.name,
             'JUJU_POD_SERVICE_ACCOUNT': self.app.name,
+            # Include nginx / charm configs as environment variables
+            # to pass to the pebble services and ensure it restarts
+            # nginx on changes.
             'NGINX_BACKEND': backend,
             'NGINX_BACKEND_SITE_NAME': backend_site_name,
             'NGINX_CACHE_INACTIVE_TIME': config.get('cache_inactive_time', '10m'),

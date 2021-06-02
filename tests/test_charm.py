@@ -9,6 +9,7 @@ from ops.model import (
     ActiveStatus,
     BlockedStatus,
     MaintenanceStatus,
+    WaitingStatus,
 )
 from ops.testing import Harness
 from charm import ContentCacheCharm
@@ -166,13 +167,32 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
 
-        # harness.charm._stored.content_cache_pebble_ready = True
         config = copy.deepcopy(BASE_CONFIG)
         make_pebble_config.return_value = {'services': {}}
         harness.update_config(config)
         make_pebble_config.assert_called_once()
         add_layer.assert_not_called()
         self.assertEqual(harness.charm.unit.status, ActiveStatus('Ready'))
+
+    @mock.patch('charm.ContentCacheCharm._make_pebble_config')
+    @mock.patch('ops.model.Container.add_layer')
+    @mock.patch('ops.model.Container.get_service')
+    @mock.patch('ops.model.Container.make_dir')
+    @mock.patch('ops.model.Container.push')
+    @mock.patch('ops.model.Container.start')
+    @mock.patch('ops.model.Container.stop')
+    def test_configure_workload_container_pebble_not_ready(
+        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+    ):
+        """Test configure_workload_container and associated configuration."""
+        config = self.config
+        harness = self.harness
+
+        config = copy.deepcopy(BASE_CONFIG)
+        make_pebble_config.return_value = {'services': {}}
+        push.side_effect = ConnectionError
+        harness.update_config(config)
+        self.assertEqual(harness.charm.unit.status, WaitingStatus('Pebble is not ready, deferring event'))
 
     @mock.patch('charm.ContentCacheCharm._make_pebble_config')
     def test_configure_workload_container_missing_configs(self, make_pebble_config):
