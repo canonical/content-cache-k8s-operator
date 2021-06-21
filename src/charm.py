@@ -7,7 +7,11 @@ import hashlib
 import logging
 from urllib.parse import urlparse
 
-from charms.nginx_ingress_integrator.v0.ingress import IngressRequires
+from charms.nginx_ingress_integrator.v0.ingress import (
+    IngressCharmEvents,
+    IngressProxyProvides,
+    IngressRequires,
+)
 from ops.charm import CharmBase
 from ops.main import main
 from ops.model import (
@@ -28,6 +32,8 @@ REQUIRED_JUJU_CONFIGS = ['site', 'backend']
 class ContentCacheCharm(CharmBase):
     """Charm the service."""
 
+    on = IngressCharmEvents()
+
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -37,7 +43,9 @@ class ContentCacheCharm(CharmBase):
 
         self.framework.observe(self.on.content_cache_pebble_ready, self._on_content_cache_pebble_ready)
 
+        self.ingress_proxy_provides = IngressProxyProvides(self)
         self.ingress = IngressRequires(self, self._make_ingress_config())
+        self.framework.observe(self.on.ingress_available, self._on_config_changed)
 
     def _on_content_cache_pebble_ready(self, event) -> None:
         """Handle content_cache_pebble_ready event and configure workload container."""
@@ -150,6 +158,19 @@ class ContentCacheCharm(CharmBase):
         }
 
         site = config.get('site')
+
+        relation = None
+        try:
+            relation = self.model.get_relation('ingress-proxy')
+            # XXX: better handle when service-hostname isn't available via
+            # replace due to racing with other charm rather than wrap in a
+            # try/except KeyError.
+            if relation:
+                backend_site_name = relation.data[relation.app]["service-hostname"]
+                site = backend_site_name
+        except KeyError:
+            pass
+
         if site:
             ingress['service-hostname'] = site
 
@@ -163,22 +184,41 @@ class ContentCacheCharm(CharmBase):
 
         return ingress
 
-    def _make_env_config(self) -> dict:
+    def _make_env_config(self, domain="svc.cluster.local") -> dict:
         """Return dict to be used as as runtime environment variables."""
         config = self.model.config
+        relation = None
+        try:
+            relation = self.model.get_relation('ingress-proxy')
+            if relation:
+                backend_site_name = relation.data[relation.app]["service-hostname"]
+                site = backend_site_name
+        except KeyError:
+            pass
+        if relation:
+            svc_name = relation.data[relation.app]["service-name"]
+            svc_port = relation.data[relation.app]["service-port"]
+            backend_site_name = relation.data[relation.app]["service-hostname"]
+            site = backend_site_name
+            clients = []
+            for peer in relation.units:
+                unit_name = peer.name.replace('/', '-')
+                clients.append(f"http://{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}:{svc_port}")
+            # XXX: Will need to deal with multiple units at some point
+            backend = clients[0]
+        else:
+            backend = config['backend']
+            backend_site_name = config.get('backend_site_name')
+            if not backend_site_name:
+                backend_site_name = urlparse(backend).hostname
+            site = config["site"]
 
-        backend = config['backend']
-        backend_site_name = config.get('backend_site_name')
-        if not backend_site_name:
-            backend_site_name = urlparse(backend).hostname
-
-        client_max_body_size = '1m'
-        if config.get('client_max_body_size'):
-            client_max_body_size = config.get('client_max_body_size')
+        client_max_body_size = config['client_max_body_size']
 
         env_config = {
-            'CONTENT_CACHE_BACKEND': config.get('backend'),
-            'CONTENT_CACHE_SITE': config.get('site'),
+            'CONTAINER_PORT': CONTAINER_PORT,
+            'CONTENT_CACHE_BACKEND': backend,
+            'CONTENT_CACHE_SITE': site,
             # https://bugs.launchpad.net/juju/+bug/1894782
             'JUJU_POD_NAME': self.unit.name,
             'JUJU_POD_NAMESPACE': self.model.name,
@@ -194,8 +234,8 @@ class ContentCacheCharm(CharmBase):
             'NGINX_CACHE_USE_STALE': config['cache_use_stale'],
             'NGINX_CACHE_VALID': config['cache_valid'],
             'NGINX_CLIENT_MAX_BODY_SIZE': client_max_body_size,
-            'NGINX_KEYS_ZONE': self._generate_keys_zone(config['site']),
-            'NGINX_SITE_NAME': config['site'],
+            'NGINX_KEYS_ZONE': self._generate_keys_zone(site),
+            'NGINX_SITE_NAME': site,
         }
 
         return env_config
@@ -226,6 +266,13 @@ class ContentCacheCharm(CharmBase):
 
     def _missing_charm_configs(self) -> list:
         """Check and return list of required but missing configs."""
+        relation = None
+        try:
+            relation = self.model.get_relation('ingress-proxy')
+        except KeyError:
+            pass
+        if relation:
+            return []
         config = self.model.config
         missing = [setting for setting in REQUIRED_JUJU_CONFIGS if setting not in config or not config[setting]]
 

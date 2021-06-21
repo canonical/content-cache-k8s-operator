@@ -37,6 +37,7 @@ JUJU_ENV_CONFIG = {
     'NGINX_CLIENT_MAX_BODY_SIZE': '1m',
 }
 INGRESS_CONFIG = {
+    'max-body-size': '1m',
     'service-hostname': 'mysite.local',
     'service-name': 'content-cache-k8s',
     'service-port': CONTAINER_PORT,
@@ -124,7 +125,12 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
         harness.update_config(config)
-        expect = {'service-hostname': 'mysite.local', 'service-name': 'content-cache-k8s', 'service-port': 80}
+        expect = {
+            'max-body-size': '1m',
+            'service-hostname': 'mysite.local',
+            'service-name': 'content-cache-k8s',
+            'service-port': 80,
+        }
         ingress_update.assert_called_with(expect)
         make_pebble_config.assert_called_once()
         make_nginx_config.assert_called_once()
@@ -244,6 +250,7 @@ class TestCharm(unittest.TestCase):
         harness.update_config(config, unset=['client_max_body_size'])
         expected = copy.deepcopy(INGRESS_CONFIG)
         expected['tls-secret-name'] = 'mysite-com-tls'
+        expected.pop('max-body-size')
         self.assertEqual(harness.charm._make_ingress_config(), expected)
 
     def test_make_env_config(self):
@@ -253,6 +260,7 @@ class TestCharm(unittest.TestCase):
         harness.disable_hooks()
         harness.update_config(config)
         expected = JUJU_ENV_CONFIG
+        expected['CONTAINER_PORT'] = 80
         expected['CONTENT_CACHE_BACKEND'] = 'http://mybackend.local:80'
         expected['CONTENT_CACHE_SITE'] = 'mysite.local'
         expected['NGINX_BACKEND'] = 'http://mybackend.local:80'

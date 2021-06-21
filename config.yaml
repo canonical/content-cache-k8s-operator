@@ -42,7 +42,7 @@ options:
     type: string
     description: >-
       Override max. request body size (default 1m).
-    default: ""
+    default: "1m"
   tls_secret_name:
     type: string
     description: >-

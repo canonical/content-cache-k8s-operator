@@ -6,5 +6,4 @@
 .tox/
 build/
 htmlcov/
-lib/
 __pycache__/

@@ -21,7 +21,7 @@ clean:
 	@git clean -fXd
 
 charm-fetch‐lib:
-	charmcraft fetch-lib charms.nginx_ingress_integrator.v0.ingress
+	# charmcraft fetch-lib charms.nginx_ingress_integrator.v0.ingress
 
 content-cache-k8s.charm: src/*.py requirements.txt
 	charmcraft build

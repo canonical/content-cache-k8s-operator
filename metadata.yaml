@@ -17,6 +17,10 @@ resources:
     type: oci-image
     description: Docker image for content-cache to run
 
+provides:
+  ingress-proxy:
+    interface: ingress
+
 requires:
   ingress:
     interface: ingress

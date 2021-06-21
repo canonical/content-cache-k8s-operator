@@ -24,43 +24,17 @@ cluster and its ingress controllers have a fast connection to the Internet.
 For details on using Kubernetes with Juju [see here](https://juju.is/docs/kubernetes), and for
 details on using Juju with MicroK8s for easy local testing [see here](https://juju.is/docs/microk8s-cloud).
 
-To deploy this charm into a k8s model, with sample configuration set up to
-cache `archive.ubuntu.com` on `archive.local`:
+To deploy this charm into a k8s model:
 
-    juju deploy content-cache-k8s --channel edge \
-        --config site=archive.local \
-        --config backend=http://archive.ubuntu.com:80 \
-        content-cache
-    juju deploy nginx-ingress-integrator content-cache-ingress
-    juju relate content-cache content-cache-ingress
+    juju deploy content-cache-k8s --channel edge
+    juju deploy hello-kubecon
+    juju deploy nginx-ingress-integrator
+    juju relate hello-kubecon content-cache-k8s:ingress-proxy
+    juju relate nginx-ingress-integrator content-cache-k8s:ingress
 
-And then you can test the deployment with:
-
-    # Set this to to the "Ingress with service IP" value from the content-cache-ingress service from `juju status`
-    APP_IP=10.152.183.117
-
-First let's request a resource with headers that will allow us to cache (with
-sample output):
-
-    curl -v --resolve archive.local:80:${APP_IP} http://archive.local/ubuntu/dists/focal/Contents-i386.gz -o /dev/null 2>&1 | grep 'X-Cache-Status'
-    # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
-    #  First result is a cache MISS
-    curl -v --resolve archive.local:80:${APP_IP} http://archive.local/ubuntu/dists/focal/Contents-i386.gz -o /dev/null 2>&1 | grep 'X-Cache-Status'
-    # < X-Cache-Status: HIT from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
-    #  Second result is a cache HIT
-
-And now let's request a resource which has headers telling us not to cache:
-
-    # Verify cache control headers on the upstream resource
-    curl -v http://archive.ubuntu.com/ubuntu/dists/focal/Release 2>&1 | grep 'Cache-Control'
-    #   output: < Cache-Control: max-age=0, proxy-revalidate
-    # And now perform the requests through the content-caching service
-    curl -v --resolve archive.local:80:${APP_IP} http://archive.local/ubuntu/dists/focal/Release -o /dev/null 2>&1 | grep 'X-Cache-Status'
-    # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
-    #  First result is a cache MISS
-    curl -v --resolve archive.local:80:${APP_IP} http://archive.local/ubuntu/dists/focal/Release -o /dev/null 2>&1 | grep 'X-Cache-Status'
-    # < X-Cache-Status: MISS from juju-87625f-hloeung-13 (content-cache-56bbcd79d6-h8dk2)
-    #  Second result still a cache MISS
+You can then reach the site at `http://hello-kubecon` assuming `hello-kubecon`
+resolves to the IP address of your Kubernetes cluster (if you're on MicroK8s
+this will be 127.0.0.1).
 
 ---
 
