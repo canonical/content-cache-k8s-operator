@@ -122,6 +122,3 @@ async def test_openstack_object_storage_plugin(  # noqa: C901
         assert (
             requests.get(f"{swift_conn.url}/{container}/{filename}").status_code == 200
         ), "the image should be accessible from the swift server"
-        # assert (
-        #     requests.get(f"{swift_conn.url}/{container}/{filename}").content == image_content
-        # ), "image downloaded from swift server should match the image uploaded"
