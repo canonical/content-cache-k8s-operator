@@ -1,0 +1,8 @@
+juju
+requests
+pytest-operator
+python-keystoneclient
+python-swiftclient
+Pillow
+pytest
+pytest-cov

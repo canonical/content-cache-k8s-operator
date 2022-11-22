@@ -82,9 +82,7 @@ OPTIONAL_INGRESS_RELATION_FIELDS = {
 OPTIONAL_CACHE_SETTING_RELATION_FIELDS = {
     "refresh-patterns",
 }
-JSON_RELATION_FIELDS = {
-    "cache-settings"
-}
+JSON_RELATION_FIELDS = {"cache-settings"}
 
 
 class IngressAvailableEvent(EventBase):
@@ -107,7 +105,9 @@ class IngressRequires(Object):
     def __init__(self, charm, config_dict):
         super().__init__(charm, "ingress")
 
-        self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
+        self.framework.observe(
+            charm.on["ingress"].relation_changed, self._on_relation_changed
+        )
 
         self.config_dict = config_dict
 
@@ -117,12 +117,16 @@ class IngressRequires(Object):
         unknown = [
             x
             for x in self.config_dict
-            if x not in REQUIRED_INGRESS_RELATION_FIELDS | OPTIONAL_INGRESS_RELATION_FIELDS
+            if x
+            not in REQUIRED_INGRESS_RELATION_FIELDS | OPTIONAL_INGRESS_RELATION_FIELDS
         ]
-        unknown.extend([
-            x
-            for x in self.config_dict.get('cache-settings', [])
-            if x not in OPTIONAL_CACHE_SETTING_RELATION_FIELDS])
+        unknown.extend(
+            [
+                x
+                for x in self.config_dict.get("cache-settings", [])
+                if x not in OPTIONAL_CACHE_SETTING_RELATION_FIELDS
+            ]
+        )
         if unknown:
             logger.error(
                 "Ingress relation error, unknown key(s) in config dictionary found: %s",
@@ -131,7 +135,9 @@ class IngressRequires(Object):
             self.model.unit.status = BlockedStatus(blocked_message)
             return True
         if not update_only:
-            missing = [x for x in REQUIRED_INGRESS_RELATION_FIELDS if x not in self.config_dict]
+            missing = [
+                x for x in REQUIRED_INGRESS_RELATION_FIELDS if x not in self.config_dict
+            ]
             if missing:
                 logger.error(
                     "Ingress relation error, missing required key(s) in config dictionary: %s",
@@ -149,9 +155,13 @@ class IngressRequires(Object):
                 return
             for key in self.config_dict:
                 if key in JSON_RELATION_FIELDS:
-                    event.relation.data[self.model.app][key] = json.dumps(self.config_dict[key])
+                    event.relation.data[self.model.app][key] = json.dumps(
+                        self.config_dict[key]
+                    )
                 else:
-                    event.relation.data[self.model.app][key] = str(self.config_dict[key])
+                    event.relation.data[self.model.app][key] = str(
+                        self.config_dict[key]
+                    )
 
     def update_config(self, config_dict):
         """Allow for updates to relation."""
@@ -166,7 +176,6 @@ class IngressRequires(Object):
 
 
 class IngressBaseProvides(Object):
-
     def _on_relation_changed(self, event):
         """Handle a change to the ingress relation.
 
@@ -177,7 +186,8 @@ class IngressBaseProvides(Object):
 
         ingress_data = {
             field: event.relation.data[event.app].get(field)
-            for field in REQUIRED_INGRESS_RELATION_FIELDS | OPTIONAL_INGRESS_RELATION_FIELDS
+            for field in REQUIRED_INGRESS_RELATION_FIELDS
+            | OPTIONAL_INGRESS_RELATION_FIELDS
         }
 
         missing_fields = sorted(
@@ -214,15 +224,18 @@ class IngressProvides(IngressBaseProvides):
         super().__init__(charm, "ingress")
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
-        self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
+        self.framework.observe(
+            charm.on["ingress"].relation_changed, self._on_relation_changed
+        )
         self.charm = charm
 
 
 class IngressProxyProvides(IngressBaseProvides):
-
     def __init__(self, charm):
         super().__init__(charm, "ingress")
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
-        self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
+        self.framework.observe(
+            charm.on["ingress"].relation_changed, self._on_relation_changed
+        )
         self.charm = charm

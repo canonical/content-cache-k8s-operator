@@ -2,3 +2,6 @@ freezegun
 mock
 pytest
 pytest-cov
+ops
+pytest_asyncio
+pytest_operator
