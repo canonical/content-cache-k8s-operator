@@ -16,7 +16,7 @@ RUN apt-get -qy update && \
 
 RUN mkdir -p /srv/content-cache
 
-COPY entrypoint.sh /srv/content-cache
+COPY docker/entrypoint.sh /srv/content-cache
 COPY files /srv/content-cache/files/
 COPY templates /srv/content-cache/templates/
 
