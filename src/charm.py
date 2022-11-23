@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2020 Canonical Ltd.
+# Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+"""Charm for Content Cache on kubernetes."""
 import hashlib
 import logging
 from urllib.parse import urlparse
 
-from charms.nginx_ingress_integrator.v0.ingress import (IngressCharmEvents,
-                                                        IngressProxyProvides,
-                                                        IngressRequires)
+from charms.nginx_ingress_integrator.v0.ingress import (
+    IngressCharmEvents,
+    IngressProxyProvides,
+    IngressRequires,
+)
 from ops.charm import CharmBase
 from ops.main import main
-from ops.model import (ActiveStatus, BlockedStatus, MaintenanceStatus,
-                       WaitingStatus)
+from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +143,8 @@ class ContentCacheCharm(CharmBase):
 
     def _generate_keys_zone(self, name):
         """Generate hashed name to be used by Nginx's key zone."""
-        return f"{hashlib.md5(name.encode('UTF-8')).hexdigest()[0:12]}-cache"
+        hashed_name = hashlib.md5(name.encode("UTF-8")).hexdigest()[0:12]
+        return f"{hashed_name}-cache"
 
     def _make_ingress_config(self) -> list:
         """Return an assembled K8s ingress."""
@@ -199,9 +202,8 @@ class ContentCacheCharm(CharmBase):
             clients = []
             for peer in relation.units:
                 unit_name = peer.name.replace("/", "-")
-                clients.append(
-                    f"http://{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}:{svc_port}"
-                )
+                service_url = f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
+                clients.append(f"http://{service_url}:{svc_port}")
             # XXX: Will need to deal with multiple units at some point
             backend = clients[0]
         else:

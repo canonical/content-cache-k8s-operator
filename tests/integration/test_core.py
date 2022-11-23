@@ -17,7 +17,7 @@ async def test_openstack_object_storage_plugin(
     ops_test: pytest_operator.plugin.OpsTest,
     unit_ip_list,
     openstack_environment,
-    app: Application
+    app: Application,
 ):
     """
     arrange: after charm deployed and openstack swift server ready.
@@ -76,7 +76,5 @@ async def test_openstack_object_storage_plugin(
             filename in f for f in swift_object_list
         ), "media file uploaded should be stored in swift object storage"
         response = requests.get(f"{swift_conn.url}/{container}/{filename}")
-        assert (
-            response.status_code == 200
-        ), "the image should be accessible from the swift server"
+        assert response.status_code == 200, "the image should be accessible from the swift server"
         assert response.text == content
