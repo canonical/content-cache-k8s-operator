@@ -5,6 +5,7 @@ import pytest
 
 
 def pytest_addoption(parser: pytest.Parser):
+    """Process parameters for integration tests."""
     # --openstack-rc points to an openstack credential file in the "rc" file style
     # Here's an example of that file
     # $ echo ~/openrc
