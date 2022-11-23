@@ -1,4 +1,3 @@
-juju
 requests
 pytest-operator
 python-keystoneclient

@@ -1,5 +1,5 @@
 # Copyright 2022 Canonical Ltd.
-# Licensed under the GPLv3, see LICENCE file for details.
+# see LICENCE file for details.
 
 import secrets
 
@@ -9,41 +9,20 @@ import requests
 import swiftclient
 import swiftclient.exceptions
 import swiftclient.service
+from ops.model import Application
 
 
 @pytest.mark.asyncio
-@pytest.mark.abort_on_fail
-async def test_build_and_deploy(
-    ops_test: pytest_operator.plugin.OpsTest, content_cache_image
-):
-    """
-    arrange: no pre-condition.
-    act: build charm using charmcraft and deploy charm to test juju model.
-    assert: building and deploying should success and status should be "blocked" since the
-        database info hasn't been provided yet.
-    """
-    my_charm = await ops_test.build_charm(".")
-    await ops_test.model.deploy(
-        my_charm,
-        resources={"content-cache-image": content_cache_image},
-        series="jammy",
-    )
-    await ops_test.model.wait_for_idle()
-
-
-@pytest.mark.asyncio
-async def test_openstack_object_storage_plugin(  # noqa: C901
+async def test_openstack_object_storage_plugin(
     ops_test: pytest_operator.plugin.OpsTest,
     unit_ip_list,
     openstack_environment,
+    app: Application
 ):
     """
-    arrange: after charm deployed, db relation established and openstack swift server ready.
+    arrange: after charm deployed and openstack swift server ready.
     act: update charm configuration for openstack object storage plugin.
-    assert: openstack object storage plugin should be installed after the config update and
-        WordPress openstack swift object storage integration should be set up properly.
-        After openstack swift plugin activated, an image file uploaded to one unit through
-        WordPress media uploader should be accessible from all units.
+    assert: a file should be uploaded to the openstack server and be accesibe through it.
     """
     swift_conn = swiftclient.Connection(
         authurl=openstack_environment["OS_AUTH_URL"],
@@ -88,37 +67,16 @@ async def test_openstack_object_storage_plugin(  # noqa: C901
     for idx, unit_ip in enumerate(unit_ip_list):
         nonce = secrets.token_hex(8)
         filename = f"{nonce}.{unit_ip}.{idx}"
-        for r in swift_service.upload(
-            container=container,
-            objects=[swiftclient.service.SwiftUploadObject(None, object_name=filename)],
-        ):
-            if r["success"]:
-                if "object" in r:
-                    print(r["object"])
-                elif "for_object" in r:
-                    print("%s segment %s" % (r["for_object"], r["segment_index"]))
-            else:
-                error = r["error"]
-                if r["action"] == "create_container":
-                    print(
-                        "Warning: failed to create container " "'%s'%s",
-                        container,
-                        error,
-                    )
-                elif r["action"] == "upload_object":
-                    print(
-                        "Failed to upload object %s to container %s: %s"
-                        % (container, r["object"], error)
-                    )
-                else:
-                    print("%s" % error)
+        content = "test-content"
+        swift_conn.put_object(container=container, obj=filename, contents=content)
         swift_object_list = [
             o["name"] for o in swift_conn.get_container(container, full_listing=True)[1]
         ]
-        print(swift_object_list)
         assert any(
             filename in f for f in swift_object_list
         ), "media file uploaded should be stored in swift object storage"
+        response = requests.get(f"{swift_conn.url}/{container}/{filename}")
         assert (
-            requests.get(f"{swift_conn.url}/{container}/{filename}").status_code == 200
+            response.status_code == 200
         ), "the image should be accessible from the swift server"
+        assert response.text == content

@@ -1,7 +1,8 @@
 # Copyright 2022 Canonical Ltd.
-# Licensed under the GPLv3, see LICENCE file for details.
+# see LICENCE file for details.
 
 import configparser
+import pathlib
 import re
 
 import pytest
@@ -16,11 +17,10 @@ def openstack_environment(request):
     Return a dictionary of environment variables and values.
     """
     rc_file = request.config.getoption("--openstack-rc")
-    with open(rc_file) as f:
-        rc_file = f.read()
+    rc_file = pathlib.Path(rc_file).read_text()
     rc_file = re.sub("^export ", "", rc_file, flags=re.MULTILINE)
     openstack_conf = configparser.ConfigParser()
-    openstack_conf.read_string("[DEFAULT]\n" + rc_file)
+    openstack_conf.read_string(f"[DEFAULT]\n{rc_file}")
     return {k.upper(): v for k, v in openstack_conf["DEFAULT"].items()}
 
 
@@ -34,22 +34,39 @@ def content_cache_image(pytestconfig: pytest.Config):
     return value
 
 
-@pytest_asyncio.fixture(scope="function", name="get_unit_ip_list")
-async def fixture_get_unit_ip_list(ops_test: pytest_operator.plugin.OpsTest):
+@pytest_asyncio.fixture(scope="function")
+async def get_unit_ip_list(ops_test: pytest_operator.plugin.OpsTest):
     """Helper function to retrieve unit ip addresses, similar to fixture_get_unit_status_list"""
 
-    async def _get_unit_ip_list():
+    async def get_unit_ip_list_action():
         status = await ops_test.model.get_status()
         units = status.applications["content-cache-k8s"].units
-        ip_list = []
-        for key in sorted(units.keys(), key=lambda n: int(n.split("/")[-1])):
-            ip_list.append(units[key].address)
+        ip_list = [units[key].address for key in sorted(units.keys(), key=lambda n: int(n.split("/")[-1]))]
         return ip_list
 
-    yield _get_unit_ip_list
+    yield get_unit_ip_list_action
 
 
-@pytest_asyncio.fixture(scope="function", name="unit_ip_list")
-async def fixture_unit_ip_list(get_unit_ip_list):
+@pytest_asyncio.fixture(scope="function")
+async def unit_ip_list(get_unit_ip_list):
     """A fixture containing ip addresses of current units"""
     yield await get_unit_ip_list()
+
+
+@pytest_asyncio.fixture(scope="module")
+async def app(
+    ops_test: pytest_operator.plugin.OpsTest, content_cache_image: str
+):
+    """
+    Content-cache-k8s charm used for integration testing.
+    Builds the charm and deploys it for testing purposes.
+    """
+    my_charm = await ops_test.build_charm(".")
+    application = await ops_test.model.deploy(
+        my_charm,
+        resources={"content-cache-image": content_cache_image},
+        series="jammy",
+    )
+    await ops_test.model.wait_for_idle()
+
+    yield application

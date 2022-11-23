@@ -1,5 +1,5 @@
 # Copyright 2022 Canonical Ltd.
-# Licensed under the GPLv3, see LICENCE file for details.
+# see LICENCE file for details.
 
 import pytest
 

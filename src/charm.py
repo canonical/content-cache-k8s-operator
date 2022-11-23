@@ -7,19 +7,13 @@ import hashlib
 import logging
 from urllib.parse import urlparse
 
-from charms.nginx_ingress_integrator.v0.ingress import (
-    IngressCharmEvents,
-    IngressProxyProvides,
-    IngressRequires,
-)
+from charms.nginx_ingress_integrator.v0.ingress import (IngressCharmEvents,
+                                                        IngressProxyProvides,
+                                                        IngressRequires)
 from ops.charm import CharmBase
 from ops.main import main
-from ops.model import (
-    ActiveStatus,
-    BlockedStatus,
-    MaintenanceStatus,
-    WaitingStatus,
-)
+from ops.model import (ActiveStatus, BlockedStatus, MaintenanceStatus,
+                       WaitingStatus)
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +73,7 @@ class ContentCacheCharm(CharmBase):
         """Configure/set up workload container inside pod."""
         missing = self._missing_charm_configs()
         if missing:
-            msg = "Required config(s) empty: {}".format(", ".join(sorted(missing)))
+            msg = f"Required config(s) empty: {', '.join(sorted(missing))}"
             logger.warning(msg)
             self.unit.status = BlockedStatus(msg)
             return
