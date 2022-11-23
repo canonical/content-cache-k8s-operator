@@ -51,7 +51,7 @@ class ContentCacheCharm(CharmBase):
         self.on.config_changed.emit()
 
     def _on_start(self, event) -> None:
-        """Handle workload containter started."""
+        """Handle workload container started."""
         logger.info("Starting workload container (start)")
         self.model.unit.status = ActiveStatus("Started")
 
@@ -71,9 +71,9 @@ class ContentCacheCharm(CharmBase):
 
     def configure_workload_container(self, event) -> None:
         """Configure/set up workload container inside pod."""
-        missing = self._missing_charm_configs()
+        missing = sorted(self._missing_charm_configs())
         if missing:
-            msg = f"Required config(s) empty: {', '.join(sorted(missing))}"
+            msg = f"Required config(s) empty: {', '.join(missing)}"
             logger.warning(msg)
             self.unit.status = BlockedStatus(msg)
             return

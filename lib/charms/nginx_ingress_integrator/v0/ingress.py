@@ -82,7 +82,9 @@ OPTIONAL_INGRESS_RELATION_FIELDS = {
 OPTIONAL_CACHE_SETTING_RELATION_FIELDS = {
     "refresh-patterns",
 }
-JSON_RELATION_FIELDS = {"cache-settings"}
+JSON_RELATION_FIELDS = {
+    "cache-settings"
+}
 
 
 class IngressAvailableEvent(EventBase):
