@@ -290,7 +290,7 @@ class TestCharm(unittest.TestCase):
         expected["NGINX_BACKEND"] = "http://mybackend.local:80"
         expected["NGINX_KEYS_ZONE"] = harness.charm._generate_keys_zone("mysite.local")
         expected["NGINX_SITE_NAME"] = "mysite.local"
-        expected["NGINX_CACHE_ALL"] = ''
+        expected["NGINX_CACHE_ALL"] = "proxy_ignore_headers Cache-Control Expires;"
         self.assertEqual(harness.charm._make_env_config(), expected)
 
     def test_make_pebble_config(self):

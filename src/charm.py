@@ -141,7 +141,7 @@ class ContentCacheCharm(CharmBase):
 
     def _generate_keys_zone(self, name):
         """Generate hashed name to be used by Nginx's key zone."""
-        return "{}-cache".format(hashlib.md5(name.encode("UTF-8")).hexdigest()[0:12])
+        return f"{hashlib.md5(name.encode('UTF-8')).hexdigest()[0:12]}-cache"
 
     def _make_ingress_config(self) -> list:
         """Return an assembled K8s ingress."""
@@ -212,7 +212,7 @@ class ContentCacheCharm(CharmBase):
             site = config["site"]
 
         cache_all_configs = ''
-        if config.get('cache_all', False):
+        if config['cache_all'] == False:
             cache_all_configs = "proxy_ignore_headers Cache-Control Expires;"
 
         client_max_body_size = config["client_max_body_size"]
