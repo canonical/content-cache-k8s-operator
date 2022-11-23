@@ -169,6 +169,7 @@ class TestCharm(unittest.TestCase):
         start.assert_called_once()
         self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
 
+
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
     @mock.patch("ops.model.Container.get_service")
@@ -216,6 +217,30 @@ class TestCharm(unittest.TestCase):
         make_pebble_config.assert_called_once()
         add_layer.assert_not_called()
         self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
+
+    @mock.patch("charm.ContentCacheCharm._make_pebble_config")
+    @mock.patch("ops.model.Container.add_layer")
+    @mock.patch("ops.model.Container.get_service")
+    @mock.patch("ops.model.Container.make_dir")
+    @mock.patch("ops.model.Container.push")
+    @mock.patch("ops.model.Container.start")
+    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.isdir")
+    def test_configure_workload_container_has_cache_directory(self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config, isdir):
+        """
+        arrange: workload container is ready
+        act: check if cache dir is created
+        assert: cache directory is created
+        """
+        config = self.config
+        harness = self.harness
+
+        config = copy.deepcopy(BASE_CONFIG)
+        harness.update_config(config)
+        make_pebble_config.assert_called_once()
+        self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
+        container = harness.charm.unit.get_container(CONTAINER_NAME)
+        self.assertTrue(container.isdir(CACHE_PATH))
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
@@ -316,10 +341,9 @@ class TestCharm(unittest.TestCase):
         harness = self.harness
         harness.disable_hooks()
         config["tls_secret_name"] = "mysite-com-tls"
-        harness.update_config(config, unset=["client_max_body_size"])
+        harness.update_config(config)
         expected = copy.deepcopy(INGRESS_CONFIG)
         expected["tls-secret-name"] = "mysite-com-tls"
-        expected.pop("max-body-size")
         self.assertEqual(harness.charm._make_ingress_config(), expected)
 
     def test_make_env_config(self):
