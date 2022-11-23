@@ -17,6 +17,13 @@ options:
       Backend site name, e.g. mybackend.local. If none given, will
       work out from the configured 'backend' config above.
     default: ""
+  cache_all:
+    type: boolean
+    description: >-
+      By default, we respect upstream cache headers so Cache-Control
+      and Expires. This overrides that and enables caching even if
+      upstream tells us not to.
+    default: False
   cache_inactive_time:
     type: string
     description: >-

@@ -211,6 +211,10 @@ class ContentCacheCharm(CharmBase):
                 backend_site_name = urlparse(backend).hostname
             site = config["site"]
 
+        cache_all_configs = ''
+        if config.get('cache_all', False):
+            cache_all_configs = "proxy_ignore_headers Cache-Control Expires;"
+
         client_max_body_size = config["client_max_body_size"]
 
         env_config = {
@@ -225,6 +229,7 @@ class ContentCacheCharm(CharmBase):
             # to pass to the pebble services and ensure it restarts
             # nginx on changes.
             "NGINX_BACKEND": backend,
+            "NGINX_CACHE_ALL": cache_all_configs,
             "NGINX_BACKEND_SITE_NAME": backend_site_name,
             "NGINX_CACHE_INACTIVE_TIME": config.get("cache_inactive_time", "10m"),
             "NGINX_CACHE_MAX_SIZE": config.get("cache_max_size", "10G"),

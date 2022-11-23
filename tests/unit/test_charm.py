@@ -5,13 +5,10 @@ import copy
 import unittest
 from unittest import mock
 
-from ops.model import (
-    ActiveStatus,
-    BlockedStatus,
-    MaintenanceStatus,
-    WaitingStatus,
-)
+from ops.model import (ActiveStatus, BlockedStatus, MaintenanceStatus,
+                       WaitingStatus)
 from ops.testing import Harness
+
 from charm import ContentCacheCharm
 
 BASE_CONFIG = {
@@ -29,6 +26,7 @@ JUJU_ENV_CONFIG = {
     "JUJU_POD_NAMESPACE": None,
     "JUJU_POD_SERVICE_ACCOUNT": "content-cache-k8s",
     "NGINX_BACKEND_SITE_NAME": "mybackend.local",
+    "NGINX_CACHE_ALL": False,
     "NGINX_CACHE_INACTIVE_TIME": "10m",
     "NGINX_CACHE_MAX_SIZE": "10G",
     "NGINX_CACHE_PATH": "/var/lib/nginx/proxy/cache",
@@ -292,6 +290,7 @@ class TestCharm(unittest.TestCase):
         expected["NGINX_BACKEND"] = "http://mybackend.local:80"
         expected["NGINX_KEYS_ZONE"] = harness.charm._generate_keys_zone("mysite.local")
         expected["NGINX_SITE_NAME"] = "mysite.local"
+        expected["NGINX_CACHE_ALL"] = ''
         self.assertEqual(harness.charm._make_env_config(), expected)
 
     def test_make_pebble_config(self):
