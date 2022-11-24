@@ -9,7 +9,6 @@ ENV DEBIAN_FRONTEND noninteractive
 # Don't install recommends to keep image small and avoid nasty surprises
 # e.g. rpcbind being pulled in by nrpe.
 RUN apt-get -qy update && \
-    apt-get -qy dist-upgrade --no-install-recommends && \
     apt-get -qy install --no-install-recommends nginx-light && \
     apt-get -qy clean && \
     rm -f /var/lib/apt/lists/*_*
