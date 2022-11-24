@@ -213,8 +213,8 @@ class ContentCacheCharm(CharmBase):
                 backend_site_name = urlparse(backend).hostname
             site = config["site"]
 
-        cache_all_configs = ''
-        if not config['cache_all']:
+        cache_all_configs = ""
+        if not config["cache_all"]:
             cache_all_configs = "proxy_ignore_headers Cache-Control Expires;"
 
         client_max_body_size = config["client_max_body_size"]

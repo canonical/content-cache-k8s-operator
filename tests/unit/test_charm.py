@@ -169,7 +169,6 @@ class TestCharm(unittest.TestCase):
         start.assert_called_once()
         self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
 
-
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
     @mock.patch("ops.model.Container.get_service")
@@ -226,7 +225,9 @@ class TestCharm(unittest.TestCase):
     @mock.patch("ops.model.Container.start")
     @mock.patch("ops.model.Container.stop")
     @mock.patch("ops.model.Container.isdir")
-    def test_configure_workload_container_has_cache_directory(self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config, isdir):
+    def test_configure_workload_container_has_cache_directory(
+        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config, isdir
+    ):
         """
         arrange: workload container is ready
         act: check if cache dir is created
