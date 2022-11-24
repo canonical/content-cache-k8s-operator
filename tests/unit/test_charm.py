@@ -347,6 +347,28 @@ class TestCharm(unittest.TestCase):
         expected["tls-secret-name"] = "mysite-com-tls"
         self.assertEqual(harness.charm._make_ingress_config(), expected)
 
+    def test_make_ingress_config_with_proxy_relation(self):
+        """
+        arrange: set ingress-proxy relation
+        act: verify ingress config
+        assert: ingress config is generated as expected
+        """
+        harness = self.harness
+        expected = copy.deepcopy(INGRESS_CONFIG)
+        self.assertEqual(harness.charm._make_ingress_config(), expected)
+        relation_id = harness.add_relation("ingress-proxy", "hello-kubecon")
+        harness.add_relation_unit(relation_id, "hello-kubecon/0")
+        relations_data = {
+            "service-name": "test-proxy",
+            "service-hostname": "foo.internal",
+            "service-port": "80",
+        }
+        harness.update_relation_data(relation_id, "hello-kubecon", relations_data)
+        new_ingress_config = harness.charm._make_ingress_config()
+        self.assertEqual(
+            new_ingress_config["service-hostname"], relations_data["service-hostname"]
+        )
+
     def test_make_env_config(self):
         """
         arrange: define env variables
