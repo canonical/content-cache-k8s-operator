@@ -389,6 +389,31 @@ class TestCharm(unittest.TestCase):
         expected["NGINX_CACHE_ALL"] = "proxy_ignore_headers Cache-Control Expires;"
         self.assertEqual(harness.charm._make_env_config(), expected)
 
+    def test_make_env_config_with_proxy_relation(self):
+        """
+        arrange: set ingress-proxy relation
+        act: verify env config
+        assert: env config is generated as expected
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        harness.update_config(config)
+        current_env_config = harness.charm._make_env_config()
+        current_site = current_env_config["CONTENT_CACHE_SITE"]
+        self.assertEqual(current_site, "mysite.local")
+        relation_id = harness.add_relation("ingress-proxy", "hello-kubecon")
+        harness.add_relation_unit(relation_id, "hello-kubecon/0")
+        relations_data = {
+            "service-name": "test-proxy",
+            "service-hostname": "foo.internal",
+            "service-port": "80",
+        }
+        harness.update_relation_data(relation_id, "hello-kubecon", relations_data)
+        new_env_config = harness.charm._make_env_config()
+        new_site = new_env_config["CONTENT_CACHE_SITE"]
+        self.assertEqual(new_site, relations_data["service-hostname"])
+
     def test_make_pebble_config(self):
         """
         arrange: define pebble config
