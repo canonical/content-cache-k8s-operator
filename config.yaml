@@ -15,10 +15,13 @@ options:
     default: ""
   cache_all:
     type: boolean
-    description: >-
-      By default, we respect upstream cache headers so Cache-Control
-      and Expires. This overrides that and enables caching even if
+    description: >
+      By default, we respect upstream cache headers (Cache-Control
+      and Expires). This overrides that and enables caching even if
       upstream tells us not to.
+      WARNING: It won't cache when Vary: * and Set-Cookies headers are sent in the responses.
+      This option overrides the backend cache time instructions (Expires or max-age) by setting
+      a cache time to 1h (which could be less than the caching instructed by the backend)
     default: False
   cache_inactive_time:
     type: string
