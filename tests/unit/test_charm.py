@@ -341,10 +341,10 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
         harness.disable_hooks()
-        config["tls_secret_name"] = "mysite-com-tls"
+        config["tls_secret_name"] = "mysite-com-tls"  # nosec
         harness.update_config(config)
         expected = copy.deepcopy(INGRESS_CONFIG)
-        expected["tls-secret-name"] = "mysite-com-tls"
+        expected["tls-secret-name"] = "mysite-com-tls"  # nosec
         self.assertEqual(harness.charm._make_ingress_config(), expected)
 
     def test_make_ingress_config_with_proxy_relation(self):

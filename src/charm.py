@@ -143,7 +143,8 @@ class ContentCacheCharm(CharmBase):
 
     def _generate_keys_zone(self, name):
         """Generate hashed name to be used by Nginx's key zone."""
-        hashed_name = hashlib.md5(name.encode("UTF-8")).hexdigest()[0:12]
+        hashed_value = hashlib.md5(name.encode("UTF-8"), usedforsecurity=False)
+        hashed_name = hashed_value.hexdigest()[0:12]
         return f"{hashed_name}-cache"
 
     def _make_ingress_config(self) -> list:
