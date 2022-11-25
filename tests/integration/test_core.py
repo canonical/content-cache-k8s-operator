@@ -9,7 +9,48 @@ import requests
 import swiftclient
 import swiftclient.exceptions
 import swiftclient.service
-from ops.model import Application
+from ops.model import ActiveStatus, Application
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_active(app: Application):
+    """
+    arrange: given charm has been built, deployed and related to a dependent application
+    act: when the status is checked
+    assert: then the workload status is active.
+    """
+    assert app.units[0].workload_status == ActiveStatus.name
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_hello_kubecon_reachable(hello_kubecon_url: str):
+    """
+    arrange: given charm is deployed and related with hello-kubecon and nginx-integrator
+    act: when the dependent application is queried via the ingress
+    assert: then the response is HTTP 200 OK.
+    """
+    response = requests.get(hello_kubecon_url)
+
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_hello_kubecon_cache_header(hello_kubecon_url: str):
+    """
+    arrange: given charm is deployed, related with hello-kubecon and nginx-integrator
+        and is reachable
+    act: when the dependent application is queried via the ingress
+    assert: then the response is HTTP 200 OK, has X-Cache-Status http header
+        and contains description with content-cache-k8s'
+    """
+    response = requests.get(hello_kubecon_url)
+
+    assert response.status_code == 200
+    assert "X-Cache-Status" in response.headers
+    assert "content-cache-k8s" in response.headers["X-Cache-Status"]
 
 
 @pytest.mark.asyncio
