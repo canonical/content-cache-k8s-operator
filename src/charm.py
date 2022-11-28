@@ -161,7 +161,9 @@ class ContentCacheCharm(CharmBase):
 
         relation = self.model.get_relation("ingress-proxy")
         if relation:
-            site = relation.data[relation.app]["service-hostname"]
+            # in case the relation app is not available yet
+            prev_site = site
+            site = relation.data[relation.app].get("service-hostname", prev_site)
 
         if site:
             ingress["service-hostname"] = site

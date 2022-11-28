@@ -90,8 +90,8 @@ async def app(
     Deploy kubecon charm, builds the charm and deploys it for testing purposes.
     """
     hello_kubecon_app_name = "hello-kubecon"
+    ops_test.model.deploy(hello_kubecon_app_name)
     await ops_test.model.deploy(hello_kubecon_app_name)
-
     app_charm = await ops_test.build_charm(".")
     application = await ops_test.model.deploy(
         app_charm,
@@ -99,17 +99,19 @@ async def app(
         resources={"content-cache-image": content_cache_image},
         series="jammy",
     )
-    await ops_test.model.wait_for_idle()
+    apps = [app_name, nginx_integrator_app.name, hello_kubecon_app_name]
+    await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 10)
+
+    await ops_test.model.add_relation(hello_kubecon_app_name, f"{app_name}:ingress-proxy")
+    await ops_test.model.add_relation(f"{app_name}:ingress", nginx_integrator_app.name)
+
+    await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 10)
 
     assert ops_test.model.applications[app_name].units[0].workload_status == ActiveStatus.name
     assert (
         ops_test.model.applications[hello_kubecon_app_name].units[0].workload_status
         == ActiveStatus.name
     )
-
-    # Add required relations
-    await ops_test.model.add_relation(hello_kubecon_app_name, f"{app_name}:ingress-proxy")
-    await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:ingress")
 
     yield application
 
