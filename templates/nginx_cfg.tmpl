@@ -25,7 +25,7 @@ server {{
         proxy_cache {NGINX_KEYS_ZONE};
         proxy_cache_use_stale {NGINX_CACHE_USE_STALE};
         proxy_cache_valid {NGINX_CACHE_VALID};
-        {NGINX_CACHE_ALL}
+        {NGINX_CACHE_ALL};
     }}
 
     access_log /dev/stdout content_cache;

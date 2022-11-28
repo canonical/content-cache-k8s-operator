@@ -159,17 +159,9 @@ class ContentCacheCharm(CharmBase):
 
         site = config.get("site")
 
-        relation = None
-        try:
-            relation = self.model.get_relation("ingress-proxy")
-            # XXX: better handle when service-hostname isn't available via
-            # replace due to racing with other charm rather than wrap in a
-            # try/except KeyError.
-            if relation:
-                backend_site_name = relation.data[relation.app]["service-hostname"]
-                site = backend_site_name
-        except KeyError:
-            pass
+        relation = self.model.get_relation("ingress-proxy")
+        if relation:
+            site = relation.data[relation.app]["service-hostname"]
 
         if site:
             ingress["service-hostname"] = site
@@ -187,19 +179,12 @@ class ContentCacheCharm(CharmBase):
     def _make_env_config(self, domain="svc.cluster.local") -> dict:
         """Return dict to be used as as runtime environment variables."""
         config = self.model.config
-        relation = None
-        try:
-            relation = self.model.get_relation("ingress-proxy")
-            if relation:
-                backend_site_name = relation.data[relation.app]["service-hostname"]
-                site = backend_site_name
-        except KeyError:
-            pass
+        relation = self.model.get_relation("ingress-proxy")
         if relation:
+            site = relation.data[relation.app]["service-hostname"]
             svc_name = relation.data[relation.app]["service-name"]
             svc_port = relation.data[relation.app]["service-port"]
             backend_site_name = relation.data[relation.app]["service-hostname"]
-            site = backend_site_name
             clients = []
             for peer in relation.units:
                 unit_name = peer.name.replace("/", "-")
@@ -216,7 +201,7 @@ class ContentCacheCharm(CharmBase):
 
         cache_all_configs = ""
         if not config["cache_all"]:
-            cache_all_configs = "proxy_ignore_headers Cache-Control Expires;"
+            cache_all_configs = "proxy_ignore_headers Cache-Control Expires"
 
         client_max_body_size = config["client_max_body_size"]
 
@@ -272,11 +257,7 @@ class ContentCacheCharm(CharmBase):
 
     def _missing_charm_configs(self) -> list:
         """Check and return list of required but missing configs."""
-        relation = None
-        try:
-            relation = self.model.get_relation("ingress-proxy")
-        except KeyError:
-            pass
+        relation = self.model.get_relation("ingress-proxy")
         if relation:
             return []
         config = self.model.config
