@@ -25,20 +25,20 @@ async def test_active(app: Application):
 
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_hello_kubecon_reachable(hello_kubecon_url: str):
+async def test_hello_kubecon_reachable(ingress_ip: str):
     """
     arrange: given charm is deployed and related with hello-kubecon and nginx-integrator
     act: when the dependent application is queried via the ingress
     assert: then the response is HTTP 200 OK.
     """
-    response = requests.get(hello_kubecon_url)
+    response = requests.get(f"http://{ingress_ip}", headers={"Host": "hello-kubecon"}, timeout=5)
 
     assert response.status_code == 200
 
 
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_hello_kubecon_cache_header(hello_kubecon_url: str):
+async def test_hello_kubecon_cache_header(ingress_ip: str):
     """
     arrange: given charm is deployed, related with hello-kubecon and nginx-integrator
         and is reachable
@@ -46,7 +46,7 @@ async def test_hello_kubecon_cache_header(hello_kubecon_url: str):
     assert: then the response is HTTP 200 OK, has X-Cache-Status http header
         and contains description with content-cache-k8s'
     """
-    response = requests.get(hello_kubecon_url)
+    response = requests.get(f"http://{ingress_ip}", headers={"Host": "hello-kubecon"}, timeout=5)
 
     assert response.status_code == 200
     assert "X-Cache-Status" in response.headers
@@ -116,6 +116,6 @@ async def test_openstack_object_storage_plugin(
         assert any(
             filename in f for f in swift_object_list
         ), "media file uploaded should be stored in swift object storage"
-        response = requests.get(f"{swift_conn.url}/{container}/{filename}")
+        response = requests.get(f"{swift_conn.url}/{container}/{filename}", timeout=5)
         assert response.status_code == 200, "the image should be accessible from the swift server"
         assert response.text == content

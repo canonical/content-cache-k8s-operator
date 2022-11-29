@@ -3,7 +3,6 @@
 
 import configparser
 import re
-import subprocess  # nosec B404
 from pathlib import Path
 from typing import List
 
@@ -146,11 +145,3 @@ async def ip_address_list(ops_test: OpsTest, app: Application, nginx_integrator_
 async def ingress_ip(ip_address_list: List):
     """First match is the ingress IP."""
     yield ip_address_list[0]
-
-
-@pytest_asyncio.fixture(scope="module")
-async def hello_kubecon_url(ingress_ip: str):
-    """Add to /etc/hosts."""
-    ps = subprocess.Popen(["echo", f"{ingress_ip} hello-kubecon"], stdout=subprocess.PIPE)  # nosec
-    subprocess.run(["sudo", "tee", "-a", "/etc/hosts"], stdin=ps.stdout)  # nosec
-    yield "http://hello-kubecon"
