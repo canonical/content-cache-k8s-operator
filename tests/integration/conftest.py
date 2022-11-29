@@ -9,6 +9,7 @@ from typing import List
 
 import pytest_asyncio
 import yaml
+from juju.errors import JujuAppError, JujuUnitError
 from ops.model import ActiveStatus, Application
 from pytest import Config, fixture
 from pytest_operator.plugin import OpsTest
@@ -92,6 +93,8 @@ async def app(
     hello_kubecon_app_name = "hello-kubecon"
     ops_test.model.deploy(hello_kubecon_app_name)
     await ops_test.model.deploy(hello_kubecon_app_name)
+    await ops_test.model.wait_for_idle()
+
     app_charm = await ops_test.build_charm(".")
     application = await ops_test.model.deploy(
         app_charm,
@@ -99,8 +102,12 @@ async def app(
         resources={"content-cache-image": content_cache_image},
         series="jammy",
     )
-    await ops_test.model.wait_for_idle()
 
+    try:
+        await ops_test.model.wait_for_idle(raise_on_blocked=True)
+    except (JujuAppError, JujuUnitError):
+        print("BlockedStatus raised: will be solved after relation ingress-proxy")
+        pass
     apps = [app_name, nginx_integrator_app.name, hello_kubecon_app_name]
     await ops_test.model.add_relation(hello_kubecon_app_name, f"{app_name}:ingress-proxy")
     await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
