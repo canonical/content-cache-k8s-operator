@@ -73,7 +73,7 @@ async def unit_ip_list(get_unit_ip_list):
 @pytest_asyncio.fixture(scope="module")
 async def nginx_integrator_app(ops_test: OpsTest):
     nginx_integrator_app_name = "nginx-ingress-integrator"
-    nginx_integrator_app = await ops_test.model.deploy(nginx_integrator_app_name)
+    nginx_integrator_app = await ops_test.model.deploy(nginx_integrator_app_name, trust=True)
     await ops_test.model.wait_for_idle()
     assert (
         ops_test.model.applications[nginx_integrator_app_name].units[0].workload_status
