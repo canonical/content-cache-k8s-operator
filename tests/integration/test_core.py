@@ -75,7 +75,7 @@ async def test_report_visits_by_ip(app: Application):
     assert: the action result is successful and returns the expected output
     """
     action: juju.action.Action = await app.units[0].run_action("report-visits-by-ip")
-    await action.wait()    
+    await action.wait()
     assert action.status == "completed"
     ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
     ip_address_list = re.search(ip_regex, action.results["ips"])
