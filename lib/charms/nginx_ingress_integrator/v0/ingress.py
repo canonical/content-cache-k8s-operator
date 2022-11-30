@@ -219,7 +219,7 @@ class IngressProvides(IngressBaseProvides):
 
 
 class IngressProxyProvides(IngressBaseProvides):
-    
+
     def __init__(self, charm):
         super().__init__(charm, "ingress")
         # Observe the relation-changed hook event and bind
