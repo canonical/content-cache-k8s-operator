@@ -82,7 +82,9 @@ OPTIONAL_INGRESS_RELATION_FIELDS = {
 OPTIONAL_CACHE_SETTING_RELATION_FIELDS = {
     "refresh-patterns",
 }
-JSON_RELATION_FIELDS = {"cache-settings"}
+JSON_RELATION_FIELDS = {
+    "cache-settings"
+}
 
 
 class IngressAvailableEvent(EventBase):
@@ -117,13 +119,10 @@ class IngressRequires(Object):
             for x in self.config_dict
             if x not in REQUIRED_INGRESS_RELATION_FIELDS | OPTIONAL_INGRESS_RELATION_FIELDS
         ]
-        unknown.extend(
-            [
-                x
-                for x in self.config_dict.get("cache-settings", [])
-                if x not in OPTIONAL_CACHE_SETTING_RELATION_FIELDS
-            ]
-        )
+        unknown.extend([
+            x
+            for x in self.config_dict.get('cache-settings', [])
+            if x not in OPTIONAL_CACHE_SETTING_RELATION_FIELDS])
         if unknown:
             logger.error(
                 "Ingress relation error, unknown key(s) in config dictionary found: %s",
