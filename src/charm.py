@@ -13,7 +13,7 @@ from charms.nginx_ingress_integrator.v0.ingress import (
     IngressProxyProvides,
     IngressRequires,
 )
-from ops.charm import CharmBase
+from ops.charm import ActionEvent, CharmBase
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 
@@ -36,7 +36,9 @@ class ContentCacheCharm(CharmBase):
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.config_changed, self._on_config_changed)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
-
+        self.framework.observe(
+            self.on.report_visits_by_ip_action, self._report_visits_by_ip_action
+        )
         self.framework.observe(
             self.on.content_cache_pebble_ready, self._on_content_cache_pebble_ready
         )
@@ -63,6 +65,19 @@ class ContentCacheCharm(CharmBase):
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.configure_workload_container(event)
+
+    def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
+        """Refresh external resources and report action result."""
+        container = self.unit.get_container(CONTAINER_NAME)
+        process = container.exec(
+            [
+                "/bin/sh",
+                "-c",
+                "awk -vDate=`date -d'now-2 hours' +[%d/+%b/%Y:%H:%M:%S` '{ if ($4 > Date) print $1}' /var/log/nginx/access.log | sort  |uniq -c |sort -n | tail",  # noqa: E501
+            ]
+        )
+        results, _ = process.wait_output()
+        event.set_results({"ips": results})
 
     def _on_upgrade_charm(self, event) -> None:
         """Handle upgrade_charm event and reconfigure workload container."""
@@ -161,7 +176,9 @@ class ContentCacheCharm(CharmBase):
 
         relation = self.model.get_relation("ingress-proxy")
         if relation:
-            site = relation.data[relation.app]["service-hostname"]
+            # in case the relation app is not available yet
+            prev_site = site
+            site = relation.data[relation.app].get("service-hostname", prev_site)
 
         if site:
             ingress["service-hostname"] = site

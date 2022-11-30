@@ -28,6 +28,6 @@ server {
         proxy_ignore_headers Cache-Control Expires;
     }
 
-    access_log /dev/stdout content_cache;
-    error_log /dev/stdout info;
+    access_log /var/log/nginx/access.log content_cache;
+    error_log /var/log/nginx/error.log info;
 }

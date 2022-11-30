@@ -1,15 +1,85 @@
 # Copyright 2022 Canonical Ltd.
 # see LICENCE file for details.
 
+import re
 import secrets
 
+import juju.action
 import pytest
 import pytest_operator.plugin
 import requests
 import swiftclient
 import swiftclient.exceptions
 import swiftclient.service
-from ops.model import Application
+from ops.model import ActiveStatus, Application
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_active(app: Application):
+    """
+    arrange: given charm has been built, deployed and related to a dependent application
+    act: when the status is checked
+    assert: then the workload status is active.
+    """
+    assert app.units[0].workload_status == ActiveStatus.name
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_hello_kubecon_reachable(ingress_ip: str):
+    """
+    arrange: given charm is deployed and related with hello-kubecon and nginx-integrator
+    act: when the dependent application is queried via the ingress
+    assert: then the response is HTTP 200 OK.
+    """
+    response = requests.get(f"http://{ingress_ip}", headers={"Host": "hello-kubecon"}, timeout=5)
+
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_hello_kubecon_cache_header(ingress_ip: str):
+    """
+    arrange: given charm is deployed, related with hello-kubecon and nginx-integrator
+        and is reachable
+    act: when the dependent application is queried via the ingress
+    assert: then the response is HTTP 200 OK, has X-Cache-Status http header
+        and contains description with content-cache-k8s'
+    """
+    response = requests.get(f"http://{ingress_ip}", headers={"Host": "hello-kubecon"}, timeout=5)
+
+    assert response.status_code == 200
+    assert "X-Cache-Status" in response.headers
+    assert "content-cache-k8s" in response.headers["X-Cache-Status"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_service_reachable(service_ip: str):
+    """
+    arrange: given charm has been built, deployed and related to a dependent application
+    act: when the dependent application is queried via the service
+    assert: then the response is HTTP 200 OK.
+    """
+    response = requests.get(f"http://{service_ip}")
+
+    assert response.status_code == 200
+
+
+async def test_report_visits_by_ip(app: Application):
+    """
+    arrange: given that the gunicorn application is deployed and related to another charm
+    act: when the show-environment-context is ran
+    assert: the action result is successful and returns the expected output
+    """
+    action: juju.action.Action = await app.units[0].run_action("report-visits-by-ip")
+    await action.wait()    
+    assert action.status == "completed"
+    ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
+    ip_address_list = re.search(ip_regex, action.results["ips"])
+    assert ip_address_list
 
 
 @pytest.mark.asyncio
@@ -63,7 +133,6 @@ async def test_openstack_object_storage_plugin(
         )
     )
     swift_service.post(container=container, options={"read_acl": ".r:*,.rlistings"})
-
     for idx, unit_ip in enumerate(unit_ip_list):
         nonce = secrets.token_hex(8)
         filename = f"{nonce}.{unit_ip}.{idx}"
@@ -75,6 +144,6 @@ async def test_openstack_object_storage_plugin(
         assert any(
             filename in f for f in swift_object_list
         ), "media file uploaded should be stored in swift object storage"
-        response = requests.get(f"{swift_conn.url}/{container}/{filename}")
+        response = requests.get(f"{swift_conn.url}/{container}/{filename}", timeout=5)
         assert response.status_code == 200, "the image should be accessible from the swift server"
         assert response.text == content
