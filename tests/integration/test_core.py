@@ -71,7 +71,7 @@ async def test_service_reachable(service_ip: str):
 async def test_report_visits_by_ip(app: Application):
     """
     arrange: given that the gunicorn application is deployed and related to another charm
-    act: when the show-environment-context is ran
+    act: when report-visits-by-ip is ran
     assert: the action result is successful and returns the expected output
     """
     action: juju.action.Action = await app.units[0].run_action("report-visits-by-ip")

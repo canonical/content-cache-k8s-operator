@@ -67,7 +67,7 @@ class ContentCacheCharm(CharmBase):
         self.configure_workload_container(event)
 
     def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
-        """Refresh external resources and report action result."""
+        """Report requests to nginx by IP and report action result."""
         container = self.unit.get_container(CONTAINER_NAME)
         process = container.exec(
             [
