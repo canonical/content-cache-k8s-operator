@@ -73,7 +73,7 @@ class ContentCacheCharm(CharmBase):
             [
                 "/bin/sh",
                 "-c",
-                "awk -vDate=`date -d'now-2 hours' +[%d/+%b/%Y:%H:%M:%S` '{ if ($4 > Date) print $1}' /var/log/nginx/access.log | sort  |uniq -c |sort -n | tail",  # noqa: E501
+                "awk -vDate=`date -d'now-20 min' +[%d/+%b/%Y:%H:%M:%S` '{ if ($4 > Date) print $1}' /var/log/nginx/access.log | sort  |uniq -c |sort -n | tail",  # noqa: E501
             ]
         )
         results, _ = process.wait_output()
