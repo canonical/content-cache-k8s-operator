@@ -1,7 +1,7 @@
 # Copyright (C) 2020 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-FROM ubuntu:latest
+FROM ubuntu:jammy
 
 ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
