@@ -4,8 +4,11 @@
 # See LICENSE file for licensing details.
 
 """Charm for Content Cache on kubernetes."""
+import datetime
 import hashlib
 import logging
+import re
+from itertools import groupby
 from urllib.parse import urlparse
 
 from charms.nginx_ingress_integrator.v0.ingress import (
@@ -67,17 +70,27 @@ class ContentCacheCharm(CharmBase):
         self.configure_workload_container(event)
 
     def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
+        results = self._report_visits_by_ip()
+        event.set_results({"ips": results})
+
+    def _report_visits_by_ip(self) -> None:
         """Report requests to nginx by IP and report action result."""
         container = self.unit.get_container(CONTAINER_NAME)
-        process = container.exec(
-            [
-                "/bin/sh",
-                "-c",
-                "awk -vDate=`date -d'now-20 min' +[%d/+%b/%Y:%H:%M:%S` '{ if ($4 > Date) print $1}' /var/log/nginx/access.log | sort  |uniq -c |sort -n | tail",  # noqa: E501
-            ]
-        )
-        results, _ = process.wait_output()
-        event.set_results({"ips": results})
+        log_file = container.pull("/var/log/nginx/access.log")
+        list_to_search = log_file.readlines()
+        logger.info(str(list_to_search))
+        log_file.close()
+        ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
+        ip_list = []
+        for line in list_to_search:
+            line = line.split()
+            current_date = datetime.datetime.now()
+            date = datetime.datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S")
+            param_date = current_date - datetime.timedelta(minutes=20)
+            if date >= param_date and re.search(ip_regex, line[0]):
+                ip_list.append(line[0])
+        results = [(len(list(group)), key) for key, group in groupby(sorted(ip_list))]
+        return results
 
     def _on_upgrade_charm(self, event) -> None:
         """Handle upgrade_charm event and reconfigure workload container."""

@@ -1,8 +1,9 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
-
 import copy
+import io
 import unittest
+from datetime import datetime, timedelta
 from unittest import mock
 
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
@@ -168,6 +169,59 @@ class TestCharm(unittest.TestCase):
         stop.assert_called_once()
         start.assert_called_once()
         self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
+
+    @mock.patch("ops.model.Container.pull")
+    def test_report_visits_by_ip_mixed(
+        self,
+        mock_pull,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        date_now = datetime.now()
+        formatted_date_now = date_now.strftime("%d/%b/%Y:%H:%M:%S")
+        date_30 = date_now - timedelta(minutes=30)
+        formatted_date_30 = date_30.strftime("%d/%b/%Y:%H:%M:%S")
+        msg = f"10.10.10.10 - - [{formatted_date_now}\n10.10.10.12 - - [{formatted_date_30}"
+        mock_pull.return_value = io.StringIO(msg)
+        action = self.harness.charm._report_visits_by_ip()
+        expected = [(1, "10.10.10.10")]
+        self.assertEqual(action, expected)
+
+    @mock.patch("ops.model.Container.pull")
+    def test_report_visits_by_ip_multiple(
+        self,
+        mock_pull,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: they are all accepted
+        """
+        date_now = datetime.now()
+        formatted_date_now = date_now.strftime("%d/%b/%Y:%H:%M:%S")
+        msg = f"10.10.10.10 - - [{formatted_date_now}\n10.10.10.11 - - [{formatted_date_now}\n10.10.10.11 - - [{formatted_date_now}"  # noqa E501
+        mock_pull.return_value = io.StringIO(msg)
+        action = self.harness.charm._report_visits_by_ip()
+        expected = [(1, "10.10.10.10"), (2, "10.10.10.11")]
+        self.assertEqual(action, expected)
+
+    @mock.patch("ops.model.Container.pull")
+    def test_report_visits_by_ip_empty(
+        self,
+        mock_pull,
+    ):
+        """
+        arrange: empty nginx entries are simulated
+        act: process the entries
+        assert: there is nothing to show
+        """
+        mock_pull.return_value = io.StringIO("")
+        action = self.harness.charm._report_visits_by_ip()
+        expected = []
+        self.assertEqual(action, expected)
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
