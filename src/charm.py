@@ -73,7 +73,7 @@ class ContentCacheCharm(CharmBase):
         results = self._report_visits_by_ip()
         event.set_results({"ips": str(results)})
 
-    def _report_visits_by_ip(self) -> list[(int, str)]:
+    def _report_visits_by_ip(self) -> dict[str, int]:
         """Report requests to nginx grouped and ordered by IP and report action result."""
         container = self.unit.get_container(CONTAINER_NAME)
         log_path = "/var/log/nginx/access.log"
@@ -88,8 +88,7 @@ class ContentCacheCharm(CharmBase):
             log_datetime = datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S")
             if log_datetime >= start_datetime and re.search(ip_regex, line[0]):
                 ip_list.append(str(line[0]))
-        results = {ip: ip_list.count(ip) for ip in sorted(ip_list)}
-        return results
+        return {ip: ip_list.count(ip) for ip in sorted(ip_list)}
 
     def _on_upgrade_charm(self, event) -> None:
         """Handle upgrade_charm event and reconfigure workload container."""
