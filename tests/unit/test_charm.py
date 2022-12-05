@@ -186,8 +186,8 @@ class TestCharm(unittest.TestCase):
         formatted_date_30 = date_30.strftime("%d/%b/%Y:%H:%M:%S")
         msg = f"10.10.10.10 - - [{formatted_date_now}\n10.10.10.12 - - [{formatted_date_30}"
         mock_pull.return_value = io.StringIO(msg)
-        action = self.harness.charm._report_visits_by_ip()
-        expected = {"10.10.10.10": 1}
+        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        expected = [(1, '10.10.10.10')]
         self.assertEqual(action, expected)
 
     @mock.patch("ops.model.Container.pull")
@@ -204,8 +204,8 @@ class TestCharm(unittest.TestCase):
         formatted_date_now = date_now.strftime("%d/%b/%Y:%H:%M:%S")
         msg = f"10.10.10.10 - - [{formatted_date_now}\n10.10.10.11 - - [{formatted_date_now}\n10.10.10.11 - - [{formatted_date_now}"  # noqa E501
         mock_pull.return_value = io.StringIO(msg)
-        action = self.harness.charm._report_visits_by_ip()
-        expected = {"10.10.10.10": 1, "10.10.10.11": 2}
+        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        expected = [(1, '10.10.10.10'), (2, '10.10.10.11')]
         self.assertEqual(action, expected)
 
     @mock.patch("ops.model.Container.pull")
@@ -219,8 +219,8 @@ class TestCharm(unittest.TestCase):
         assert: there is nothing to show
         """
         mock_pull.return_value = io.StringIO("")
-        action = self.harness.charm._report_visits_by_ip()
-        expected = {}
+        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        expected = []
         self.assertEqual(action, expected)
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")

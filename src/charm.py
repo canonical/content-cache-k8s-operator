@@ -7,6 +7,7 @@
 import hashlib
 import logging
 import re
+from itertools import groupby
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
@@ -70,10 +71,10 @@ class ContentCacheCharm(CharmBase):
 
     def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
         """Handle the report-visits-by-ip action."""
-        results = self._report_visits_by_ip()
+        results = self._report_visits_by_ip(event)
         event.set_results({"ips": str(results)})
 
-    def _report_visits_by_ip(self) -> dict[str, int]:
+    def _report_visits_by_ip(self, _) -> list[(int, str)]:
         """Report requests to nginx grouped and ordered by IP and report action result."""
         container = self.unit.get_container(CONTAINER_NAME)
         log_path = "/var/log/nginx/access.log"
@@ -88,7 +89,7 @@ class ContentCacheCharm(CharmBase):
             log_datetime = datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S")
             if log_datetime >= start_datetime and re.search(ip_regex, line[0]):
                 ip_list.append(str(line[0]))
-        return {ip: ip_list.count(ip) for ip in sorted(ip_list)}
+        return sorted([(len(list(group)), key) for key, group in groupby(ip_list)])
 
     def _on_upgrade_charm(self, event) -> None:
         """Handle upgrade_charm event and reconfigure workload container."""
