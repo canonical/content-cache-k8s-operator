@@ -4,10 +4,10 @@
 # See LICENSE file for licensing details.
 
 """Charm for Content Cache on kubernetes."""
-import datetime
 import hashlib
 import logging
 import re
+from datetime import datetime, timedelta
 from itertools import groupby
 from urllib.parse import urlparse
 
@@ -77,17 +77,16 @@ class ContentCacheCharm(CharmBase):
     def _report_visits_by_ip(self) -> None:
         """Report requests to nginx by IP and report action result."""
         container = self.unit.get_container(CONTAINER_NAME)
-        log_file = container.pull("/var/log/nginx/access.log")
-        list_to_search = log_file.readlines()
-        log_file.close()
+        with container.pull("/var/log/nginx/access.log") as log_file:
+            list_to_search = log_file.readlines()
         ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
         ip_list = []
+        current_datetime = datetime.now()
+        start_datetime = current_datetime - timedelta(minutes=20)
         for line in list_to_search:
             line = line.split()
-            current_date = datetime.datetime.now()
-            date = datetime.datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S")
-            param_date = current_date - datetime.timedelta(minutes=20)
-            if date >= param_date and re.search(ip_regex, line[0]):
+            log_datetime = datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S")
+            if log_datetime >= start_datetime and re.search(ip_regex, line[0]):
                 ip_list.append(line[0])
         results = [(len(list(group)), key) for key, group in groupby(sorted(ip_list))]
         return results
