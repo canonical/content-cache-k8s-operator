@@ -70,6 +70,7 @@ class ContentCacheCharm(CharmBase):
         self.configure_workload_container(event)
 
     def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
+        """Handle the report-visits-by-ip action."""
         results = self._report_visits_by_ip()
         event.set_results({"ips": results})
 
@@ -78,7 +79,6 @@ class ContentCacheCharm(CharmBase):
         container = self.unit.get_container(CONTAINER_NAME)
         log_file = container.pull("/var/log/nginx/access.log")
         list_to_search = log_file.readlines()
-        logger.info(str(list_to_search))
         log_file.close()
         ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
         ip_list = []
