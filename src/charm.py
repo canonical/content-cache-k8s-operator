@@ -89,7 +89,6 @@ class ContentCacheCharm(CharmBase):
             if log_datetime >= start_datetime and re.search(ip_regex, line[0]):
                 ip_list.append(str(line[0]))
         results = {ip: ip_list.count(ip) for ip in sorted(ip_list)}
-        logger.info(f'{results}')
         return results
 
     def _on_upgrade_charm(self, event) -> None:
