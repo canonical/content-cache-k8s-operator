@@ -8,7 +8,6 @@ import hashlib
 import logging
 import re
 from datetime import datetime, timedelta
-from itertools import groupby
 from urllib.parse import urlparse
 
 from charms.nginx_ingress_integrator.v0.ingress import (
@@ -72,7 +71,7 @@ class ContentCacheCharm(CharmBase):
     def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
         """Handle the report-visits-by-ip action."""
         results = self._report_visits_by_ip()
-        event.set_results({"ips": results})
+        event.set_results({"ips": str(results)})
 
     def _report_visits_by_ip(self) -> list[(int, str)]:
         """Report requests to nginx grouped and ordered by IP and report action result."""
@@ -88,8 +87,9 @@ class ContentCacheCharm(CharmBase):
             line = line.split()
             log_datetime = datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S")
             if log_datetime >= start_datetime and re.search(ip_regex, line[0]):
-                ip_list.append(line[0])
-        results = [(len(list(group)), key) for key, group in groupby(sorted(ip_list))]
+                ip_list.append(str(line[0]))
+        results = {ip: ip_list.count(ip) for ip in sorted(ip_list)}
+        logger.info(f'{results}')
         return results
 
     def _on_upgrade_charm(self, event) -> None:
