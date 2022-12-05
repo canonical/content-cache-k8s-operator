@@ -7,8 +7,8 @@
 import hashlib
 import logging
 import re
-from itertools import groupby
 from datetime import datetime, timedelta
+from itertools import groupby
 from urllib.parse import urlparse
 
 from charms.nginx_ingress_integrator.v0.ingress import (
