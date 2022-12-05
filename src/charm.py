@@ -89,7 +89,9 @@ class ContentCacheCharm(CharmBase):
             log_datetime = datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S")
             if log_datetime >= start_datetime and re.search(ip_regex, line[0]):
                 ip_list.append(str(line[0]))
-        return sorted([(len(list(group)), key) for key, group in groupby(ip_list)])
+        return sorted(
+            [(key, len(list(group))) for key, group in groupby(ip_list)], key=lambda t: t[1]
+        )
 
     def _on_upgrade_charm(self, event) -> None:
         """Handle upgrade_charm event and reconfigure workload container."""
