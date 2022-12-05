@@ -77,7 +77,8 @@ class ContentCacheCharm(CharmBase):
     def _report_visits_by_ip(self) -> list[(int, str)]:
         """Report requests to nginx grouped and ordered by IP and report action result."""
         container = self.unit.get_container(CONTAINER_NAME)
-        with container.pull("/var/log/nginx/access.log") as log_file:
+        log_path = "/var/log/nginx/access.log"
+        with container.pull(log_path) as log_file:
             list_to_search = log_file.readlines()
         ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
         ip_list = []
