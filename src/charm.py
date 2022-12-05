@@ -75,7 +75,7 @@ class ContentCacheCharm(CharmBase):
         event.set_results({"ips": results})
 
     def _report_visits_by_ip(self) -> list[(int, str)]:
-        """Report requests to nginx by IP and report action result."""
+        """Report requests to nginx grouped and ordered by IP and report action result."""
         container = self.unit.get_container(CONTAINER_NAME)
         with container.pull("/var/log/nginx/access.log") as log_file:
             list_to_search = log_file.readlines()
