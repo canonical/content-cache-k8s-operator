@@ -187,7 +187,7 @@ class TestCharm(unittest.TestCase):
         msg = f"10.10.10.10 - - [{formatted_date_now}\n10.10.10.12 - - [{formatted_date_30}"
         mock_pull.return_value = io.StringIO(msg)
         action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
-        expected = [(1, '10.10.10.10')]
+        expected = [(1, "10.10.10.10")]
         self.assertEqual(action, expected)
 
     @mock.patch("ops.model.Container.pull")
@@ -205,7 +205,7 @@ class TestCharm(unittest.TestCase):
         msg = f"10.10.10.10 - - [{formatted_date_now}\n10.10.10.11 - - [{formatted_date_now}\n10.10.10.11 - - [{formatted_date_now}"  # noqa E501
         mock_pull.return_value = io.StringIO(msg)
         action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
-        expected = [(1, '10.10.10.10'), (2, '10.10.10.11')]
+        expected = [(1, "10.10.10.10"), (2, "10.10.10.11")]
         self.assertEqual(action, expected)
 
     @mock.patch("ops.model.Container.pull")
