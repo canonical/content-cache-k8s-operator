@@ -171,7 +171,7 @@ class TestCharm(unittest.TestCase):
         self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
 
     @mock.patch("ops.model.Container.pull")
-    def test_report_visits_by_ip_mixed(
+    def test_report_visits_by_ip_edge(
         self,
         mock_pull,
     ):
@@ -181,31 +181,63 @@ class TestCharm(unittest.TestCase):
         assert: only the entries logged less than 20 minutes ago are accepted
         """
         date_now = datetime.now()
-        formatted_date_now = date_now.strftime("%d/%b/%Y:%H:%M:%S")
-        date_30 = date_now - timedelta(minutes=30)
-        formatted_date_30 = date_30.strftime("%d/%b/%Y:%H:%M:%S")
-        msg = f"10.10.10.10 - - [{formatted_date_now}\n10.10.10.12 - - [{formatted_date_30}"
+        date_20 = (date_now - timedelta(minutes=20, seconds=1)).strftime("%d/%b/%Y:%H:%M:%S")
+        date_19 = (date_now - timedelta(minutes=19, seconds=59)).strftime("%d/%b/%Y:%H:%M:%S")
+        msg = f"10.10.10.12 - - [{date_20}\n10.10.10.10 - - [{date_19}"
         mock_pull.return_value = io.StringIO(msg)
         action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
         expected = [("10.10.10.10", 1)]
         self.assertEqual(action, expected)
 
     @mock.patch("ops.model.Container.pull")
-    def test_report_visits_by_ip_multiple(
+    def test_report_visits_by_ip_one_visit_one_ip(
         self,
         mock_pull,
     ):
         """
         arrange: some nginx entries are simulated
         act: process the entries
-        assert: they are all accepted
+        assert: only the entries logged less than 20 minutes ago are accepted
         """
-        date_now = datetime.now()
-        formatted_date_now = date_now.strftime("%d/%b/%Y:%H:%M:%S")
-        msg = f"10.10.10.10 - - [{formatted_date_now}\n10.10.10.11 - - [{formatted_date_now}\n10.10.10.11 - - [{formatted_date_now}"  # noqa E501
+        date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
+        msg = f"10.10.10.11 - - [{date_now}"
         mock_pull.return_value = io.StringIO(msg)
         action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
-        expected = [("10.10.10.10", 1), ("10.10.10.11", 2)]
+        expected = [("10.10.10.11", 1)]
+        self.assertEqual(action, expected)
+
+    @mock.patch("ops.model.Container.pull")
+    def test_report_visits_by_ip_multiple_visits_one_ip(
+        self,
+        mock_pull,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
+        msg = f"10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}"  # noqa E501
+        mock_pull.return_value = io.StringIO(msg)
+        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        expected = [("10.10.10.11", 3)]
+        self.assertEqual(action, expected)
+
+    @mock.patch("ops.model.Container.pull")
+    def test_report_visits_by_ip_multiple_visits_multiple_ips(
+        self,
+        mock_pull,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
+        msg = f"10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}\n10.10.10.12 - - [{date_now}\n10.10.10.12 - - [{date_now}"  # noqa E501
+        mock_pull.return_value = io.StringIO(msg)
+        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        expected = [("10.10.10.11", 3), ("10.10.10.12", 2)]
         self.assertEqual(action, expected)
 
     @mock.patch("ops.model.Container.pull")

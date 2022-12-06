@@ -5,10 +5,10 @@
 
 """Charm for Content Cache on kubernetes."""
 import hashlib
+import ipaddress
 import logging
-import re
+from collections import Counter
 from datetime import datetime, timedelta
-from itertools import groupby
 from urllib.parse import urlparse
 
 from charms.nginx_ingress_integrator.v0.ingress import (
@@ -69,29 +69,47 @@ class ContentCacheCharm(CharmBase):
         self.model.unit.status = MaintenanceStatus(msg)
         self.configure_workload_container(event)
 
+    def _get_ip_type(self, address) -> str:
+        """Validate a string type: ipv4, ipv6 or invalid as IP address."""
+        try:
+            ip = ipaddress.ip_address(address)
+
+            if isinstance(ip, ipaddress.IPv4Address):
+                return "ipv4"
+            elif isinstance(ip, ipaddress.IPv6Address):
+                return "ipv6"
+        except ValueError:
+            return
+
     def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
-        """Handle the report-visits-by-ip action."""
+        """Handle the report-visits-by-ip action.
+
+        Args:
+            event: the Juju action event fired when the action executes.
+        """
         results = self._report_visits_by_ip(event)
         event.set_results({"ips": str(results)})
 
     def _report_visits_by_ip(self, _) -> list[(int, str)]:
-        """Report requests to nginx grouped and ordered by IP and report action result."""
+        """Report requests to nginx grouped and ordered by IP and report action result.
+
+        Args:
+            _: Empty argument created for mocking/testing purposes, since we need to
+            mock the action execution in tests.
+        """
         container = self.unit.get_container(CONTAINER_NAME)
         log_path = "/var/log/nginx/access.log"
-        with container.pull(log_path) as log_file:
-            list_to_search = log_file.readlines()
-        ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
         ip_list = []
-        current_datetime = datetime.now()
-        start_datetime = current_datetime - timedelta(minutes=20)
-        for line in list_to_search:
+        for line in reversed(list(container.pull(log_path))):
             line = line.split()
-            log_datetime = datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S")
-            if log_datetime >= start_datetime and re.search(ip_regex, line[0]):
+            if datetime.strptime(line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S") > (
+                datetime.now() - timedelta(minutes=20)
+            ):
                 ip_list.append(str(line[0]))
-        return sorted(
-            [(key, len(list(group))) for key, group in groupby(ip_list)], key=lambda t: t[1]
-        )
+            else:
+                break
+
+        return Counter(ip_list).most_common()
 
     def _on_upgrade_charm(self, event) -> None:
         """Handle upgrade_charm event and reconfigure workload container."""
