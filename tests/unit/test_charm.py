@@ -185,7 +185,7 @@ class TestCharm(unittest.TestCase):
         date_19 = (date_now - timedelta(minutes=19, seconds=59)).strftime("%d/%b/%Y:%H:%M:%S")
         msg = f"10.10.10.12 - - [{date_20}\n10.10.10.10 - - [{date_19}"
         mock_pull.return_value = io.StringIO(msg)
-        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        action = self.harness.charm._report_visits_by_ip()
         expected = [("10.10.10.10", 1)]
         self.assertEqual(action, expected)
 
@@ -202,7 +202,7 @@ class TestCharm(unittest.TestCase):
         date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
         msg = f"10.10.10.11 - - [{date_now}"
         mock_pull.return_value = io.StringIO(msg)
-        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        action = self.harness.charm._report_visits_by_ip()
         expected = [("10.10.10.11", 1)]
         self.assertEqual(action, expected)
 
@@ -219,7 +219,7 @@ class TestCharm(unittest.TestCase):
         date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
         msg = f"10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}"  # noqa E501
         mock_pull.return_value = io.StringIO(msg)
-        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        action = self.harness.charm._report_visits_by_ip()
         expected = [("10.10.10.11", 3)]
         self.assertEqual(action, expected)
 
@@ -236,7 +236,7 @@ class TestCharm(unittest.TestCase):
         date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
         msg = f"10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}\n10.10.10.12 - - [{date_now}\n10.10.10.12 - - [{date_now}"  # noqa E501
         mock_pull.return_value = io.StringIO(msg)
-        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        action = self.harness.charm._report_visits_by_ip()
         expected = [("10.10.10.11", 3), ("10.10.10.12", 2)]
         self.assertEqual(action, expected)
 
@@ -251,9 +251,99 @@ class TestCharm(unittest.TestCase):
         assert: there is nothing to show
         """
         mock_pull.return_value = io.StringIO("")
-        action = self.harness.charm._report_visits_by_ip(mock.MagicMock())
+        action = self.harness.charm._report_visits_by_ip()
         expected = []
         self.assertEqual(action, expected)
+
+    def test_get_ip_multiple_ips(
+        self,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
+        msg = io.StringIO(
+            f"10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}\n10.10.10.11 - - [{date_now}\n10.10.10.12 - - [{date_now}\n10.10.10.12 - - [{date_now}"  # noqa E501
+        )
+        action = self.harness.charm.get_ip(msg)
+        expected = ["10.10.10.12", "10.10.10.12", "10.10.10.11", "10.10.10.11", "10.10.10.11"]
+        self.assertEqual(list(action), expected)
+
+    def test_get_ip_single_ip(
+        self,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
+        msg = io.StringIO(f"10.10.10.11 - - [{date_now}")  # noqa E501
+        action = self.harness.charm.get_ip(msg)
+        expected = ["10.10.10.11"]
+        self.assertEqual(list(action), expected)
+
+    def test_get_ip_no_ip(
+        self,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        msg = io.StringIO("")  # noqa E501
+        action = self.harness.charm.get_ip(msg)
+        expected = []
+        self.assertEqual(list(action), expected)
+
+    def test_filter_lines_multiple_ips(
+        self,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
+        date_20 = (datetime.now() - timedelta(minutes=20, seconds=1)).strftime("%d/%b/%Y:%H:%M:%S")
+        msg = io.StringIO(
+            f"10.10.10.11 - - [{date_20}\n10.10.10.11 - - [{date_20}\n10.10.10.11 - - [{date_20}\n10.10.10.12 - - [{date_now}\n10.10.10.12 - - [{date_now}"  # noqa E501
+        )
+        action = self.harness.charm.filter_lines(msg)
+        expected = [
+            ["10.10.10.12", "-", "-", f"[{date_now}"],
+            ["10.10.10.12", "-", "-", f"[{date_now}"],
+        ]
+        self.assertEqual(list(action), expected)
+
+    def test_filter_lines_single_ip(
+        self,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        date_now = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
+        msg = io.StringIO(f"10.10.10.11 - - [{date_now}")  # noqa E501
+        action = self.harness.charm.filter_lines(msg)
+        expected = [["10.10.10.11", "-", "-", f"[{date_now}"]]
+        self.assertEqual(list(action), expected)
+
+    def test_filter_lines_no_ip(
+        self,
+    ):
+        """
+        arrange: some nginx entries are simulated
+        act: process the entries
+        assert: only the entries logged less than 20 minutes ago are accepted
+        """
+        msg = io.StringIO("")  # noqa E501
+        action = self.harness.charm.filter_lines(msg)
+        expected = []
+        self.assertEqual(list(action), expected)
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
