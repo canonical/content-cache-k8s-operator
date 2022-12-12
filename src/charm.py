@@ -109,7 +109,7 @@ class ContentCacheCharm(CharmBase):
         return timestamp > (datetime.now() - timedelta(minutes=20))
 
     def get_ip(self, line: str) -> str:
-        "Return the IP address of a log line."
+        """Return the IP address of a log line."""
         if line:
             return line.split()[0]
 
