@@ -94,6 +94,7 @@ class ContentCacheCharm(CharmBase):
         event.set_results({"ips": tabulate(results, headers=["IP", "Requests"], tablefmt="grid")})
 
     def filter_lines(self, line) -> bool:
+        """Filter the log lines by date."""
         line_elements = line.split()
 
         if len(line_elements) < 4:
@@ -108,6 +109,7 @@ class ContentCacheCharm(CharmBase):
         return timestamp > (datetime.now() - timedelta(minutes=20))
 
     def get_ip(self, line: str) -> str:
+        "Return the IP address of a log line."
         if line:
             return line.split()[0]
 
