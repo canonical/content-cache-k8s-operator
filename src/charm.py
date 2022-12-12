@@ -6,13 +6,13 @@
 """Charm for Content Cache on kubernetes."""
 import hashlib
 import ipaddress
+import itertools
 import logging
-import os
 from collections import Counter
 from datetime import datetime, timedelta
-from io import StringIO
 from urllib.parse import urlparse
 
+from charms.file_reverse_reader.file_reader import readlines_reverse
 from charms.nginx_ingress_integrator.v0.ingress import (
     IngressCharmEvents,
     IngressProxyProvides,
@@ -21,6 +21,7 @@ from charms.nginx_ingress_integrator.v0.ingress import (
 from ops.charm import ActionEvent, CharmBase
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
+from tabulate import tabulate
 
 logger = logging.getLogger(__name__)
 
@@ -83,22 +84,6 @@ class ContentCacheCharm(CharmBase):
         except ValueError:
             return
 
-    def readlines_reverse(self, qfile):
-        with qfile:
-            qfile.seek(0, os.SEEK_END)
-            position = qfile.tell()
-            line = StringIO("")
-            while position >= 0:
-                qfile.seek(position)
-                next_char = qfile.read(1)
-                if next_char == "\n":
-                    yield line.getvalue()[::-1]
-                    line = StringIO("")
-                else:
-                    line.write(next_char)
-                position -= 1
-            yield line.getvalue()[::-1]
-
     def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
         """Handle the report-visits-by-ip action.
 
@@ -106,28 +91,33 @@ class ContentCacheCharm(CharmBase):
             event: the Juju action event fired when the action executes.
         """
         results = self._report_visits_by_ip()
-        event.set_results({"ips": str(results)})
+        event.set_results({"ips": tabulate(results, headers=["IP", "Requests"], tablefmt="grid")})
 
-    def filter_lines(self, file) -> list[str]:
-        for line in self.readlines_reverse(file):
-            line = line.split()
-            if len(line) > 1 and datetime.strptime(
-                line[3].lstrip("[").rstrip("]"), "%d/%b/%Y:%H:%M:%S"
-            ) > (datetime.now() - timedelta(minutes=20)):
-                yield line
-            else:
-                break
+    def filter_lines(self, line) -> bool:
+        line_elements = line.split()
 
-    def get_ip(self, log_list) -> list[str]:
-        line_list = list(self.filter_lines(log_list))
-        for line in line_list:
-            yield str(line[0])
+        if len(line_elements) < 4:
+            return False
 
-    def _report_visits_by_ip(self) -> list[(int, str)]:
+        timestamp_str = line_elements[3].lstrip("[").rstrip("]")
+        try:
+            timestamp = datetime.strptime(timestamp_str, "%d/%b/%Y:%H:%M:%S")
+        except ValueError:
+            return False
+
+        return timestamp > (datetime.now() - timedelta(minutes=20))
+
+    def get_ip(self, line: str) -> str:
+        if line:
+            return line.split()[0]
+
+    def _report_visits_by_ip(self) -> list[tuple[int, str]]:
         """Report requests to nginx grouped and ordered by IP and report action result."""
         container = self.unit.get_container(CONTAINER_NAME)
         log_path = "/var/log/nginx/access.log"
-        ip_list = list(self.get_ip(container.pull(log_path)))
+        reversed_lines = readlines_reverse(container.pull(log_path))
+        line_list = itertools.takewhile(self.filter_lines, reversed_lines)
+        ip_list = map(self.get_ip, line_list)
 
         return Counter(ip_list).most_common()
 
