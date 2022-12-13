@@ -12,7 +12,7 @@ def readlines_reverse(qfile) -> Generator[int, None, None]:
     """Read the lines of a file in reverse order in a lazy way."""
     with qfile:
         qfile.seek(0, os.SEEK_END)
-        position = qfile.tell()
+        position = qfile.tell() -2
         line = StringIO("")
         while position >= 0:
             qfile.seek(position)
@@ -24,10 +24,3 @@ def readlines_reverse(qfile) -> Generator[int, None, None]:
                 line.write(next_char)
             position -= 1
         yield line.getvalue()[::-1]
-
-
-def readlines_reverse2(qfile) -> Generator[int, None, None]:
-    """Read the lines of a file in reverse order in a lazy way."""
-    with qfile:
-        for line in reversed(list(qfile)):
-            yield line
