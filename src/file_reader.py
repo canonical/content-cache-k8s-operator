@@ -1,3 +1,4 @@
+"""Short module for file reverse reading."""
 #!/usr/bin/env python3
 
 # Copyright 2022 Canonical Ltd.
@@ -6,8 +7,6 @@
 import os
 from io import StringIO
 from typing import Generator
-
-"""Short module for file reverse reading."""
 
 
 def readlines_reverse(qfile) -> Generator[int, None, None]:
