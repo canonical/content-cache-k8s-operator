@@ -184,7 +184,7 @@ class TestCharm(unittest.TestCase):
         act: process the entries
         assert: only the entries logged less than 20 minutes ago are accepted
         """
-        msg = f"10.10.10.12 - - [{DATE_20}\n10.10.10.10 - - [{DATE_19}"
+        msg = f"10.10.10.12 - - [{DATE_20}\n10.10.10.10 - - [{DATE_19}\n"
         mock_pull.return_value = io.StringIO(msg)
         action = self.harness.charm._report_visits_by_ip()
         expected = [("10.10.10.10", 1)]

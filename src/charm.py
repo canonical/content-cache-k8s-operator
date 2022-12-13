@@ -12,7 +12,6 @@ from collections import Counter
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
-from charms.file_reverse_reader.file_reader import readlines_reverse
 from charms.nginx_ingress_integrator.v0.ingress import (
     IngressCharmEvents,
     IngressProxyProvides,
@@ -22,6 +21,8 @@ from ops.charm import ActionEvent, CharmBase
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 from tabulate import tabulate
+
+from file_reader import readlines_reverse
 
 logger = logging.getLogger(__name__)
 
