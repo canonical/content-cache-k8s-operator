@@ -7,6 +7,8 @@ import os
 from io import StringIO
 from typing import Generator
 
+"""Short module for file reverse reading."""
+
 
 def readlines_reverse(qfile) -> Generator[int, None, None]:
     """Read the lines of a file in reverse order in a lazy way."""
