@@ -1,5 +1,5 @@
 """Short module for file reverse reading."""
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
