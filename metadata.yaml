@@ -9,6 +9,7 @@ maintainers:
   - launchpad.net/~content-cache-charmers
 assumes:
   - k8s-api
+issues: https://github.com/canonical/content-cache-k8s-operator/issues
 
 containers:
   content-cache:

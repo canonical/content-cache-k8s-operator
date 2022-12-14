@@ -1,5 +1,4 @@
 """Short module for file reverse reading."""
-# !/usr/bin/env python3
 
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
@@ -13,7 +12,7 @@ def readlines_reverse(qfile) -> Generator[int, None, None]:
     """Read the lines of a file in reverse order in a lazy way."""
     with qfile:
         qfile.seek(0, os.SEEK_END)
-        position = qfile.tell() - 2
+        position = qfile.tell()
         line = StringIO("")
         while position >= 0:
             qfile.seek(position)

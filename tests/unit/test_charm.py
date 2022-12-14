@@ -66,6 +66,7 @@ class TestCharm:
         self.harness = Harness(ContentCacheCharm)
         self.harness.begin()
         yield
+        self.harness.cleanup()
 
     @mock.patch("charm.ContentCacheCharm.configure_workload_container")
     def test_on_content_cache_pebble_ready(self, configure_workload_container):
@@ -173,22 +174,31 @@ class TestCharm:
         [
             ("", []),
             (
-                f"10.10.10.11 - - [{DATE_NOW}\n10.10.10.11 - - [{DATE_NOW}\n10.10.10.11 - - [{DATE_NOW}\n10.10.10.12 - - [{DATE_NOW}\n10.10.10.12 - - [{DATE_NOW}",  # noqa E501
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.12 - - [{DATE_NOW}\n"
+                f"10.10.10.12 - - [{DATE_NOW}",
                 [("10.10.10.11", 3), ("10.10.10.12", 2)],
             ),
             (
-                f"10.10.10.11 - - [{DATE_NOW}\n10.10.10.11 - - [{DATE_NOW}\n10.10.10.11 - - [{DATE_NOW}",  # noqa E501
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.11 - - [{DATE_NOW}",
                 [("10.10.10.11", 3)],
             ),
             (f"10.10.10.11 - - [{DATE_NOW}", [("10.10.10.11", 1)]),
-            (f"10.10.10.12 - - [{DATE_20}\n10.10.10.10 - - [{DATE_19}\n", [("10.10.10.10", 1)]),
+            (
+                f"10.10.10.12 - - [{DATE_20}\n" f"10.10.10.10 - - [{DATE_19}\n",
+                [("10.10.10.10", 1)],
+            ),
         ],
     )
     def test_report_visits_by_ip(self, mock_pull, test_input, expected):
         """
-        arrange: some nginx entries are simulated
-        act: process the entries
-        assert: only the entries logged less than 20 minutes ago are accepted
+        arrange: some nginx log lines are simulated
+        act: process the log line
+        assert: only the log liens logged less than 20 minutes ago are accepted
         """
         mock_pull.return_value = io.StringIO(test_input)
         action = self.harness.charm._report_visits_by_ip()
@@ -199,23 +209,28 @@ class TestCharm:
     )
     def test_get_ip(self, test_input, expected):
         """
-        arrange: some nginx entries are simulated
-        act: process the entries
-        assert: only the entries logged less than 20 minutes ago are accepted
+        arrange: some nginx log lines are simulated
+        act: process the log line
+        assert: return the IP of the log line
         """
-        action = self.harness.charm.get_ip(test_input)
+        action = self.harness.charm._get_ip(test_input)
         assert action == expected
 
     @pytest.mark.parametrize(
-        "test_input,expected", [(f"10.10.10.11 - - [{DATE_19}", True), ("", False)]
+        "test_input,expected",
+        [
+            (f"10.10.10.11 - - [{DATE_19}", True),
+            ("", False),
+            (f"10.10.10.11 - - [{DATE_20}", False),
+        ],
     )
     def test_filter_lines(self, test_input, expected):
         """
-        arrange: some nginx entries are simulated
-        act: process the entries
-        assert: only the entries logged less than 20 minutes ago are accepted
+        arrange: a nginx log line is simulated
+        act: process the log line
+        assert: only the line logged less than 20 minutes ago is accepted.
         """
-        action = self.harness.charm.filter_lines(test_input)
+        action = self.harness.charm._filter_lines(test_input)
         assert action == expected
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")

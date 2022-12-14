@@ -5,7 +5,6 @@
 
 """Charm for Content Cache on kubernetes."""
 import hashlib
-import ipaddress
 import itertools
 import logging
 from collections import Counter
@@ -73,18 +72,6 @@ class ContentCacheCharm(CharmBase):
         self.model.unit.status = MaintenanceStatus(msg)
         self.configure_workload_container(event)
 
-    def _get_ip_type(self, address) -> str:
-        """Validate a string type: ipv4, ipv6 or invalid as IP address."""
-        try:
-            ip = ipaddress.ip_address(address)
-
-            if isinstance(ip, ipaddress.IPv4Address):
-                return "ipv4"
-            elif isinstance(ip, ipaddress.IPv6Address):
-                return "ipv6"
-        except ValueError:
-            return
-
     def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
         """Handle the report-visits-by-ip action.
 
@@ -94,8 +81,12 @@ class ContentCacheCharm(CharmBase):
         results = self._report_visits_by_ip()
         event.set_results({"ips": tabulate(results, headers=["IP", "Requests"], tablefmt="grid")})
 
-    def filter_lines(self, line) -> bool:
-        """Filter the log lines by date."""
+    def _filter_lines(self, line: str) -> bool:
+        """Filter the log lines by date.
+
+        Args:
+            line: A log line from the log file.
+        """
         line_elements = line.split()
 
         if len(line_elements) < 4:
@@ -109,18 +100,22 @@ class ContentCacheCharm(CharmBase):
 
         return timestamp > (datetime.now() - timedelta(minutes=20))
 
-    def get_ip(self, line: str) -> str:
+    def _get_ip(self, line: str) -> str:
         """Return the IP address of a log line."""
         if line:
             return line.split()[0]
 
     def _report_visits_by_ip(self) -> list[tuple[int, str]]:
-        """Report requests to nginx grouped and ordered by IP and report action result."""
+        """Report requests to nginx grouped and ordered by IP and report action result.
+
+        Returns:
+            A list of tuples composed of an IP address and the number of visits to that IP.
+        """
         container = self.unit.get_container(CONTAINER_NAME)
         log_path = "/var/log/nginx/access.log"
-        reversed_lines = readlines_reverse(container.pull(log_path))
-        line_list = itertools.takewhile(self.filter_lines, reversed_lines)
-        ip_list = map(self.get_ip, line_list)
+        reversed_lines = filter(None, readlines_reverse(container.pull(log_path)))
+        line_list = itertools.takewhile(self._filter_lines, reversed_lines)
+        ip_list = map(self._get_ip, line_list)
 
         return Counter(ip_list).most_common()
 
