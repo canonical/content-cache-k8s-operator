@@ -1,9 +1,9 @@
-For any problems with this charm, please [report bugs here](https://bugs.launchpad.net/charm-k8s-content-cache).
+For any problems with this charm, please [report bugs here](https://github.com/canonical/content-cache-k8s-operator/issues).
 
 The code for this charm can be downloaded as follows:
 
 ```
-git clone https://git.launchpad.net/charm-k8s-content-cache
+git clone https://github.com/canonical/content-cache-k8s-operator
 ```
 
 To run tests, simply run  `make test`  from within the charm code directory.
@@ -12,7 +12,7 @@ To run tests, simply run  `make test`  from within the charm code directory.
 
 Build the docker image:
 
-    git clone https://git.launchpad.net/charm-k8s-content-cache
+    git clone https://github.com/canonical/content-cache-k8s-operator
     cd charm-k8s-content-cache/docker
     docker build . -t myimage:v<revision>
     docker tag myimage:v<revision> localhost:32000/myimage:v<revision>
