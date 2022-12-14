@@ -81,7 +81,8 @@ class ContentCacheCharm(CharmBase):
         results = self._report_visits_by_ip()
         event.set_results({"ips": tabulate(results, headers=["IP", "Requests"], tablefmt="grid")})
 
-    def _filter_lines(self, line: str) -> bool:
+    @staticmethod
+    def _filter_lines(line: str) -> bool:
         """Filter the log lines by date.
 
         Args:
