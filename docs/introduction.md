@@ -1,0 +1,1 @@
+This service is based on [Nginx](https://nginx.com) and can be used either as a front-end caching service providing high bandwidth access to sites (as a kind of CDN), or as a local cache of sites.
