@@ -18,13 +18,9 @@ Build the docker image:
     docker tag myimage:v<revision> localhost:32000/myimage:v<revision>
     docker push localhost:32000/myimage:v<revision>
 
-Then, to use your new image, either replace the `deploy` step above with
+Then, to use your new image, replace the `deploy` step above with
 
-    juju deploy content-cache-k8s --config image_path=localhost:32000/myimage:v<revision> --config site=mysite.local --config backend=http://mybackend.local:80                                                                                                
-
-Or, if you have already deployed content-cache:
-
-    juju config content-cache image_path=localhost:32000/myimage:v<revision>
+    juju deploy content-cache-k8s --resource content-cache-image=localhost:32000/myimage:v<revision> --config site=mysite.local --config backend=http://mybackend.local:80                                                                                                
 
 ## Developing
 
