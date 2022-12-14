@@ -111,7 +111,7 @@ class ContentCacheCharm(CharmBase):
             an IP address.
 
         Raises:
-            A ValueError exception if the method encounters an empty line,
+            ValueError: if the method encounters an empty line,
             filtering should happen in filter_lines anyway.
         """
         if line:
