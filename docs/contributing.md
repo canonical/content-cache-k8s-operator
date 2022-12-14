@@ -20,7 +20,7 @@ Build the docker image:
 
 Then, to use your new image, either replace the `deploy` step above with
 
-    juju deploy cs:~content-cache-charmers/content-cache-k8s --config image_path=localhost:32000/myimage:v<revision> --config site=mysite.local --config backend=http://mybackend.local:80                                                                                                
+    juju deploy content-cache-k8s --config image_path=localhost:32000/myimage:v<revision> --config site=mysite.local --config backend=http://mybackend.local:80                                                                                                
 
 Or, if you have already deployed content-cache:
 
