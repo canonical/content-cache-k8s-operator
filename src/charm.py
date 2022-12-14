@@ -112,7 +112,7 @@ class ContentCacheCharm(CharmBase):
 
         Raises:
             ValueError: if the method encounters an empty line,
-            filtering should happen in filter_lines anyway.
+                filtering should happen in filter_lines anyway.
         """
         if line:
             return line.split()[0]
