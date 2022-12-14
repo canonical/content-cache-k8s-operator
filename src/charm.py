@@ -102,9 +102,22 @@ class ContentCacheCharm(CharmBase):
         return timestamp > (datetime.now() - timedelta(minutes=20))
 
     def _get_ip(self, line: str) -> str:
-        """Return the IP address of a log line."""
+        """Return the IP address of a log line.
+
+        Args:
+            line: The log line previously filtered.
+
+        Returns:
+            an IP address.
+
+        Raises:
+            A ValueError exception if the method encounters an empty line,
+            filtering should happen in filter_lines anyway.
+        """
         if line:
             return line.split()[0]
+        else:
+            raise ValueError
 
     def _report_visits_by_ip(self) -> list[tuple[int, str]]:
         """Report requests to nginx grouped and ordered by IP and report action result.
