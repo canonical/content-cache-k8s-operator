@@ -3,7 +3,7 @@ display-name: Content-cache
 description: |
   A service providing local caches of HTTP servers and useful for building content delivery networks (CDN).
 summary: |
-  A service providing local caches of HTTP servers and useful for building content delivery networks (CDN).
+  A content cache for k8s charms.
 docs: https://discourse.charmhub.io/t/content-cache-documentation-overview/3992
 maintainers:
   - launchpad.net/~content-cache-charmers
