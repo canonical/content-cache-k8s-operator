@@ -205,7 +205,7 @@ class TestCharm:
         assert action == expected
 
     @pytest.mark.parametrize(
-        "test_input,expected", [(f"10.10.10.11 - - [{DATE_NOW}", "10.10.10.11"), ("", None)]
+        "test_input,expected", [(f"10.10.10.11 - - [{DATE_NOW}", "10.10.10.11")]
     )
     def test_get_ip(self, test_input, expected):
         """
