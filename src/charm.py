@@ -5,7 +5,10 @@
 
 """Charm for Content Cache on kubernetes."""
 import hashlib
+import itertools
 import logging
+from collections import Counter
+from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
 from charms.nginx_ingress_integrator.v0.ingress import (
@@ -13,9 +16,12 @@ from charms.nginx_ingress_integrator.v0.ingress import (
     IngressProxyProvides,
     IngressRequires,
 )
-from ops.charm import CharmBase
+from ops.charm import ActionEvent, CharmBase
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
+from tabulate import tabulate
+
+from file_reader import readlines_reverse
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +42,9 @@ class ContentCacheCharm(CharmBase):
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.config_changed, self._on_config_changed)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
-
+        self.framework.observe(
+            self.on.report_visits_by_ip_action, self._report_visits_by_ip_action
+        )
         self.framework.observe(
             self.on.content_cache_pebble_ready, self._on_content_cache_pebble_ready
         )
@@ -63,6 +71,67 @@ class ContentCacheCharm(CharmBase):
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.configure_workload_container(event)
+
+    def _report_visits_by_ip_action(self, event: ActionEvent) -> None:
+        """Handle the report-visits-by-ip action.
+
+        Args:
+            event: the Juju action event fired when the action executes.
+        """
+        results = self._report_visits_by_ip()
+        event.set_results({"ips": tabulate(results, headers=["IP", "Requests"], tablefmt="grid")})
+
+    @staticmethod
+    def _filter_lines(line: str) -> bool:
+        """Filter the log lines by date.
+
+        Args:
+            line: A log line from the log file.
+        """
+        line_elements = line.split()
+
+        if len(line_elements) < 4:
+            return False
+
+        timestamp_str = line_elements[3].lstrip("[").rstrip("]")
+        try:
+            timestamp = datetime.strptime(timestamp_str, "%d/%b/%Y:%H:%M:%S")
+        except ValueError:
+            return False
+
+        return timestamp > (datetime.now() - timedelta(minutes=20))
+
+    def _get_ip(self, line: str) -> str:
+        """Return the IP address of a log line.
+
+        Args:
+            line: The log line previously filtered.
+
+        Returns:
+            an IP address.
+
+        Raises:
+            ValueError: if the method encounters an empty line,
+                filtering should happen in filter_lines anyway.
+        """
+        if line:
+            return line.split()[0]
+        else:
+            raise ValueError
+
+    def _report_visits_by_ip(self) -> list[tuple[int, str]]:
+        """Report requests to nginx grouped and ordered by IP and report action result.
+
+        Returns:
+            A list of tuples composed of an IP address and the number of visits to that IP.
+        """
+        container = self.unit.get_container(CONTAINER_NAME)
+        log_path = "/var/log/nginx/access.log"
+        reversed_lines = filter(None, readlines_reverse(container.pull(log_path)))
+        line_list = itertools.takewhile(self._filter_lines, reversed_lines)
+        ip_list = map(self._get_ip, line_list)
+
+        return Counter(ip_list).most_common()
 
     def _on_upgrade_charm(self, event) -> None:
         """Handle upgrade_charm event and reconfigure workload container."""

@@ -1,10 +1,11 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
-
 import copy
-import unittest
+import io
+from datetime import datetime, timedelta
 from unittest import mock
 
+import pytest
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 from ops.testing import Harness
 
@@ -53,18 +54,19 @@ PEBBLE_CONFIG = {
     },
 }
 
+DATE_NOW = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
+DATE_20 = (datetime.now() - timedelta(minutes=20, seconds=5)).strftime("%d/%b/%Y:%H:%M:%S")
+DATE_19 = (datetime.now() - timedelta(minutes=19, seconds=55)).strftime("%d/%b/%Y:%H:%M:%S")
 
-class TestCharm(unittest.TestCase):
-    def setUp(self):
-        self.maxDiff = None
 
+class TestCharm:
+    @pytest.fixture(autouse=True)
+    def init_tests(self):
         self.config = copy.deepcopy(BASE_CONFIG)
         self.harness = Harness(ContentCacheCharm)
         self.harness.begin()
-
-    def tearDown(self):
-        # starting from ops 0.8, we also need to do:
-        self.addCleanup(self.harness.cleanup)
+        yield
+        self.harness.cleanup()
 
     @mock.patch("charm.ContentCacheCharm.configure_workload_container")
     def test_on_content_cache_pebble_ready(self, configure_workload_container):
@@ -78,9 +80,8 @@ class TestCharm(unittest.TestCase):
         harness.disable_hooks()
         harness.update_config(config)
         harness.charm.on.content_cache_pebble_ready.emit(mock.Mock())
-        self.assertEqual(
-            harness.charm.unit.status,
-            MaintenanceStatus("Configuring workload container (config-changed)"),
+        assert harness.charm.unit.status == MaintenanceStatus(
+            "Configuring workload container (config-changed)"
         )
         configure_workload_container.assert_called_once()
 
@@ -92,7 +93,7 @@ class TestCharm(unittest.TestCase):
         """
         harness = self.harness
         harness.charm.on.start.emit()
-        self.assertEqual(harness.charm.unit.status, ActiveStatus("Started"))
+        assert harness.charm.unit.status == ActiveStatus("Started")
 
     @mock.patch("charm.ContentCacheCharm.configure_workload_container")
     def test_on_config_changed(self, configure_workload_container):
@@ -104,9 +105,8 @@ class TestCharm(unittest.TestCase):
         config = self.config
         harness = self.harness
         harness.update_config(config)
-        self.assertEqual(
-            harness.charm.unit.status,
-            MaintenanceStatus("Configuring workload container (config-changed)"),
+        assert harness.charm.unit.status == MaintenanceStatus(
+            "Configuring workload container (config-changed)"
         )
         configure_workload_container.assert_called_once()
 
@@ -119,9 +119,8 @@ class TestCharm(unittest.TestCase):
         """
         harness = self.harness
         harness.charm.on.upgrade_charm.emit()
-        self.assertEqual(
-            harness.charm.unit.status,
-            MaintenanceStatus("Configuring workload container (upgrade-charm)"),
+        assert harness.charm.unit.status == MaintenanceStatus(
+            "Configuring workload container (upgrade-charm)"
         )
         configure_workload_container.assert_called_once()
 
@@ -167,7 +166,72 @@ class TestCharm(unittest.TestCase):
         get_service.assert_called_once()
         stop.assert_called_once()
         start.assert_called_once()
-        self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
+        assert harness.charm.unit.status, ActiveStatus("Ready")
+
+    @mock.patch("ops.model.Container.pull")
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            ("", []),
+            (
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.12 - - [{DATE_NOW}\n"
+                f"10.10.10.12 - - [{DATE_NOW}",
+                [("10.10.10.11", 3), ("10.10.10.12", 2)],
+            ),
+            (
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.11 - - [{DATE_NOW}\n"
+                f"10.10.10.11 - - [{DATE_NOW}",
+                [("10.10.10.11", 3)],
+            ),
+            (f"10.10.10.11 - - [{DATE_NOW}", [("10.10.10.11", 1)]),
+            (
+                f"10.10.10.12 - - [{DATE_20}\n" f"10.10.10.10 - - [{DATE_19}\n",
+                [("10.10.10.10", 1)],
+            ),
+        ],
+    )
+    def test_report_visits_by_ip(self, mock_pull, test_input, expected):
+        """
+        arrange: some nginx log lines are simulated
+        act: process the log line
+        assert: only the log liens logged less than 20 minutes ago are accepted
+        """
+        mock_pull.return_value = io.StringIO(test_input)
+        action = self.harness.charm._report_visits_by_ip()
+        assert action == expected
+
+    @pytest.mark.parametrize(
+        "test_input,expected", [(f"10.10.10.11 - - [{DATE_NOW}", "10.10.10.11")]
+    )
+    def test_get_ip(self, test_input, expected):
+        """
+        arrange: some nginx log lines are simulated
+        act: process the log line
+        assert: return the IP of the log line
+        """
+        action = self.harness.charm._get_ip(test_input)
+        assert action == expected
+
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        [
+            (f"10.10.10.11 - - [{DATE_19}", True),
+            ("", False),
+            (f"10.10.10.11 - - [{DATE_20}", False),
+        ],
+    )
+    def test_filter_lines(self, test_input, expected):
+        """
+        arrange: a nginx log line is simulated
+        act: process the log line
+        assert: only the line logged less than 20 minutes ago is accepted.
+        """
+        action = self.harness.charm._filter_lines(test_input)
+        assert action == expected
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
@@ -215,7 +279,7 @@ class TestCharm(unittest.TestCase):
         harness.update_config(config)
         make_pebble_config.assert_called_once()
         add_layer.assert_not_called()
-        self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
+        assert harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
@@ -239,9 +303,9 @@ class TestCharm(unittest.TestCase):
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
         make_pebble_config.assert_called_once()
-        self.assertEqual(harness.charm.unit.status, ActiveStatus("Ready"))
+        assert harness.charm.unit.status == ActiveStatus("Ready")
         container = harness.charm.unit.get_container(CONTAINER_NAME)
-        self.assertTrue(container.isdir(CACHE_PATH))
+        assert container.isdir(CACHE_PATH)
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
@@ -265,10 +329,7 @@ class TestCharm(unittest.TestCase):
         make_pebble_config.return_value = {"services": {}}
         push.side_effect = ConnectionError
         harness.update_config(config)
-        self.assertEqual(
-            harness.charm.unit.status,
-            WaitingStatus("Pebble is not ready, deferring event"),
-        )
+        assert harness.charm.unit.status == WaitingStatus("Pebble is not ready, deferring event")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     def test_configure_workload_container_missing_configs(self, make_pebble_config):
@@ -282,9 +343,7 @@ class TestCharm(unittest.TestCase):
         config["site"] = None
         harness.update_config(config)
         make_pebble_config.assert_not_called()
-        self.assertEqual(
-            harness.charm.unit.status, BlockedStatus("Required config(s) empty: site")
-        )
+        assert harness.charm.unit.status == BlockedStatus("Required config(s) empty: site")
 
     def test_generate_keys_zone(self):
         """
@@ -295,14 +354,14 @@ class TestCharm(unittest.TestCase):
         harness = self.harness
         harness.disable_hooks()
         expected = "39c631ffb52d-cache"
-        self.assertEqual(harness.charm._generate_keys_zone("mysite.local"), expected)
+        assert harness.charm._generate_keys_zone("mysite.local") == expected
         expected = "8b79f9e4b3e8-cache"
-        self.assertEqual(
-            harness.charm._generate_keys_zone("my-really-really-really-long-site-name.local"),
-            expected,
+        assert (
+            harness.charm._generate_keys_zone("my-really-really-really-long-site-name.local")
+            == expected
         )
         expected = "d41d8cd98f00-cache"
-        self.assertEqual(harness.charm._generate_keys_zone(""), expected)
+        assert harness.charm._generate_keys_zone("") == expected
 
     def test_make_ingress_config(self):
         """
@@ -315,7 +374,7 @@ class TestCharm(unittest.TestCase):
         harness.disable_hooks()
         harness.update_config(config)
         expected = copy.deepcopy(INGRESS_CONFIG)
-        self.assertEqual(harness.charm._make_ingress_config(), expected)
+        assert harness.charm._make_ingress_config() == expected
 
     def test_make_ingress_config_client_max_body_size(self):
         """
@@ -330,7 +389,7 @@ class TestCharm(unittest.TestCase):
         harness.update_config(config)
         expected = copy.deepcopy(INGRESS_CONFIG)
         expected["max-body-size"] = "50m"
-        self.assertEqual(harness.charm._make_ingress_config(), expected)
+        assert harness.charm._make_ingress_config() == expected
 
     def test_make_ingress_config_tls_secret(self):
         """
@@ -345,7 +404,7 @@ class TestCharm(unittest.TestCase):
         harness.update_config(config)
         expected = copy.deepcopy(INGRESS_CONFIG)
         expected["tls-secret-name"] = "mysite-com-tls"  # nosec
-        self.assertEqual(harness.charm._make_ingress_config(), expected)
+        assert harness.charm._make_ingress_config() == expected
 
     def test_make_ingress_config_with_proxy_relation(self):
         """
@@ -355,7 +414,7 @@ class TestCharm(unittest.TestCase):
         """
         harness = self.harness
         expected = copy.deepcopy(INGRESS_CONFIG)
-        self.assertEqual(harness.charm._make_ingress_config(), expected)
+        assert harness.charm._make_ingress_config() == expected
         relation_id = harness.add_relation("ingress-proxy", "hello-kubecon")
         harness.add_relation_unit(relation_id, "hello-kubecon/0")
         relations_data = {
@@ -365,9 +424,7 @@ class TestCharm(unittest.TestCase):
         }
         harness.update_relation_data(relation_id, "hello-kubecon", relations_data)
         new_ingress_config = harness.charm._make_ingress_config()
-        self.assertEqual(
-            new_ingress_config["service-hostname"], relations_data["service-hostname"]
-        )
+        assert new_ingress_config["service-hostname"] == relations_data["service-hostname"]
 
     def test_make_env_config(self):
         """
@@ -387,7 +444,7 @@ class TestCharm(unittest.TestCase):
         expected["NGINX_KEYS_ZONE"] = harness.charm._generate_keys_zone("mysite.local")
         expected["NGINX_SITE_NAME"] = "mysite.local"
         expected["NGINX_CACHE_ALL"] = "proxy_ignore_headers Cache-Control Expires"
-        self.assertEqual(harness.charm._make_env_config(), expected)
+        assert harness.charm._make_env_config() == expected
 
     def test_make_env_config_with_proxy_relation(self):
         """
@@ -401,7 +458,7 @@ class TestCharm(unittest.TestCase):
         harness.update_config(config)
         current_env_config = harness.charm._make_env_config()
         current_site = current_env_config["CONTENT_CACHE_SITE"]
-        self.assertEqual(current_site, "mysite.local")
+        assert current_site == "mysite.local"
         relation_id = harness.add_relation("ingress-proxy", "hello-kubecon")
         harness.add_relation_unit(relation_id, "hello-kubecon/0")
         relations_data = {
@@ -412,7 +469,7 @@ class TestCharm(unittest.TestCase):
         harness.update_relation_data(relation_id, "hello-kubecon", relations_data)
         new_env_config = harness.charm._make_env_config()
         new_site = new_env_config["CONTENT_CACHE_SITE"]
-        self.assertEqual(new_site, relations_data["service-hostname"])
+        assert new_site == relations_data["service-hostname"]
 
     def test_make_pebble_config(self):
         """
@@ -427,7 +484,7 @@ class TestCharm(unittest.TestCase):
         env_config = harness.charm._make_env_config()
         expected = PEBBLE_CONFIG
         expected["services"]["content-cache"]["environment"] = harness.charm._make_env_config()
-        self.assertEqual(harness.charm._make_pebble_config(env_config), expected)
+        assert harness.charm._make_pebble_config(env_config) == expected
 
     def test_make_nginx_config(self):
         """
@@ -442,7 +499,7 @@ class TestCharm(unittest.TestCase):
         env_config = harness.charm._make_env_config()
         with open("tests/files/nginx_config.txt", "r") as f:
             expected = f.read()
-            self.assertEqual(harness.charm._make_nginx_config(env_config), expected)
+            assert harness.charm._make_nginx_config(env_config) == expected
 
     def test_make_nginx_config_backend_site_name(self):
         """
@@ -458,7 +515,7 @@ class TestCharm(unittest.TestCase):
         env_config = harness.charm._make_env_config()
         with open("tests/files/nginx_config_backend_site_name.txt", "r") as f:
             expected = f.read()
-            self.assertEqual(harness.charm._make_nginx_config(env_config), expected)
+            assert harness.charm._make_nginx_config(env_config) == expected
 
     def test_make_nginx_config_client_max_body_size(self):
         """
@@ -474,7 +531,7 @@ class TestCharm(unittest.TestCase):
         env_config = harness.charm._make_env_config()
         with open("tests/files/nginx_config_client_max_body_size.txt", "r") as f:
             expected = f.read()
-            self.assertEqual(harness.charm._make_nginx_config(env_config), expected)
+            assert harness.charm._make_nginx_config(env_config) == expected
 
     def test_missing_charm_configs(self):
         """
@@ -488,7 +545,7 @@ class TestCharm(unittest.TestCase):
         # None missing, all required configs set.
         harness.update_config(config)
         expected = []
-        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+        assert harness.charm._missing_charm_configs() == expected
 
     def test_missing_charm_configs_missing_all(self):
         """
@@ -504,7 +561,7 @@ class TestCharm(unittest.TestCase):
         config.pop("site")
         harness.update_config(config)
         expected = ["backend", "site"]
-        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+        assert harness.charm._missing_charm_configs() == expected
 
     def test_missing_charm_configs_missing_one(self):
         """
@@ -519,7 +576,7 @@ class TestCharm(unittest.TestCase):
         config.pop("site")
         harness.update_config(config)
         expected = ["site"]
-        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+        assert harness.charm._missing_charm_configs() == expected
 
     def test_missing_charm_configs_unset_all(self):
         """
@@ -535,7 +592,7 @@ class TestCharm(unittest.TestCase):
         config["site"] = None
         harness.update_config(config)
         expected = ["backend", "site"]
-        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+        assert harness.charm._missing_charm_configs() == expected
 
     def test_missing_charm_configs_unset_one(self):
         """
@@ -550,4 +607,4 @@ class TestCharm(unittest.TestCase):
         config["site"] = None
         harness.update_config(config)
         expected = ["site"]
-        self.assertEqual(harness.charm._missing_charm_configs(), expected)
+        assert harness.charm._missing_charm_configs() == expected

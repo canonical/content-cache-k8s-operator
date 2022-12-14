@@ -1,8 +1,10 @@
 # Copyright 2022 Canonical Ltd.
 # see LICENCE file for details.
 
+import re
 import secrets
 
+import juju.action
 import pytest
 import pytest_operator.plugin
 import requests
@@ -51,6 +53,33 @@ async def test_hello_kubecon_cache_header(ingress_ip: str):
     assert response.status_code == 200
     assert "X-Cache-Status" in response.headers
     assert "content-cache-k8s" in response.headers["X-Cache-Status"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_service_reachable(service_ip: str):
+    """
+    arrange: given charm has been built, deployed and related to a dependent application
+    act: when the dependent application is queried via the service
+    assert: then the response is HTTP 200 OK.
+    """
+    response = requests.get(f"http://{service_ip}", timeout=5)
+
+    assert response.status_code == 200
+
+
+async def test_report_visits_by_ip(app: Application):
+    """
+    arrange: given that the gunicorn application is deployed and related to another charm
+    act: when report-visits-by-ip is ran
+    assert: the action result is successful and returns the expected output
+    """
+    action: juju.action.Action = await app.units[0].run_action("report-visits-by-ip")
+    await action.wait()
+    assert action.status == "completed"
+    ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
+    ip_address_list = re.search(ip_regex, action.results["ips"])
+    assert ip_address_list
 
 
 @pytest.mark.asyncio
@@ -104,7 +133,6 @@ async def test_openstack_object_storage_plugin(
         )
     )
     swift_service.post(container=container, options={"read_acl": ".r:*,.rlistings"})
-
     for idx, unit_ip in enumerate(unit_ip_list):
         nonce = secrets.token_hex(8)
         filename = f"{nonce}.{unit_ip}.{idx}"

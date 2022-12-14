@@ -126,6 +126,7 @@ async def app(
 @pytest_asyncio.fixture(scope="module")
 async def ip_address_list(ops_test: OpsTest, app: Application, nginx_integrator_app: Application):
     """Get unit IP address from workload message.
+
     Example: Ingress IP(s): 127.0.0.1, Service IP(s): 10.152.183.84
     """
     # Reduce the update_status frequency until the cluster is deployed
@@ -146,3 +147,9 @@ async def ip_address_list(ops_test: OpsTest, app: Application, nginx_integrator_
 async def ingress_ip(ip_address_list: List):
     """First match is the ingress IP."""
     yield ip_address_list[0]
+
+
+@pytest_asyncio.fixture(scope="module")
+async def service_ip(ip_address_list: List):
+    """Last match is the service IP."""
+    yield ip_address_list[-1]
