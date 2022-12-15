@@ -14,6 +14,10 @@ You will see a debug log as output. The URL should be located in the URL section
 ```
 http://10.126.72.107:8080/v1/AUTH_fa8326b9fd4f405fb1c5eaafe988f5fd/default
 ```
+Or directly filter the url from the debug log instead of searching into the output:
+```
+openstack object list default -vv 2>&1 | grep "^REQ: curl" | grep AUTH | cut -d'"' -f2 | cut -d'?' -f1
+```
 After obtaining the URL, configure the charm to use that url as backend and site. Assuming the charm has been deployed as content-cache-k8s, run:
 ```
 juju config content-cache-k8s backend="http://<swift_conn_url>:80"
