@@ -1,12 +1,12 @@
-Sometimes it is desirable to cache swift storage objects inside the charm for faster processing and making less requests to the swift server.
+Sometimes it is desirable to cache swift storage objects inside the charm for faster processing and reducing the number of requests to the swift server.
 
-In order to use this charm along with Openstack swift storage you'll need to do the following:
+This guide will demonstrate how to deploy this charm along with Openstack swift storage.
 
-First, connect to your openstack instance with your credentials, normally sourcing an .rc file:
+First, connect to your openstack instance with your credentials, sourcing an .rc file:
 ```
 source myfile.rc
 ```
-Then execute this to list all the objects on the openstack containers in debug mode:
+Then list all the objects on the openstack containers in debug mode:
 ```
 openstack object list default -vv
 ```
