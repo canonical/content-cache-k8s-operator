@@ -1,6 +1,6 @@
 # Content-cache with Openstack/Swift storage
 
-Sometimes it is desirable to cache swift storage objects inside the charm for faster processing and reducing the number of requests to the [swift](https://docs.openstack.org/swift/latest/) server. It is also worth mentioning that this allows you to have a different hostname than the one from the Swift service.
+Sometimes it is desirable to cache swift storage objects inside the charm for faster processing and reducing the number of requests to the [swift](https://docs.openstack.org/swift/latest/) server. This also allows you to have a different hostname than the one from the Swift service.
 
 This guide will demonstrate how to deploy this charm along with OpenStack/Swift storage.
 
@@ -8,14 +8,14 @@ First, connect to your openstack instance with your credentials, sourcing an .rc
 ```
 source myfile.rc
 ```
-if you don't have any credentials check [here](https://docs.openstack.org/zh_CN/user-guide/common/cli-set-environment-variables-using-openstack-rc.html) for more information
+if you don't have any credentials check [here](https://docs.openstack.org/zh_CN/user-guide/common/cli-set-environment-variables-using-openstack-rc.html) for more information.
 The openstack container you are going to work with has to be globally readable. check that property:
 ```
 swift stat <container_name>
 ```
 And if it's not globally readable yet, change that with:
 ```
-swift post <container_name> --read-acl ".r:*,.rlistings"
+swift post <container_name> --read-acl ".r:*"
 ```
 Then list all the objects on the openstack container in debug mode and get the url of the swift connection:
 ```
@@ -39,4 +39,4 @@ If your cluster has [RBAC](https://kubernetes.io/docs/reference/access-authn-aut
 ```
 juju trust nginx-ingress-integrator --scope cluster
 ```
-The deployed application name will need to resolve to the IP of your ingress controller. A great way of testing this is to upload an index.html into the openstack container and confirm that that content is reachable when they browse to this URL now.
+The deployed application name will need to resolve to the IP of your ingress controller. A great way of testing this is to upload an index.html file into the openstack container and confirm that that content is reachable when they browse to this URL now.
