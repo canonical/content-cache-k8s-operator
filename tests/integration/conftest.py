@@ -2,6 +2,7 @@
 # see LICENCE file for details.
 
 import configparser
+import json
 import re
 from pathlib import Path
 from typing import List
@@ -88,12 +89,23 @@ async def app(
 ):
     """Content-cache-k8s charm used for integration testing.
 
-    Deploy kubecon charm, builds the charm and deploys it for testing purposes.
+    Deploy any-charm charm, builds the charm and deploys it for testing purposes.
     """
-    hello_kubecon_app_name = "hello-kubecon"
-    ops_test.model.deploy(hello_kubecon_app_name)
-    await ops_test.model.deploy(hello_kubecon_app_name)
-    await ops_test.model.wait_for_idle()
+
+    any_app_name = "any-app"
+    ingress_lib = Path("lib/charms/nginx_ingress_integrator/v0/ingress.py").read_text()
+    any_charm_script = Path("tests/integration/any_charm.py").read_text()
+    any_charm_src_overwrite = {
+        "ingress.py": ingress_lib,
+        "any_charm.py": any_charm_script,
+    }
+    await ops_test.model.deploy(
+        "any-charm",
+        application_name=any_app_name,
+        channel="beta",
+        config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
+    )
+    await ops_test.model.wait_for_idle(status="active")
 
     app_charm = await ops_test.build_charm(".")
     application = await ops_test.model.deploy(
@@ -107,18 +119,15 @@ async def app(
         await ops_test.model.wait_for_idle(raise_on_blocked=True)
     except (JujuAppError, JujuUnitError):
         print("BlockedStatus raised: will be solved after relation ingress-proxy")
-        pass
-    apps = [app_name, nginx_integrator_app.name, hello_kubecon_app_name]
-    await ops_test.model.add_relation(hello_kubecon_app_name, f"{app_name}:ingress-proxy")
+
+    apps = [app_name, nginx_integrator_app.name, any_app_name]
+    await ops_test.model.add_relation(any_app_name, f"{app_name}:ingress-proxy")
     await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
-    await ops_test.model.add_relation(f"{app_name}:ingress", nginx_integrator_app.name)
+    await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:ingress")
     await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
 
     assert ops_test.model.applications[app_name].units[0].workload_status == ActiveStatus.name
-    assert (
-        ops_test.model.applications[hello_kubecon_app_name].units[0].workload_status
-        == ActiveStatus.name
-    )
+    assert ops_test.model.applications[any_app_name].units[0].workload_status == ActiveStatus.name
 
     yield application
 
