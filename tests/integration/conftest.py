@@ -28,6 +28,19 @@ def app_name(metadata):
 
 
 @fixture(scope="module")
+def run_action(ops_test: OpsTest):
+    """Create a async function to run action and return results."""
+
+    async def _run_action(application_name, action_name, **params):
+        application = ops_test.model.applications[application_name]
+        action = await application.units[0].run_action(action_name, **params)
+        await action.wait()
+        return action.results
+
+    return _run_action
+
+
+@fixture(scope="module")
 def openstack_environment(request):
     """Parse the openstack rc style configuration file from the --openstack-rc argument.
 
@@ -85,26 +98,32 @@ async def nginx_integrator_app(ops_test: OpsTest):
 
 @pytest_asyncio.fixture(scope="module")
 async def app(
-    ops_test: OpsTest, app_name: str, content_cache_image: str, nginx_integrator_app: Application
+    ops_test: OpsTest,
+    app_name: str,
+    content_cache_image: str,
+    nginx_integrator_app: Application,
+    run_action,
 ):
     """Content-cache-k8s charm used for integration testing.
 
     Deploy any-charm charm, builds the charm and deploys it for testing purposes.
     """
-
     any_app_name = "any-app"
     ingress_lib = Path("lib/charms/nginx_ingress_integrator/v0/ingress.py").read_text()
     any_charm_script = Path("tests/integration/any_charm.py").read_text()
+
     any_charm_src_overwrite = {
         "ingress.py": ingress_lib,
         "any_charm.py": any_charm_script,
     }
+
     await ops_test.model.deploy(
         "any-charm",
         application_name=any_app_name,
         channel="beta",
         config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
     )
+    await run_action(any_app_name, "rpc", method="start_server")
     await ops_test.model.wait_for_idle(status="active")
 
     app_charm = await ops_test.build_charm(".")
