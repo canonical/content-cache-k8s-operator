@@ -5,7 +5,7 @@ import configparser
 import json
 import re
 from pathlib import Path
-from typing import List
+from typing import Any, Awaitable, Callable, List
 
 import pytest_asyncio
 import yaml
@@ -28,10 +28,10 @@ def app_name(metadata):
 
 
 @fixture(scope="module")
-def run_action(ops_test: OpsTest):
+def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
     """Create a async function to run action and return results."""
 
-    async def _run_action(application_name, action_name, **params):
+    async def _run_action(application_name: str, action_name: str, **params):
         application = ops_test.model.applications[application_name]
         action = await application.units[0].run_action(action_name, **params)
         await action.wait()
