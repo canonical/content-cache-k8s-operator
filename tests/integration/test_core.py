@@ -2,7 +2,6 @@
 # see LICENCE file for details.
 
 import re
-import secrets
 
 import juju.action
 import pytest
