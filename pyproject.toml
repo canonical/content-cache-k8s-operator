@@ -2,7 +2,7 @@
 # See LICENSE file for licensing details.
 
 [tool.bandit]
-exclude_dirs = ["/venv/"]
+exclude_dirs = ["/venv/", "tests/integration/any_charm.py"]
 [tool.bandit.assert_used]
 skips = ["*/*test.py", "*/test_*.py"]
 
@@ -48,3 +48,7 @@ docstring-convention = "google"
 copyright-check = "True"
 copyright-author = "Canonical Ltd."
 copyright-regexp = "Copyright\\s\\d{4}([-,]\\d{4})*\\s+%(author)s"
+
+[tool.pyright]
+venvPath = "."
+venv = "venv"
