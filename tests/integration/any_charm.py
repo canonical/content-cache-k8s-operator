@@ -31,6 +31,7 @@ class AnyCharm(AnyCharmBase):
         www_dir.mkdir(exist_ok=True)
         ok_file = www_dir / "ok"
         ok_file.write_text("ok")
+        # We create a pid file to avoid concurrent executions of the http server
         pid_file = pathlib.Path("/tmp/any.pid")
         if pid_file.exists():
             os.kill(int(pid_file.read_text()), signal.SIGKILL)
