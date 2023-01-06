@@ -12,6 +12,8 @@ from ingress import IngressRequires
 
 
 class AnyCharm(AnyCharmBase):
+    """Execute a simple web-server charm to test the ingress-proxy relation"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ingress = IngressRequires(
