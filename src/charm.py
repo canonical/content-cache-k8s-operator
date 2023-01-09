@@ -11,11 +11,15 @@ from collections import Counter
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
+from charms.grafana_k8s.v0.grafana_dashboard import GrafanaDashboardProvider
+from charms.loki_k8s.v0.loki_push_api import LogProxyConsumer
 from charms.nginx_ingress_integrator.v0.ingress import (
     IngressCharmEvents,
     IngressProxyProvides,
     IngressRequires,
 )
+from charms.prometheus_k8s.v0.prometheus_scrape import MetricsEndpointProvider
+from charms.traefik_k8s.v1.ingress import IngressPerAppRequirer
 from ops.charm import ActionEvent, CharmBase
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
@@ -27,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 CACHE_PATH = "/var/lib/nginx/proxy/cache"
 CONTAINER_NAME = "content-cache"
+EXPORTER_CONTAINER_NAME = "nginx-prometheus-exporter"
 CONTAINER_PORT = 80
 REQUIRED_JUJU_CONFIGS = ["site", "backend"]
 
@@ -35,7 +40,8 @@ class ContentCacheCharm(CharmBase):
     """Charm the service."""
 
     on = IngressCharmEvents()
-
+    loki_log_path = "/var/log/nginx/access.log"
+    
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -48,6 +54,21 @@ class ContentCacheCharm(CharmBase):
         self.framework.observe(
             self.on.content_cache_pebble_ready, self._on_content_cache_pebble_ready
         )
+        self.framework.observe(
+            self.on.nginx_prometheus_exporter_pebble_ready, self._on_nginx_prometheus_exporter_pebble_ready
+        )
+        # Provide ability for Content-cache to be scraped by Prometheus using prometheus_scrape
+        self._metrics_endpoint = MetricsEndpointProvider(
+            self, jobs=[{"static_configs": [{"targets": ["*:9113", "*:9102"]}]}]
+        )
+
+        # Enable log forwarding for Loki and other charms that implement loki_push_api
+        self._logging = LogProxyConsumer(self, relation_name="logging", log_files=[self.loki_log_path], container_name=CONTAINER_NAME)
+
+        # Provide grafana dashboards over a relation interface
+        self._grafana_dashboards = GrafanaDashboardProvider(
+            self, relation_name="grafana-dashboard"
+        )
 
         self.ingress_proxy_provides = IngressProxyProvides(self)
         self.ingress = IngressRequires(self, self._make_ingress_config())
@@ -56,6 +77,13 @@ class ContentCacheCharm(CharmBase):
     def _on_content_cache_pebble_ready(self, event) -> None:
         """Handle content_cache_pebble_ready event and configure workload container."""
         msg = "Configuring workload container (content-cache-pebble-ready)"
+        logger.info(msg)
+        self.model.unit.status = MaintenanceStatus(msg)
+        self.on.config_changed.emit()
+
+    def _on_nginx_prometheus_exporter_pebble_ready(self, event) -> None:
+        """Handle content_cache_pebble_ready event and configure workload container."""
+        msg = "Configuring workload container (nginx-prometheus-exporter-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.on.config_changed.emit()
@@ -126,8 +154,8 @@ class ContentCacheCharm(CharmBase):
             A list of tuples composed of an IP address and the number of visits to that IP.
         """
         container = self.unit.get_container(CONTAINER_NAME)
-        log_path = "/var/log/nginx/access.log"
-        reversed_lines = filter(None, readlines_reverse(container.pull(log_path)))
+        nginx_log_path = "/var/log/nginx/access.log"
+        reversed_lines = filter(None, readlines_reverse(container.pull(nginx_log_path)))
         line_list = itertools.takewhile(self._filter_lines, reversed_lines)
         ip_list = map(self._get_ip, line_list)
 
@@ -169,6 +197,11 @@ class ContentCacheCharm(CharmBase):
         self.unit.status = MaintenanceStatus(msg)
         nginx_config = self._make_nginx_config(env_config)
 
+        msg = "Assembling exporter pebble layer config"
+        logger.info(msg)
+        self.unit.status = MaintenanceStatus(msg)
+        exporter_config = self._get_nginx_prometheus_exporter_pebble_config()
+
         try:
             container = self.unit.get_container(CONTAINER_NAME)
 
@@ -199,6 +232,31 @@ class ContentCacheCharm(CharmBase):
                 logger.info(msg)
                 self.unit.status = MaintenanceStatus(msg)
                 container.start(CONTAINER_NAME)
+
+            exporter_container = self.unit.get_container(EXPORTER_CONTAINER_NAME)
+            if exporter_container.can_connect():
+                services = exporter_container.get_plan().to_dict().get("services", {})
+                if services != exporter_config["services"]:
+
+                    msg = "Updating exporter pebble layer config"
+                    logger.info(msg)
+                    self.unit.status = MaintenanceStatus(msg)
+                    exporter_container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
+
+                    service = exporter_container.get_service("nginx-exporter")
+                    if service.is_running():
+                        msg = "Stopping nginx exporter"
+                        logger.info(msg)
+                        self.unit.status = MaintenanceStatus(msg)
+                        exporter_container.stop(EXPORTER_CONTAINER_NAME)
+
+                    msg = "Starting nginx exporter"
+                    logger.info(msg)
+                    self.unit.status = MaintenanceStatus(msg)
+                    exporter_container.start("nginx-exporter")
+            else:
+                self.unit.status = WaitingStatus("waiting for Pebble in workload container")
+
         except ConnectionError:
             msg = "Pebble is not ready, deferring event"
             logger.info(msg)
@@ -215,6 +273,31 @@ class ContentCacheCharm(CharmBase):
         hashed_value = hashlib.md5(name.encode("UTF-8"), usedforsecurity=False)
         hashed_name = hashed_value.hexdigest()[0:12]
         return f"{hashed_name}-cache"
+
+    def _get_nginx_prometheus_exporter_pebble_config(self):
+        """Generate pebble config for the nginx-prometheus-exporter container."""
+        return {
+            "summary": "Nginx prometheus exporter",
+            "description": "Prometheus exporter for nginx",
+            "services": {
+                "nginx-exporter": {
+                    "override": "replace",
+                    "summary": "Nginx Exporter",
+                    "command": (
+                        "nginx-prometheus-exporter"
+                        " -nginx.scrape-uri=http://localhost:80/stub_status"
+                    ),
+                    "startup": "enabled",
+                },
+            },
+            "checks": {
+                "nginx-exporter-up": {
+                    "override": "replace",
+                    "level": "alive",
+                    "http": {"url": "http://localhost:9113/metrics"},
+                },
+            },
+        }
 
     def _make_ingress_config(self) -> list:
         """Return an assembled K8s ingress."""
