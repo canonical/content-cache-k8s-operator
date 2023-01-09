@@ -216,7 +216,7 @@ class ContentCacheCharm(CharmBase):
         hashed_name = hashed_value.hexdigest()[0:12]
         return f"{hashed_name}-cache"
 
-    def _make_ingress_config(self) -> list:
+    def _make_ingress_config(self) -> dict:
         """Return an assembled K8s ingress."""
         config = self.model.config
 

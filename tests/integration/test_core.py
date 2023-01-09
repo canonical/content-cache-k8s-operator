@@ -27,28 +27,28 @@ async def test_active(app: Application):
 
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_hello_kubecon_reachable(ingress_ip: str):
+async def test_any_app_reachable(ingress_ip: str):
     """
-    arrange: given charm is deployed and related with hello-kubecon and nginx-integrator
+    arrange: given charm is deployed and related with any-app and nginx-integrator
     act: when the dependent application is queried via the ingress
     assert: then the response is HTTP 200 OK.
     """
-    response = requests.get(f"http://{ingress_ip}", headers={"Host": "hello-kubecon"}, timeout=5)
+    response = requests.get(f"http://{ingress_ip}", headers={"Host": "any-app"}, timeout=5)
 
     assert response.status_code == 200
 
 
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_hello_kubecon_cache_header(ingress_ip: str):
+async def test_an_app_cache_header(ingress_ip: str):
     """
-    arrange: given charm is deployed, related with hello-kubecon and nginx-integrator
+    arrange: given charm is deployed, related with any-app and nginx-integrator
         and is reachable
     act: when the dependent application is queried via the ingress
     assert: then the response is HTTP 200 OK, has X-Cache-Status http header
         and contains description with content-cache-k8s'
     """
-    response = requests.get(f"http://{ingress_ip}", headers={"Host": "hello-kubecon"}, timeout=5)
+    response = requests.get(f"http://{ingress_ip}", headers={"Host": "any-app"}, timeout=5)
 
     assert response.status_code == 200
     assert "X-Cache-Status" in response.headers
