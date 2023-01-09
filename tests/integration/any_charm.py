@@ -6,6 +6,7 @@ import os
 import pathlib
 import signal
 import subprocess
+import tempfile
 
 from any_charm_base import AnyCharmBase
 from ingress import IngressRequires
@@ -27,10 +28,7 @@ class AnyCharm(AnyCharmBase):
     @staticmethod
     def start_server(port: int = 80):
         """Start an HTTP server daemon."""
-        www_dir = pathlib.Path("/tmp/www")
-        www_dir.mkdir(exist_ok=True)
-        ok_file = www_dir / "ok"
-        ok_file.write_text("ok")
+        www_dir = tempfile.mkdtemp()
         # We create a pid file to avoid concurrent executions of the http server
         pid_file = pathlib.Path("/tmp/any.pid")
         if pid_file.exists():
