@@ -2,8 +2,8 @@ proxy_cache_path {NGINX_CACHE_PATH} use_temp_path=off levels=1:2 keys_zone={NGIN
 
 server {{
     server_name {NGINX_SITE_NAME};
-    listen {CONTAINER_PORT};
-    listen [::]:{CONTAINER_PORT};
+    listen *:{CONTAINER_PORT};
+    listen [::1]:{CONTAINER_PORT};
 
     client_max_body_size {NGINX_CLIENT_MAX_BODY_SIZE};
 

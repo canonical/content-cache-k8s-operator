@@ -85,7 +85,7 @@ class ContentCacheCharm(CharmBase):
         msg = "Configuring workload container (content-cache-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
-        self.configure_workload_container(event)
+        self.on.config_changed.emit()
 
     def _on_nginx_prometheus_exporter_pebble_ready(self, event: PebbleReadyEvent) -> None:
         """Handle content_cache_pebble_ready event and configure workload container.
@@ -96,7 +96,7 @@ class ContentCacheCharm(CharmBase):
         msg = "Configuring workload container (nginx-prometheus-exporter-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
-        self.configure_workload_container(event)
+        self.on.config_changed.emit()
 
     def _on_start(self, event) -> None:
         """Handle workload container started."""
@@ -225,18 +225,21 @@ class ContentCacheCharm(CharmBase):
             services = container.get_plan().to_dict().get("services", {})
             if services != pebble_config["services"]:
 
+                msg = "Updating pebble layer config"
+                logger.info(msg)
+                self.unit.status = MaintenanceStatus(msg)
                 container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
                 container.pebble.replan_services()
 
             exporter_container = self.unit.get_container(EXPORTER_CONTAINER_NAME)
-            exporter_services = container.get_plan().to_dict().get("services", {})
-            if exporter_services != exporter_config["services"]:
-
-                exporter_container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
+            if exporter_container.can_connect():
+                msg = "Updating exporter pebble layer config"
+                logger.info(msg)
+                self.unit.status = MaintenanceStatus(msg)
+                exporter_container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
                 exporter_container.pebble.replan_services()
-                
             else:
-                self.unit.status = WaitingStatus("Waiting for pebble")
+                self.unit.status = WaitingStatus("waiting for Pebble in workload container")
 
         except ConnectionError:
             msg = "Pebble is not ready, deferring event"
