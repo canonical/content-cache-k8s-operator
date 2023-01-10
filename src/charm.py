@@ -285,7 +285,7 @@ class ContentCacheCharm(CharmBase):
             },
         }
 
-    def _make_ingress_config(self) -> list:
+    def _make_ingress_config(self) -> dict:
         """Return an assembled K8s ingress."""
         config = self.model.config
 
