@@ -19,7 +19,7 @@ from charms.nginx_ingress_integrator.v0.ingress import (
     IngressRequires,
 )
 from charms.prometheus_k8s.v0.prometheus_scrape import MetricsEndpointProvider
-from ops.charm import ActionEvent, CharmBase
+from ops.charm import ActionEvent, CharmBase, PebbleReadyEvent
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 from tabulate import tabulate
@@ -39,7 +39,8 @@ class ContentCacheCharm(CharmBase):
     """Charm the service."""
 
     on = IngressCharmEvents()
-    loki_log_path = "/var/log/nginx/access.log"
+    error_log_path = "/var/log/nginx/error.log"
+    access_log_path = "/var/log/nginx/access.log"
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -59,14 +60,14 @@ class ContentCacheCharm(CharmBase):
         )
         # Provide ability for Content-cache to be scraped by Prometheus using prometheus_scrape
         self._metrics_endpoint = MetricsEndpointProvider(
-            self, jobs=[{"static_configs": [{"targets": ["*:9113", "*:9102"]}]}]
+            self, jobs=[{"static_configs": [{"targets": ["*:9113"]}]}]
         )
 
         # Enable log forwarding for Loki and other charms that implement loki_push_api
         self._logging = LogProxyConsumer(
             self,
             relation_name="logging",
-            log_files=[self.loki_log_path],
+            log_files=[self.access_log_path, self.error_log_path],
             container_name=CONTAINER_NAME,
         )
 
@@ -84,14 +85,18 @@ class ContentCacheCharm(CharmBase):
         msg = "Configuring workload container (content-cache-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
-        self.on.config_changed.emit()
+        self.configure_workload_container(event)
 
-    def _on_nginx_prometheus_exporter_pebble_ready(self, event) -> None:
-        """Handle content_cache_pebble_ready event and configure workload container."""
+    def _on_nginx_prometheus_exporter_pebble_ready(self, event: PebbleReadyEvent) -> None:
+        """Handle content_cache_pebble_ready event and configure workload container.
+        
+        Args:
+            event: Event triggering the pebble ready handler for the nginx exporter.
+        """
         msg = "Configuring workload container (nginx-prometheus-exporter-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
-        self.on.config_changed.emit()
+        self.configure_workload_container(event)
 
     def _on_start(self, event) -> None:
         """Handle workload container started."""
@@ -159,8 +164,7 @@ class ContentCacheCharm(CharmBase):
             A list of tuples composed of an IP address and the number of visits to that IP.
         """
         container = self.unit.get_container(CONTAINER_NAME)
-        nginx_log_path = "/var/log/nginx/access.log"
-        reversed_lines = filter(None, readlines_reverse(container.pull(nginx_log_path)))
+        reversed_lines = filter(None, readlines_reverse(container.pull(self.access_log_path)))
         line_list = itertools.takewhile(self._filter_lines, reversed_lines)
         ip_list = map(self._get_ip, line_list)
 
@@ -221,48 +225,18 @@ class ContentCacheCharm(CharmBase):
             services = container.get_plan().to_dict().get("services", {})
             if services != pebble_config["services"]:
 
-                msg = "Updating pebble layer config"
-                logger.info(msg)
-                self.unit.status = MaintenanceStatus(msg)
                 container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
-
-                service = container.get_service(CONTAINER_NAME)
-                if service.is_running():
-                    msg = "Stopping content-cache"
-                    logger.info(msg)
-                    self.unit.status = MaintenanceStatus(msg)
-                    container.stop(CONTAINER_NAME)
-
-                msg = "Starting content-cache"
-                logger.info(msg)
-                self.unit.status = MaintenanceStatus(msg)
-                container.start(CONTAINER_NAME)
+                container.pebble.replan_services()
 
             exporter_container = self.unit.get_container(EXPORTER_CONTAINER_NAME)
-            if exporter_container.can_connect():
-                services = exporter_container.get_plan().to_dict().get("services", {})
-                if services != exporter_config["services"]:
+            exporter_services = container.get_plan().to_dict().get("services", {})
+            if exporter_services != exporter_config["services"]:
 
-                    msg = "Updating exporter pebble layer config"
-                    logger.info(msg)
-                    self.unit.status = MaintenanceStatus(msg)
-                    exporter_container.add_layer(
-                        EXPORTER_CONTAINER_NAME, exporter_config, combine=True
-                    )
-
-                    service = exporter_container.get_service("nginx-exporter")
-                    if service.is_running():
-                        msg = "Stopping nginx exporter"
-                        logger.info(msg)
-                        self.unit.status = MaintenanceStatus(msg)
-                        exporter_container.stop(EXPORTER_CONTAINER_NAME)
-
-                    msg = "Starting nginx exporter"
-                    logger.info(msg)
-                    self.unit.status = MaintenanceStatus(msg)
-                    exporter_container.start("nginx-exporter")
+                exporter_container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
+                exporter_container.pebble.replan_services()
+                
             else:
-                self.unit.status = WaitingStatus("waiting for Pebble in workload container")
+                self.unit.status = WaitingStatus("Waiting for pebble")
 
         except ConnectionError:
             msg = "Pebble is not ready, deferring event"
