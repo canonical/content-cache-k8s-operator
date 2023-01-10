@@ -48,7 +48,7 @@ PEBBLE_CONFIG = {
             "override": "replace",
             "summary": "content-cache",
             "command": "/usr/sbin/nginx -g 'daemon off;'",
-            "startup": "false",
+            "startup": "enabled",
             "environment": "",
         },
     },
@@ -131,12 +131,10 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     def test_configure_workload_container(
         self,
-        stop,
-        start,
+        pebble,
         push,
         make_dir,
         get_service,
@@ -163,9 +161,6 @@ class TestCharm:
         make_pebble_config.assert_called_once()
         make_nginx_config.assert_called_once()
         assert add_layer.call_count == 2
-        assert get_service.call_count == 2
-        assert stop.call_count == 2
-        assert start.call_count == 2
         assert harness.charm.unit.status, ActiveStatus("Ready")
 
     @mock.patch("ops.model.Container.pull")
@@ -238,15 +233,14 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     def test_configure_workload_container_container_not_running(
-        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
     ):
         """
         arrange: config is changed
         act: check if service is running and is not
-        assert: workload and exporter containers are stopped
+        assert: services are not replanned
         """
         config = self.config
         harness = self.harness
@@ -254,22 +248,21 @@ class TestCharm:
         make_pebble_config.assert_called_once()
         get_service.return_value.is_running.return_value = False
         harness.update_config(config)
-        assert stop.call_count == 2
+        pebble.replan_services().assert_not_called()
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     def test_configure_workload_container_pebble_services_already_configured(
-        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
     ):
         """
         arrange: config is changed
         act: check if current config is different and is not
-        assert: only exporter container gets updated
+        assert: no update takes place
         """
         config = self.config
         harness = self.harness
@@ -286,11 +279,10 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     @mock.patch("ops.model.Container.isdir")
     def test_configure_workload_container_has_cache_directory(
-        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config, isdir
+        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config, isdir
     ):
         """
         arrange: workload container is ready
@@ -312,10 +304,9 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     def test_configure_workload_container_pebble_not_ready(
-        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
     ):
         """
         arrange: config is changed

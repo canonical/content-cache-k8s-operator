@@ -89,7 +89,7 @@ class ContentCacheCharm(CharmBase):
 
     def _on_nginx_prometheus_exporter_pebble_ready(self, event: PebbleReadyEvent) -> None:
         """Handle content_cache_pebble_ready event and configure workload container.
-        
+
         Args:
             event: Event triggering the pebble ready handler for the nginx exporter.
         """
@@ -236,7 +236,9 @@ class ContentCacheCharm(CharmBase):
                 msg = "Updating exporter pebble layer config"
                 logger.info(msg)
                 self.unit.status = MaintenanceStatus(msg)
-                exporter_container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
+                exporter_container.add_layer(
+                    EXPORTER_CONTAINER_NAME, exporter_config, combine=True
+                )
                 exporter_container.pebble.replan_services()
             else:
                 self.unit.status = WaitingStatus("waiting for Pebble in workload container")
