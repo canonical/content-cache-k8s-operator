@@ -379,7 +379,7 @@ class ContentCacheCharm(CharmBase):
                     "override": "replace",
                     "summary": "content-cache",
                     "command": "/usr/sbin/nginx -g 'daemon off;'",
-                    "startup": "false",
+                    "startup": "enabled",
                     "environment": env_config,
                 },
             },
