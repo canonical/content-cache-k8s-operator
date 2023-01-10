@@ -162,10 +162,10 @@ class TestCharm:
         ingress_update.assert_called_with(expect)
         make_pebble_config.assert_called_once()
         make_nginx_config.assert_called_once()
-        add_layer.assert_called_once()
-        get_service.assert_called_once()
-        stop.assert_called_once()
-        start.assert_called_once()
+        assert add_layer.call_count == 2
+        assert get_service.call_count == 2
+        assert stop.call_count == 2
+        assert start.call_count == 2
         assert harness.charm.unit.status, ActiveStatus("Ready")
 
     @mock.patch("ops.model.Container.pull")
@@ -246,7 +246,7 @@ class TestCharm:
         """
         arrange: config is changed
         act: check if service is running and is not
-        assert: workload container is stopped
+        assert: workload and exporter containers are stopped
         """
         config = self.config
         harness = self.harness
@@ -254,7 +254,7 @@ class TestCharm:
         make_pebble_config.assert_called_once()
         get_service.return_value.is_running.return_value = False
         harness.update_config(config)
-        stop.assert_called_once()
+        assert stop.call_count == 2
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
@@ -269,7 +269,7 @@ class TestCharm:
         """
         arrange: config is changed
         act: check if current config is different and is not
-        assert: no action
+        assert: only exporter container gets updated
         """
         config = self.config
         harness = self.harness
@@ -278,7 +278,7 @@ class TestCharm:
         make_pebble_config.return_value = {"services": {}}
         harness.update_config(config)
         make_pebble_config.assert_called_once()
-        add_layer.assert_not_called()
+        add_layer.assert_called_once()
         assert harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
@@ -302,7 +302,7 @@ class TestCharm:
 
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
-        make_pebble_config.assert_called_once()
+        assert make_pebble_config.call_count == 2
         assert harness.charm.unit.status == ActiveStatus("Ready")
         container = harness.charm.unit.get_container(CONTAINER_NAME)
         assert container.isdir(CACHE_PATH)

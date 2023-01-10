@@ -2,7 +2,8 @@ proxy_cache_path /var/lib/nginx/proxy/cache use_temp_path=off levels=1:2 keys_zo
 
 server {
     server_name mysite.local;
-    listen *:80;
+    listen 80;
+    listen [::]:80;
 
     client_max_body_size 1m;
 
@@ -26,6 +27,10 @@ server {
         proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
         proxy_cache_valid 200 1h;
         proxy_ignore_headers Cache-Control Expires;
+    }
+
+    location = /stub_status {
+      stub_status;
     }
 
     access_log /dev/stdout content_cache;

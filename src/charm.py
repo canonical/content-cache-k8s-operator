@@ -19,7 +19,6 @@ from charms.nginx_ingress_integrator.v0.ingress import (
     IngressRequires,
 )
 from charms.prometheus_k8s.v0.prometheus_scrape import MetricsEndpointProvider
-from charms.traefik_k8s.v1.ingress import IngressPerAppRequirer
 from ops.charm import ActionEvent, CharmBase
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
@@ -41,7 +40,7 @@ class ContentCacheCharm(CharmBase):
 
     on = IngressCharmEvents()
     loki_log_path = "/var/log/nginx/access.log"
-    
+
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -55,7 +54,8 @@ class ContentCacheCharm(CharmBase):
             self.on.content_cache_pebble_ready, self._on_content_cache_pebble_ready
         )
         self.framework.observe(
-            self.on.nginx_prometheus_exporter_pebble_ready, self._on_nginx_prometheus_exporter_pebble_ready
+            self.on.nginx_prometheus_exporter_pebble_ready,
+            self._on_nginx_prometheus_exporter_pebble_ready,
         )
         # Provide ability for Content-cache to be scraped by Prometheus using prometheus_scrape
         self._metrics_endpoint = MetricsEndpointProvider(
@@ -63,7 +63,12 @@ class ContentCacheCharm(CharmBase):
         )
 
         # Enable log forwarding for Loki and other charms that implement loki_push_api
-        self._logging = LogProxyConsumer(self, relation_name="logging", log_files=[self.loki_log_path], container_name=CONTAINER_NAME)
+        self._logging = LogProxyConsumer(
+            self,
+            relation_name="logging",
+            log_files=[self.loki_log_path],
+            container_name=CONTAINER_NAME,
+        )
 
         # Provide grafana dashboards over a relation interface
         self._grafana_dashboards = GrafanaDashboardProvider(
@@ -241,7 +246,9 @@ class ContentCacheCharm(CharmBase):
                     msg = "Updating exporter pebble layer config"
                     logger.info(msg)
                     self.unit.status = MaintenanceStatus(msg)
-                    exporter_container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
+                    exporter_container.add_layer(
+                        EXPORTER_CONTAINER_NAME, exporter_config, combine=True
+                    )
 
                     service = exporter_container.get_service("nginx-exporter")
                     if service.is_running():
