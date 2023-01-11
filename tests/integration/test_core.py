@@ -1,6 +1,8 @@
 # Copyright 2022 Canonical Ltd.
 # see LICENCE file for details.
 
+"""Integration test module."""
+
 import re
 import secrets
 
@@ -109,11 +111,11 @@ async def test_openstack_object_storage_plugin(
     container = "content-cache"
     try:
         swift_conn.head_container(container)
-    except swiftclient.exceptions.ClientException as e:
-        if e.http_status == 404:
+    except swiftclient.exceptions.ClientException as exception:
+        if exception.http_status == 404:
             container_exists = False
         else:
-            raise e
+            raise exception
     if container_exists:
         for swift_object in swift_conn.get_container(container, full_listing=True)[1]:
             swift_conn.delete_object(container, swift_object["name"])

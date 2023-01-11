@@ -19,7 +19,7 @@ from charms.nginx_ingress_integrator.v0.ingress import (
     IngressRequires,
 )
 from charms.prometheus_k8s.v0.prometheus_scrape import MetricsEndpointProvider
-from ops.charm import ActionEvent, CharmBase, PebbleReadyEvent
+from ops.charm import ActionEvent, CharmBase
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 from tabulate import tabulate
@@ -98,34 +98,22 @@ class ContentCacheCharm(CharmBase):
         self.ingress = IngressRequires(self, self._make_ingress_config())
         self.framework.observe(self.on.ingress_available, self._on_config_changed)
 
-    def _on_content_cache_pebble_ready(self, event) -> None:
-        """Handle content_cache_pebble_ready event and configure workload container.
-
-        Args:
-            event: Event triggering the pebble ready handler for the content-cache container.
-        """
+    def _on_content_cache_pebble_ready(self) -> None:
+        """Handle content_cache_pebble_ready event and configure workload container."""
         msg = "Configuring workload container (content-cache-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.on.config_changed.emit()
 
-    def _on_nginx_prometheus_exporter_pebble_ready(self, event: PebbleReadyEvent) -> None:
-        """Handle content_cache_pebble_ready event and configure workload container.
-
-        Args:
-            event: Event triggering the pebble ready handler for the nginx exporter.
-        """
+    def _on_nginx_prometheus_exporter_pebble_ready(self) -> None:
+        """Handle content_cache_pebble_ready event and configure workload container."""
         msg = "Configuring workload container (nginx-prometheus-exporter-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.on.config_changed.emit()
 
-    def _on_start(self, event) -> None:
-        """Handle workload container started.
-
-        Args:
-            event: start event.
-        """
+    def _on_start(self) -> None:
+        """Handle workload container started."""
         logger.info("Starting workload container (start)")
         self.model.unit.status = ActiveStatus("Started")
 
@@ -187,8 +175,7 @@ class ContentCacheCharm(CharmBase):
         """
         if line:
             return line.split()[0]
-        else:
-            raise ValueError
+        raise ValueError
 
     def _report_visits_by_ip(self) -> list[tuple[int, str]]:
         """Report requests to nginx grouped and ordered by IP and report action result.
@@ -227,38 +214,20 @@ class ContentCacheCharm(CharmBase):
             self.unit.status = BlockedStatus(msg)
             return
 
-        msg = "Assembling k8s ingress config"
-        logger.info(msg)
-        self.unit.status = MaintenanceStatus(msg)
         self.ingress.update_config(self._make_ingress_config())
-
-        msg = "Assembling environment configs"
-        logger.info(msg)
-        self.unit.status = MaintenanceStatus(msg)
         env_config = self._make_env_config()
-
-        msg = "Assembling pebble layer config"
-        logger.info(msg)
-        self.unit.status = MaintenanceStatus(msg)
         pebble_config = self._make_pebble_config(env_config)
-
-        msg = "Assembling Nginx config"
-        logger.info(msg)
-        self.unit.status = MaintenanceStatus(msg)
         nginx_config = self._make_nginx_config(env_config)
-
-        msg = "Assembling exporter pebble layer config"
-        logger.info(msg)
-        self.unit.status = MaintenanceStatus(msg)
         exporter_config = self._get_nginx_prometheus_exporter_pebble_config()
+
         container = self.unit.get_container(CONTAINER_NAME)
         if container.can_connect():
             msg = "Updating Nginx site config"
             logger.info(msg)
             self.unit.status = MaintenanceStatus(msg)
             container.push("/etc/nginx/sites-available/default", nginx_config)
-            with open("files/nginx-logging-format.conf", "r") as f:
-                container.push("/etc/nginx/conf.d/nginx-logging-format.conf", f)
+            with open("files/nginx-logging-format.conf", "r", encoding="utf-8") as file:
+                container.push("/etc/nginx/conf.d/nginx-logging-format.conf", file)
             container.make_dir(CACHE_PATH, make_parents=True)
 
             services = container.get_plan().to_dict().get("services", {})
@@ -392,7 +361,6 @@ class ContentCacheCharm(CharmBase):
                 unit_name = peer.name.replace("/", "-")
                 service_url = f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
                 clients.append(f"http://{service_url}:{svc_port}")
-            # XXX: Will need to deal with multiple units at some point
             backend = clients[0]
         else:
             backend = config["backend"]
@@ -466,8 +434,8 @@ class ContentCacheCharm(CharmBase):
         Returns:
             A fully configured NGINX conf file
         """
-        with open("templates/nginx_cfg.tmpl", "r") as f:
-            content = f.read()
+        with open("templates/nginx_cfg.tmpl", "r", encoding="utf-8") as file:
+            content = file.read()
 
         nginx_config = content.format(**env_config)
         return nginx_config
