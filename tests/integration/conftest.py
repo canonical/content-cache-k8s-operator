@@ -93,6 +93,12 @@ async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
     yield get_unit_ip_list_action
 
 
+@fixture(scope="module")
+def nginx_exporter_image(metadata):
+    """Provide the statsd prometheus exporter image from the metadata."""
+    yield metadata["resources"]["nginx-prometheus-exporter-image"]["upstream-source"]
+
+
 @pytest_asyncio.fixture(scope="function")
 async def unit_ip_list(get_unit_ip_list):
     """Yield ip addresses of current units."""
@@ -117,6 +123,7 @@ async def app(
     ops_test: OpsTest,
     app_name: str,
     content_cache_image: str,
+    nginx_exporter_image: str,
     nginx_integrator_app: Application,
     run_action,
 ):
@@ -146,7 +153,10 @@ async def app(
     application = await ops_test.model.deploy(
         app_charm,
         application_name=app_name,
-        resources={"content-cache-image": content_cache_image},
+        resources={
+            "content-cache-image": content_cache_image,
+            "nginx-prometheus-exporter-image": nginx_exporter_image,
+        },
         series="jammy",
     )
 
