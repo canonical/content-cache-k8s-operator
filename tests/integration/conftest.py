@@ -1,6 +1,7 @@
 # Copyright 2022 Canonical Ltd.
 # see LICENCE file for details.
 
+"""General configuration module for integration tests."""
 import configparser
 import json
 import re
@@ -17,13 +18,13 @@ from pytest_operator.plugin import OpsTest
 
 @fixture(scope="module")
 def metadata():
-    """Provides charm metadata."""
+    """Provide charm metadata."""
     yield yaml.safe_load(Path("./metadata.yaml").read_text())
 
 
 @fixture(scope="module")
 def app_name(metadata):
-    """Provides app name from the metadata."""
+    """Provide app name from the metadata."""
     yield metadata["name"]
 
 
@@ -32,7 +33,7 @@ def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
     """Create a async function to run action and return results."""
 
     async def _run_action(application_name: str, action_name: str, **params):
-        """Function that runs the action.
+        """Run a specified action.
 
         Args:
             application_name: Name the application is deployed with.
@@ -74,10 +75,10 @@ def content_cache_image(pytestconfig: Config):
 
 @pytest_asyncio.fixture(scope="function")
 async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
-    """Helper function to retrieve unit ip addresses, similar to fixture_get_unit_status_list."""
+    """Retrieve unit ip addresses, similar to fixture_get_unit_status_list."""
 
     async def get_unit_ip_list_action():
-        """Method useful to extract the IPs from juju units.
+        """Extract the IPs from juju units.
 
         Returns:
             A list of IPs of the juju units in the model.
@@ -94,7 +95,7 @@ async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
 
 @pytest_asyncio.fixture(scope="function")
 async def unit_ip_list(get_unit_ip_list):
-    """A fixture containing ip addresses of current units."""
+    """Yield ip addresses of current units."""
     yield await get_unit_ip_list()
 
 

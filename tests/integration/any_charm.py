@@ -33,7 +33,7 @@ class AnyCharm(AnyCharmBase):
         )
 
     def update_ingress(self, ingress_config):
-        """Method that updates the Ingress config.
+        """Update Ingress config.
 
         Args:
             ingress_config: New Ingress configuration to be applied.
