@@ -60,6 +60,7 @@ DATE_19 = (datetime.now() - timedelta(minutes=19, seconds=55)).strftime("%d/%b/%
 
 
 class TestCharm:
+    """Unit test battery for the content-cache charm."""
     @pytest.fixture(autouse=True)
     def init_tests(self):
         self.config = copy.deepcopy(BASE_CONFIG)

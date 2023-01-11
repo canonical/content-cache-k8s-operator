@@ -32,6 +32,11 @@ def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
     """Create a async function to run action and return results."""
 
     async def _run_action(application_name: str, action_name: str, **params):
+        """Function that runs the action.
+        
+        Returns:
+            The results of the executed action
+        """
         application = ops_test.model.applications[application_name]
         action = await application.units[0].run_action(action_name, **params)
         await action.wait()
@@ -67,6 +72,11 @@ async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
     """Helper function to retrieve unit ip addresses, similar to fixture_get_unit_status_list."""
 
     async def get_unit_ip_list_action():
+        """Method useful to extract the IPs from juju units.
+        
+        Returns: 
+            A list of IPs of the juju units in the model.
+        """
         status = await ops_test.model.get_status()
         units = status.applications[app_name].units
         ip_list = [

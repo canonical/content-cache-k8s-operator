@@ -36,7 +36,18 @@ REQUIRED_JUJU_CONFIGS = ["site", "backend"]
 
 
 class ContentCacheCharm(CharmBase):
-    """Charm the service."""
+    """Charm the service.
+    
+    Attrs:
+        on: Ingress Charm Events
+        error_log_path: NGINX error log
+        access_log_path: NGINX access log
+        _metrics_endpoint: Provider of metrics for Prometheus charm
+        _logging: Requirer of logs for Loki charm
+        _grafana_dashboards: Dashboard Provider for Grafana charm
+        ingress_proxy_provides: Ingress proxy provider
+        ingress: Ingress requirer
+    """
 
     on = IngressCharmEvents()
     error_log_path = "/var/log/nginx/error.log"
@@ -81,7 +92,11 @@ class ContentCacheCharm(CharmBase):
         self.framework.observe(self.on.ingress_available, self._on_config_changed)
 
     def _on_content_cache_pebble_ready(self, event) -> None:
-        """Handle content_cache_pebble_ready event and configure workload container."""
+        """Handle content_cache_pebble_ready event and configure workload container.
+        
+        Args:
+            event: Event triggering the pebble ready handler for the content-cache container.
+        """
         msg = "Configuring workload container (content-cache-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
@@ -99,12 +114,20 @@ class ContentCacheCharm(CharmBase):
         self.on.config_changed.emit()
 
     def _on_start(self, event) -> None:
-        """Handle workload container started."""
+        """Handle workload container started.
+        
+        Args:
+            event: start event.
+        """
         logger.info("Starting workload container (start)")
         self.model.unit.status = ActiveStatus("Started")
 
     def _on_config_changed(self, event) -> None:
-        """Handle config_changed event and reconfigure workload container."""
+        """Handle config_changed event and reconfigure workload container.
+        
+        Args:
+            event: config-changed event.
+        """
         msg = "Configuring workload container (config-changed)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
@@ -125,6 +148,9 @@ class ContentCacheCharm(CharmBase):
 
         Args:
             line: A log line from the log file.
+        
+        Returns:
+            A Boolean that indicates if the line must be included or not.
         """
         line_elements = line.split()
 
@@ -171,14 +197,22 @@ class ContentCacheCharm(CharmBase):
         return Counter(ip_list).most_common()
 
     def _on_upgrade_charm(self, event) -> None:
-        """Handle upgrade_charm event and reconfigure workload container."""
+        """Handle upgrade_charm event and reconfigure workload container.
+        
+        Args:
+            event: upgrade-charm event.
+        """
         msg = "Configuring workload container (upgrade-charm)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.configure_workload_container(event)
 
     def configure_workload_container(self, event) -> None:
-        """Configure/set up workload container inside pod."""
+        """Configure/set up workload container inside pod.
+        
+        Args:
+            event: config-changed event.
+        """
         missing = sorted(self._missing_charm_configs())
         if missing:
             msg = f"Required config(s) empty: {', '.join(missing)}"
@@ -210,10 +244,8 @@ class ContentCacheCharm(CharmBase):
         logger.info(msg)
         self.unit.status = MaintenanceStatus(msg)
         exporter_config = self._get_nginx_prometheus_exporter_pebble_config()
-
-        try:
-            container = self.unit.get_container(CONTAINER_NAME)
-
+        container = self.unit.get_container(CONTAINER_NAME)
+        if container.can_connect():
             msg = "Updating Nginx site config"
             logger.info(msg)
             self.unit.status = MaintenanceStatus(msg)
@@ -230,23 +262,22 @@ class ContentCacheCharm(CharmBase):
                 self.unit.status = MaintenanceStatus(msg)
                 container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
                 container.pebble.replan_services()
+        else:
+            self.unit.status = WaitingStatus("waiting for Pebble in workload container")
+            event.defer()
+            return
 
-            exporter_container = self.unit.get_container(EXPORTER_CONTAINER_NAME)
-            if exporter_container.can_connect():
-                msg = "Updating exporter pebble layer config"
-                logger.info(msg)
-                self.unit.status = MaintenanceStatus(msg)
-                exporter_container.add_layer(
-                    EXPORTER_CONTAINER_NAME, exporter_config, combine=True
-                )
-                exporter_container.pebble.replan_services()
-            else:
-                self.unit.status = WaitingStatus("waiting for Pebble in workload container")
-
-        except ConnectionError:
-            msg = "Pebble is not ready, deferring event"
+        exporter_container = self.unit.get_container(EXPORTER_CONTAINER_NAME)
+        if exporter_container.can_connect():
+            msg = "Updating exporter pebble layer config"
             logger.info(msg)
-            self.unit.status = WaitingStatus(msg)
+            self.unit.status = MaintenanceStatus(msg)
+            exporter_container.add_layer(
+                EXPORTER_CONTAINER_NAME, exporter_config, combine=True
+            )
+            exporter_container.pebble.replan_services()
+        else:
+            self.unit.status = WaitingStatus("waiting for Pebble in workload container")
             event.defer()
             return
 
@@ -255,13 +286,21 @@ class ContentCacheCharm(CharmBase):
         self.unit.status = ActiveStatus(msg)
 
     def _generate_keys_zone(self, name):
-        """Generate hashed name to be used by Nginx's key zone."""
+        """Generate hashed name to be used by Nginx's key zone.
+        
+        Returns:
+            A hashed name to be used by Nginx's key zone.
+        """
         hashed_value = hashlib.md5(name.encode("UTF-8"), usedforsecurity=False)
         hashed_name = hashed_value.hexdigest()[0:12]
         return f"{hashed_name}-cache"
 
     def _get_nginx_prometheus_exporter_pebble_config(self):
-        """Generate pebble config for the nginx-prometheus-exporter container."""
+        """Generate pebble config for the nginx-prometheus-exporter container.
+
+        Returns:
+            Pebble layer config for the nginx-prometheus-exporter container.
+        """
         return {
             "summary": "Nginx prometheus exporter",
             "description": "Prometheus exporter for nginx",
@@ -286,7 +325,11 @@ class ContentCacheCharm(CharmBase):
         }
 
     def _make_ingress_config(self) -> dict:
-        """Return an assembled K8s ingress."""
+        """Return an assembled K8s ingress.
+        
+        Returns:
+            An Ingress config dict.
+        """
         config = self.model.config
 
         ingress = {
@@ -317,7 +360,14 @@ class ContentCacheCharm(CharmBase):
         return ingress
 
     def _make_env_config(self, domain="svc.cluster.local") -> dict:
-        """Return dict to be used as as runtime environment variables."""
+        """Return dict to be used as as runtime environment variables.
+        
+        Args:
+            domain: domain used for the content-cache
+
+        Returns:
+            Charm's environment config
+        """
         config = self.model.config
         relation = self.model.get_relation("ingress-proxy")
         if relation:
@@ -372,7 +422,14 @@ class ContentCacheCharm(CharmBase):
         return env_config
 
     def _make_pebble_config(self, env_config) -> dict:
-        """Generate our pebble config layer."""
+        """Generate our pebble config layer.
+        
+        Args:
+            env_config: Charm's environment config
+
+        Returns:
+            content-cache container pebble layer config
+        """
         pebble_config = {
             "summary": "content-cache layer",
             "description": "Pebble config layer for content-cache",
@@ -389,6 +446,14 @@ class ContentCacheCharm(CharmBase):
         return pebble_config
 
     def _make_nginx_config(self, env_config) -> str:
+        """Grab the NGINX template and fill it with our env config.
+        
+        Args:
+            env_config: Charm's environment config
+
+        Returns:
+            A fully configured NGINX conf file
+        """
         with open("templates/nginx_cfg.tmpl", "r") as f:
             content = f.read()
 
@@ -396,7 +461,11 @@ class ContentCacheCharm(CharmBase):
         return nginx_config
 
     def _missing_charm_configs(self) -> list:
-        """Check and return list of required but missing configs."""
+        """Check and return list of required but missing configs.
+        
+        Returns:
+            Missing settings in the required juju configs.
+        """
         relation = self.model.get_relation("ingress-proxy")
         if relation:
             return []
