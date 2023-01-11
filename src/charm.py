@@ -19,7 +19,7 @@ from charms.nginx_ingress_integrator.v0.ingress import (
     IngressRequires,
 )
 from charms.prometheus_k8s.v0.prometheus_scrape import MetricsEndpointProvider
-from ops.charm import ActionEvent, CharmBase
+from ops.charm import ActionEvent, CharmBase, PebbleReadyEvent
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 from tabulate import tabulate
@@ -98,22 +98,34 @@ class ContentCacheCharm(CharmBase):
         self.ingress = IngressRequires(self, self._make_ingress_config())
         self.framework.observe(self.on.ingress_available, self._on_config_changed)
 
-    def _on_content_cache_pebble_ready(self) -> None:
-        """Handle content_cache_pebble_ready event and configure workload container."""
+    def _on_content_cache_pebble_ready(self, event) -> None:
+        """Handle content_cache_pebble_ready event and configure workload container.
+
+        Args:
+            event: Event triggering the pebble ready handler for the content-cache container.
+        """
         msg = "Configuring workload container (content-cache-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.on.config_changed.emit()
 
-    def _on_nginx_prometheus_exporter_pebble_ready(self) -> None:
-        """Handle content_cache_pebble_ready event and configure workload container."""
+    def _on_nginx_prometheus_exporter_pebble_ready(self, event: PebbleReadyEvent) -> None:
+        """Handle content_cache_pebble_ready event and configure workload container.
+
+        Args:
+            event: Event triggering the pebble ready handler for the nginx exporter.
+        """
         msg = "Configuring workload container (nginx-prometheus-exporter-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.on.config_changed.emit()
 
-    def _on_start(self) -> None:
-        """Handle workload container started."""
+    def _on_start(self, event) -> None:
+        """Handle workload container started.
+
+        Args:
+            event: start event.
+        """
         logger.info("Starting workload container (start)")
         self.model.unit.status = ActiveStatus("Started")
 
