@@ -112,10 +112,9 @@ async def test_openstack_object_storage_plugin(
     try:
         swift_conn.head_container(container)
     except swiftclient.exceptions.ClientException as exception:
-        if exception.http_status == 404:
-            container_exists = False
-        else:
+        if exception.http_status != 404:
             raise exception
+        container_exists = False
     if container_exists:
         for swift_object in swift_conn.get_container(container, full_listing=True)[1]:
             swift_conn.delete_object(container, swift_object["name"])

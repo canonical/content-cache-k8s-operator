@@ -19,7 +19,13 @@ from charms.nginx_ingress_integrator.v0.ingress import (
     IngressRequires,
 )
 from charms.prometheus_k8s.v0.prometheus_scrape import MetricsEndpointProvider
-from ops.charm import ActionEvent, CharmBase, PebbleReadyEvent
+from ops.charm import (
+    ActionEvent,
+    CharmBase,
+    ConfigChangedEvent,
+    PebbleReadyEvent,
+    UpgradeCharmEvent,
+)
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 from tabulate import tabulate
@@ -40,8 +46,8 @@ class ContentCacheCharm(CharmBase):
 
     Attrs:
         on: Ingress Charm Events
-        error_log_path: NGINX error log
-        access_log_path: NGINX access log
+        ERROR_LOG_PATH: NGINX error log
+        ACCESS_LOG_PATH: NGINX access log
         _metrics_endpoint: Provider of metrics for Prometheus charm
         _logging: Requirer of logs for Loki charm
         _grafana_dashboards: Dashboard Provider for Grafana charm
@@ -52,8 +58,8 @@ class ContentCacheCharm(CharmBase):
     """
 
     on = IngressCharmEvents()
-    error_log_path = "/var/log/nginx/error.log"
-    access_log_path = "/var/log/nginx/access.log"
+    ERROR_LOG_PATH = "/var/log/nginx/error.log"
+    ACCESS_LOG_PATH = "/var/log/nginx/access.log"
 
     def __init__(self, *args):
         """Init function for the charm.
@@ -85,7 +91,7 @@ class ContentCacheCharm(CharmBase):
         self._logging = LogProxyConsumer(
             self,
             relation_name="logging",
-            log_files=[self.access_log_path, self.error_log_path],
+            log_files=[self.ACCESS_LOG_PATH, self.ERROR_LOG_PATH],
             container_name=CONTAINER_NAME,
         )
 
@@ -102,7 +108,7 @@ class ContentCacheCharm(CharmBase):
         """Handle content_cache_pebble_ready event and configure workload container.
 
         Args:
-            event: Event triggering the pebble ready handler for the content-cache container.
+            event: Event triggering the pebble ready hook for the content-cache container.
         """
         msg = "Configuring workload container (content-cache-pebble-ready)"
         logger.info(msg)
@@ -113,7 +119,7 @@ class ContentCacheCharm(CharmBase):
         """Handle content_cache_pebble_ready event and configure workload container.
 
         Args:
-            event: Event triggering the pebble ready handler for the nginx exporter.
+            event: Event triggering the pebble ready hook for the nginx exporter.
         """
         msg = "Configuring workload container (nginx-prometheus-exporter-pebble-ready)"
         logger.info(msg)
@@ -127,7 +133,7 @@ class ContentCacheCharm(CharmBase):
             event: start event.
         """
         logger.info("Starting workload container (start)")
-        self.model.unit.status = ActiveStatus("Started")
+        self.model.unit.status = ActiveStatus()
 
     def _on_config_changed(self, event) -> None:
         """Handle config_changed event and reconfigure workload container.
@@ -157,7 +163,7 @@ class ContentCacheCharm(CharmBase):
             line: A log line from the log file.
 
         Returns:
-            A Boolean that indicates if the line must be included or not.
+            Indicates if the line must be included or not.
         """
         line_elements = line.split()
 
@@ -196,13 +202,13 @@ class ContentCacheCharm(CharmBase):
             A list of tuples composed of an IP address and the number of visits to that IP.
         """
         container = self.unit.get_container(CONTAINER_NAME)
-        reversed_lines = filter(None, readlines_reverse(container.pull(self.access_log_path)))
+        reversed_lines = filter(None, readlines_reverse(container.pull(self.ACCESS_LOG_PATH)))
         line_list = itertools.takewhile(self._filter_lines, reversed_lines)
         ip_list = map(self._get_ip, line_list)
 
         return Counter(ip_list).most_common()
 
-    def _on_upgrade_charm(self, event) -> None:
+    def _on_upgrade_charm(self, event: UpgradeCharmEvent) -> None:
         """Handle upgrade_charm event and reconfigure workload container.
 
         Args:
@@ -213,7 +219,7 @@ class ContentCacheCharm(CharmBase):
         self.model.unit.status = MaintenanceStatus(msg)
         self.configure_workload_container(event)
 
-    def configure_workload_container(self, event) -> None:
+    def configure_workload_container(self, event: ConfigChangedEvent) -> None:
         """Configure/set up workload container inside pod.
 
         Args:
@@ -250,10 +256,6 @@ class ContentCacheCharm(CharmBase):
                 self.unit.status = MaintenanceStatus(msg)
                 container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
                 container.pebble.replan_services()
-            else:
-                self.unit.status = WaitingStatus("waiting for Pebble in workload container")
-                event.defer()
-                return
         else:
             self.unit.status = WaitingStatus("waiting for Pebble to start")
             event.defer()
@@ -437,7 +439,7 @@ class ContentCacheCharm(CharmBase):
         }
         return pebble_config
 
-    def _make_nginx_config(self, env_config) -> str:
+    def _make_nginx_config(self, env_config: dict) -> str:
         """Grab the NGINX template and fill it with our env config.
 
         Args:
@@ -452,7 +454,7 @@ class ContentCacheCharm(CharmBase):
         nginx_config = content.format(**env_config)
         return nginx_config
 
-    def _missing_charm_configs(self) -> list:
+    def _missing_charm_configs(self) -> list[str]:
         """Check and return list of required but missing configs.
 
         Returns:

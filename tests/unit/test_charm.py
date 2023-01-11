@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
-from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
+from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus
 from ops.testing import Harness
 
 from charm import ContentCacheCharm
@@ -100,7 +100,7 @@ class TestCharm:
         """
         harness = self.harness
         harness.charm.on.start.emit()
-        assert harness.charm.unit.status == ActiveStatus("Started")
+        assert harness.charm.unit.status == ActiveStatus()
 
     @mock.patch("charm.ContentCacheCharm.configure_workload_container")
     def test_on_config_changed(self, configure_workload_container):
@@ -312,13 +312,13 @@ class TestCharm:
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
     @mock.patch("ops.model.Container.pebble")
-    def test_configure_workload_container_pebble_not_ready(
+    def test_configure_workload_container_empty_config(
         self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
     ):
         """
         arrange: config is changed
-        act: raises exception
-        assert: unit status is Waiting
+        act: there is no change
+        assert: charm replans services charm is ready as expected
         """
         config = self.config
         harness = self.harness
@@ -326,9 +326,7 @@ class TestCharm:
         config = copy.deepcopy(BASE_CONFIG)
         make_pebble_config.return_value = {"services": {}}
         harness.update_config(config)
-        assert harness.charm.unit.status == WaitingStatus(
-            "waiting for Pebble in workload container"
-        )
+        assert harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     def test_configure_workload_container_missing_configs(self, make_pebble_config):
