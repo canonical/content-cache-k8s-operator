@@ -37,7 +37,7 @@ REQUIRED_JUJU_CONFIGS = ["site", "backend"]
 
 class ContentCacheCharm(CharmBase):
     """Charm the service.
-    
+
     Attrs:
         on: Ingress Charm Events
         error_log_path: NGINX error log
@@ -47,6 +47,8 @@ class ContentCacheCharm(CharmBase):
         _grafana_dashboards: Dashboard Provider for Grafana charm
         ingress_proxy_provides: Ingress proxy provider
         ingress: Ingress requirer
+        unit: Charm's designated juju unit
+        model: Charm's designated juju model
     """
 
     on = IngressCharmEvents()
@@ -54,6 +56,11 @@ class ContentCacheCharm(CharmBase):
     access_log_path = "/var/log/nginx/access.log"
 
     def __init__(self, *args):
+        """Init function for the charm.
+
+        Args:
+            args: List of arguments
+        """
         super().__init__(*args)
 
         self.framework.observe(self.on.start, self._on_start)
@@ -93,7 +100,7 @@ class ContentCacheCharm(CharmBase):
 
     def _on_content_cache_pebble_ready(self, event) -> None:
         """Handle content_cache_pebble_ready event and configure workload container.
-        
+
         Args:
             event: Event triggering the pebble ready handler for the content-cache container.
         """
@@ -115,7 +122,7 @@ class ContentCacheCharm(CharmBase):
 
     def _on_start(self, event) -> None:
         """Handle workload container started.
-        
+
         Args:
             event: start event.
         """
@@ -124,7 +131,7 @@ class ContentCacheCharm(CharmBase):
 
     def _on_config_changed(self, event) -> None:
         """Handle config_changed event and reconfigure workload container.
-        
+
         Args:
             event: config-changed event.
         """
@@ -148,7 +155,7 @@ class ContentCacheCharm(CharmBase):
 
         Args:
             line: A log line from the log file.
-        
+
         Returns:
             A Boolean that indicates if the line must be included or not.
         """
@@ -198,7 +205,7 @@ class ContentCacheCharm(CharmBase):
 
     def _on_upgrade_charm(self, event) -> None:
         """Handle upgrade_charm event and reconfigure workload container.
-        
+
         Args:
             event: upgrade-charm event.
         """
@@ -209,7 +216,7 @@ class ContentCacheCharm(CharmBase):
 
     def configure_workload_container(self, event) -> None:
         """Configure/set up workload container inside pod.
-        
+
         Args:
             event: config-changed event.
         """
@@ -262,8 +269,12 @@ class ContentCacheCharm(CharmBase):
                 self.unit.status = MaintenanceStatus(msg)
                 container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
                 container.pebble.replan_services()
+            else:
+                self.unit.status = WaitingStatus("waiting for Pebble in workload container")
+                event.defer()
+                return
         else:
-            self.unit.status = WaitingStatus("waiting for Pebble in workload container")
+            self.unit.status = WaitingStatus("waiting for Pebble to start")
             event.defer()
             return
 
@@ -272,12 +283,10 @@ class ContentCacheCharm(CharmBase):
             msg = "Updating exporter pebble layer config"
             logger.info(msg)
             self.unit.status = MaintenanceStatus(msg)
-            exporter_container.add_layer(
-                EXPORTER_CONTAINER_NAME, exporter_config, combine=True
-            )
+            exporter_container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
             exporter_container.pebble.replan_services()
         else:
-            self.unit.status = WaitingStatus("waiting for Pebble in workload container")
+            self.unit.status = WaitingStatus("waiting for Pebble to start")
             event.defer()
             return
 
@@ -287,7 +296,10 @@ class ContentCacheCharm(CharmBase):
 
     def _generate_keys_zone(self, name):
         """Generate hashed name to be used by Nginx's key zone.
-        
+
+        Args:
+            name: Site name to be encoded.
+
         Returns:
             A hashed name to be used by Nginx's key zone.
         """
@@ -326,7 +338,7 @@ class ContentCacheCharm(CharmBase):
 
     def _make_ingress_config(self) -> dict:
         """Return an assembled K8s ingress.
-        
+
         Returns:
             An Ingress config dict.
         """
@@ -361,7 +373,7 @@ class ContentCacheCharm(CharmBase):
 
     def _make_env_config(self, domain="svc.cluster.local") -> dict:
         """Return dict to be used as as runtime environment variables.
-        
+
         Args:
             domain: domain used for the content-cache
 
@@ -423,7 +435,7 @@ class ContentCacheCharm(CharmBase):
 
     def _make_pebble_config(self, env_config) -> dict:
         """Generate our pebble config layer.
-        
+
         Args:
             env_config: Charm's environment config
 
@@ -447,7 +459,7 @@ class ContentCacheCharm(CharmBase):
 
     def _make_nginx_config(self, env_config) -> str:
         """Grab the NGINX template and fill it with our env config.
-        
+
         Args:
             env_config: Charm's environment config
 
@@ -462,7 +474,7 @@ class ContentCacheCharm(CharmBase):
 
     def _missing_charm_configs(self) -> list:
         """Check and return list of required but missing configs.
-        
+
         Returns:
             Missing settings in the required juju configs.
         """

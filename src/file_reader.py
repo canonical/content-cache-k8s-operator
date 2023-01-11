@@ -9,7 +9,14 @@ from typing import Generator
 
 
 def readlines_reverse(qfile) -> Generator[int, None, None]:
-    """Read the lines of a file in reverse order in a lazy way."""
+    """Read the lines of a file in reverse order in a lazy way.
+
+    Args:
+        qfile: File in StringIO format.
+
+    Yields:
+        A row from the read file.
+    """
     with qfile:
         qfile.seek(0, os.SEEK_END)
         position = qfile.tell()

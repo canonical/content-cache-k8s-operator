@@ -6,7 +6,7 @@ import pytest
 
 def pytest_addoption(parser: pytest.Parser):
     """Process parameters for integration tests.
-    
+
     Args:
         parser: Pytest parser used to add arguments to console commands
     """

@@ -60,7 +60,13 @@ DATE_19 = (datetime.now() - timedelta(minutes=19, seconds=55)).strftime("%d/%b/%
 
 
 class TestCharm:
-    """Unit test battery for the content-cache charm."""
+    """Unit test battery for the content-cache charm.
+
+    Attrs:
+        config: Base configuration for content-cache charm.
+        harness: Test harness.
+    """
+
     @pytest.fixture(autouse=True)
     def init_tests(self):
         self.config = copy.deepcopy(BASE_CONFIG)
@@ -262,17 +268,17 @@ class TestCharm:
     ):
         """
         arrange: config is changed
-        act: check if current config is different and is not
-        assert: no update takes place
+        act: check if current config is different
+        assert: Services are replanned again
         """
         config = self.config
         harness = self.harness
 
         config = copy.deepcopy(BASE_CONFIG)
-        make_pebble_config.return_value = {"services": {}}
+        make_pebble_config.return_value = {"services": "content-cache"}
         harness.update_config(config)
         make_pebble_config.assert_called_once()
-        add_layer.assert_called_once()
+        assert add_layer.call_count == 2
         assert harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
@@ -319,9 +325,10 @@ class TestCharm:
 
         config = copy.deepcopy(BASE_CONFIG)
         make_pebble_config.return_value = {"services": {}}
-        push.side_effect = ConnectionError
         harness.update_config(config)
-        assert harness.charm.unit.status == WaitingStatus("Pebble is not ready, deferring event")
+        assert harness.charm.unit.status == WaitingStatus(
+            "waiting for Pebble in workload container"
+        )
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     def test_configure_workload_container_missing_configs(self, make_pebble_config):

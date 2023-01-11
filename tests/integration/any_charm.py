@@ -14,17 +14,17 @@ from ingress import IngressRequires
 
 class AnyCharm(AnyCharmBase):
     """Execute a simple web-server charm to test the ingress-proxy relation.
-    
+
     Attrs:
         ingress: The attribute that mimics a real ingress relation.
     """
 
     def __init__(self, *args, **kwargs):
-        """init function for the class.
-        
+        """Init function for the class.
+
         Args:
-            *args: list of arguments
-            *kwargs: list of keyword arguments
+            args: list of arguments
+            kwargs: list of keyword arguments
         """
         super().__init__(*args, **kwargs)
         self.ingress = IngressRequires(
@@ -34,7 +34,7 @@ class AnyCharm(AnyCharmBase):
 
     def update_ingress(self, ingress_config):
         """Method that updates the Ingress config.
-        
+
         Args:
             ingress_config: New Ingress configuration to be applied.
         """
@@ -43,10 +43,10 @@ class AnyCharm(AnyCharmBase):
     @staticmethod
     def start_server(port: int = 80):
         """Start an HTTP server daemon.
-        
+
         Args:
             port: The port where the server is connected, 80 by default.
-            
+
         Returns:
             The port where the server is connected, 80 by default.
         """

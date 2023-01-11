@@ -33,7 +33,12 @@ def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
 
     async def _run_action(application_name: str, action_name: str, **params):
         """Function that runs the action.
-        
+
+        Args:
+            application_name: Name the application is deployed with.
+            action_name: Name of the action to be executed.
+            params: Dictionary with parameters.
+
         Returns:
             The results of the executed action
         """
@@ -73,8 +78,8 @@ async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
 
     async def get_unit_ip_list_action():
         """Method useful to extract the IPs from juju units.
-        
-        Returns: 
+
+        Returns:
             A list of IPs of the juju units in the model.
         """
         status = await ops_test.model.get_status()
