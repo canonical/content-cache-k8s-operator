@@ -65,7 +65,7 @@ class ContentCacheCharm(CharmBase):
         """Init function for the charm.
 
         Args:
-            args: List of arguments
+            args: Variable list of positional arguments passed to the parent constructor.
         """
         super().__init__(*args)
 

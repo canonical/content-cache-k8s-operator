@@ -2,11 +2,11 @@ options:
   site:
     type: string
     description: >
-      Required. The site name, e.g. "mysite.local".
+      Required if no ingress-proxy relation is established. The site name, e.g. "mysite.local".
   backend:
     type: string
     description: >
-      Required. The backend to use for site, e.g. "http://mybackend.local:80".
+      Required if no ingress-proxy relation is established. The backend to use for site, e.g. "http://mybackend.local:80".
   backend_site_name:
     type: string
     description: >

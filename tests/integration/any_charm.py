@@ -23,8 +23,8 @@ class AnyCharm(AnyCharmBase):
         """Init function for the class.
 
         Args:
-            args: list of arguments
-            kwargs: list of keyword arguments
+            args: Variable list of positional arguments passed to the parent constructor.
+            kwargs: Variable list of positional keyword arguments passed to the parent constructor.
         """
         super().__init__(*args, **kwargs)
         self.ingress = IngressRequires(
@@ -45,10 +45,10 @@ class AnyCharm(AnyCharmBase):
         """Start an HTTP server daemon.
 
         Args:
-            port: The port where the server is connected, 80 by default.
+            port: The port where the server is connected.
 
         Returns:
-            The port where the server is connected, 80 by default.
+            The port where the server is connected.
         """
         www_dir = tempfile.mkdtemp()
         # We create a pid file to avoid concurrent executions of the http server

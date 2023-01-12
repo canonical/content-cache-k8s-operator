@@ -38,7 +38,7 @@ def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
         Args:
             application_name: Name the application is deployed with.
             action_name: Name of the action to be executed.
-            params: Dictionary with parameters.
+            params: Dictionary with action parameters.
 
         Returns:
             The results of the executed action
