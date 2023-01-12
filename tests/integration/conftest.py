@@ -1,6 +1,7 @@
 # Copyright 2022 Canonical Ltd.
 # see LICENCE file for details.
 
+"""General configuration module for integration tests."""
 import configparser
 import json
 import re
@@ -17,13 +18,13 @@ from pytest_operator.plugin import OpsTest
 
 @fixture(scope="module")
 def metadata():
-    """Provides charm metadata."""
+    """Provide charm metadata."""
     yield yaml.safe_load(Path("./metadata.yaml").read_text())
 
 
 @fixture(scope="module")
 def app_name(metadata):
-    """Provides app name from the metadata."""
+    """Provide app name from the metadata."""
     yield metadata["name"]
 
 
@@ -32,6 +33,16 @@ def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
     """Create a async function to run action and return results."""
 
     async def _run_action(application_name: str, action_name: str, **params):
+        """Run a specified action.
+
+        Args:
+            application_name: Name the application is deployed with.
+            action_name: Name of the action to be executed.
+            params: Dictionary with action parameters.
+
+        Returns:
+            The results of the executed action
+        """
         application = ops_test.model.applications[application_name]
         action = await application.units[0].run_action(action_name, **params)
         await action.wait()
@@ -64,9 +75,14 @@ def content_cache_image(pytestconfig: Config):
 
 @pytest_asyncio.fixture(scope="function")
 async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
-    """Helper function to retrieve unit ip addresses, similar to fixture_get_unit_status_list."""
+    """Retrieve unit ip addresses, similar to fixture_get_unit_status_list."""
 
     async def get_unit_ip_list_action():
+        """Extract the IPs from juju units.
+
+        Returns:
+            A list of IPs of the juju units in the model.
+        """
         status = await ops_test.model.get_status()
         units = status.applications[app_name].units
         ip_list = [
@@ -77,9 +93,15 @@ async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
     yield get_unit_ip_list_action
 
 
+@fixture(scope="module")
+def nginx_prometheus_exporter_image(metadata):
+    """Provide the statsd prometheus exporter image from the metadata."""
+    yield metadata["resources"]["nginx-prometheus-exporter-image"]["upstream-source"]
+
+
 @pytest_asyncio.fixture(scope="function")
 async def unit_ip_list(get_unit_ip_list):
-    """A fixture containing ip addresses of current units."""
+    """Yield ip addresses of current units."""
     yield await get_unit_ip_list()
 
 
@@ -101,6 +123,7 @@ async def app(
     ops_test: OpsTest,
     app_name: str,
     content_cache_image: str,
+    nginx_prometheus_exporter_image: str,
     nginx_integrator_app: Application,
     run_action,
 ):
@@ -130,7 +153,10 @@ async def app(
     application = await ops_test.model.deploy(
         app_charm,
         application_name=app_name,
-        resources={"content-cache-image": content_cache_image},
+        resources={
+            "content-cache-image": content_cache_image,
+            "nginx-prometheus-exporter-image": nginx_prometheus_exporter_image,
+        },
         series="jammy",
     )
 

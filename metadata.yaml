@@ -14,17 +14,31 @@ issues: https://github.com/canonical/content-cache-k8s-operator/issues
 containers:
   content-cache:
     resource: content-cache-image
+  nginx-prometheus-exporter:
+    resource: nginx-prometheus-exporter-image
 
 resources:
   content-cache-image:
     type: oci-image
     description: Docker image for content-cache to run
+  nginx-prometheus-exporter-image:
+    type: oci-image
+    description: Prometheus exporter for nginx
+    auto-fetch: true
+    upstream-source: nginx/nginx-prometheus-exporter:0.11.0
 
 provides:
+  metrics-endpoint:
+    interface: prometheus_scrape
+  grafana-dashboard:
+    interface: grafana_dashboard
   ingress-proxy:
     interface: ingress
 
 requires:
+  logging:
+    interface: loki_push_api
+    limit: 1
   ingress:
     interface: ingress
     limit: 1

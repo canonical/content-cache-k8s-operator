@@ -2,7 +2,8 @@ proxy_cache_path {NGINX_CACHE_PATH} use_temp_path=off levels=1:2 keys_zone={NGIN
 
 server {{
     server_name {NGINX_SITE_NAME};
-    listen *:{CONTAINER_PORT};
+    listen {CONTAINER_PORT};
+    listen [::]:{CONTAINER_PORT};
 
     client_max_body_size {NGINX_CLIENT_MAX_BODY_SIZE};
 
@@ -26,6 +27,10 @@ server {{
         proxy_cache_use_stale {NGINX_CACHE_USE_STALE};
         proxy_cache_valid {NGINX_CACHE_VALID};
         {NGINX_CACHE_ALL};
+    }}
+
+    location = /stub_status {{
+      stub_status;
     }}
 
     access_log /dev/stdout content_cache;

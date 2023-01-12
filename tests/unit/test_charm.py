@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
-from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
+from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus
 from ops.testing import Harness
 
 from charm import ContentCacheCharm
@@ -48,7 +48,7 @@ PEBBLE_CONFIG = {
             "override": "replace",
             "summary": "content-cache",
             "command": "/usr/sbin/nginx -g 'daemon off;'",
-            "startup": "false",
+            "startup": "enabled",
             "environment": "",
         },
     },
@@ -60,6 +60,13 @@ DATE_19 = (datetime.now() - timedelta(minutes=19, seconds=55)).strftime("%d/%b/%
 
 
 class TestCharm:
+    """Unit test battery for the content-cache charm.
+
+    Attrs:
+        config: Base configuration for content-cache charm.
+        harness: Test harness.
+    """
+
     @pytest.fixture(autouse=True)
     def init_tests(self):
         self.config = copy.deepcopy(BASE_CONFIG)
@@ -93,7 +100,7 @@ class TestCharm:
         """
         harness = self.harness
         harness.charm.on.start.emit()
-        assert harness.charm.unit.status == ActiveStatus("Started")
+        assert harness.charm.unit.status == ActiveStatus()
 
     @mock.patch("charm.ContentCacheCharm.configure_workload_container")
     def test_on_config_changed(self, configure_workload_container):
@@ -131,12 +138,10 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     def test_configure_workload_container(
         self,
-        stop,
-        start,
+        pebble,
         push,
         make_dir,
         get_service,
@@ -162,10 +167,7 @@ class TestCharm:
         ingress_update.assert_called_with(expect)
         make_pebble_config.assert_called_once()
         make_nginx_config.assert_called_once()
-        add_layer.assert_called_once()
-        get_service.assert_called_once()
-        stop.assert_called_once()
-        start.assert_called_once()
+        assert add_layer.call_count == 2
         assert harness.charm.unit.status, ActiveStatus("Ready")
 
     @mock.patch("ops.model.Container.pull")
@@ -238,15 +240,14 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     def test_configure_workload_container_container_not_running(
-        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
     ):
         """
         arrange: config is changed
         act: check if service is running and is not
-        assert: workload container is stopped
+        assert: services are not replanned
         """
         config = self.config
         harness = self.harness
@@ -254,31 +255,30 @@ class TestCharm:
         make_pebble_config.assert_called_once()
         get_service.return_value.is_running.return_value = False
         harness.update_config(config)
-        stop.assert_called_once()
+        pebble.replan_services().assert_not_called()
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     def test_configure_workload_container_pebble_services_already_configured(
-        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
     ):
         """
         arrange: config is changed
-        act: check if current config is different and is not
-        assert: no action
+        act: check if current config is different
+        assert: services are replanned again
         """
         config = self.config
         harness = self.harness
 
         config = copy.deepcopy(BASE_CONFIG)
-        make_pebble_config.return_value = {"services": {}}
+        make_pebble_config.return_value = {"services": "content-cache"}
         harness.update_config(config)
         make_pebble_config.assert_called_once()
-        add_layer.assert_not_called()
+        assert add_layer.call_count == 2
         assert harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
@@ -286,11 +286,10 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
+    @mock.patch("ops.model.Container.pebble")
     @mock.patch("ops.model.Container.isdir")
     def test_configure_workload_container_has_cache_directory(
-        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config, isdir
+        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config, isdir
     ):
         """
         arrange: workload container is ready
@@ -302,7 +301,7 @@ class TestCharm:
 
         config = copy.deepcopy(BASE_CONFIG)
         harness.update_config(config)
-        make_pebble_config.assert_called_once()
+        assert make_pebble_config.call_count == 2
         assert harness.charm.unit.status == ActiveStatus("Ready")
         container = harness.charm.unit.get_container(CONTAINER_NAME)
         assert container.isdir(CACHE_PATH)
@@ -312,24 +311,22 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
-    @mock.patch("ops.model.Container.start")
-    @mock.patch("ops.model.Container.stop")
-    def test_configure_workload_container_pebble_not_ready(
-        self, stop, start, push, make_dir, get_service, add_layer, make_pebble_config
+    @mock.patch("ops.model.Container.pebble")
+    def test_configure_workload_container_empty_config(
+        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
     ):
         """
         arrange: config is changed
-        act: raises exception
-        assert: unit status is Waiting
+        act: there is no change
+        assert: charm replans services charm is ready as expected
         """
         config = self.config
         harness = self.harness
 
         config = copy.deepcopy(BASE_CONFIG)
         make_pebble_config.return_value = {"services": {}}
-        push.side_effect = ConnectionError
         harness.update_config(config)
-        assert harness.charm.unit.status == WaitingStatus("Pebble is not ready, deferring event")
+        assert harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     def test_configure_workload_container_missing_configs(self, make_pebble_config):
