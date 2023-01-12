@@ -123,7 +123,7 @@ async def app(
     ops_test: OpsTest,
     app_name: str,
     content_cache_image: str,
-    nginx_exporter_image: str,
+    nginx_prometheus_exporter_image: str,
     nginx_integrator_app: Application,
     run_action,
 ):

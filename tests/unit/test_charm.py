@@ -269,7 +269,7 @@ class TestCharm:
         """
         arrange: config is changed
         act: check if current config is different
-        assert: Services are replanned again
+        assert: services are replanned again
         """
         config = self.config
         harness = self.harness
