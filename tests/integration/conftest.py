@@ -94,7 +94,7 @@ async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
 
 
 @fixture(scope="module")
-def nginx_exporter_image(metadata):
+def nginx_prometheus_exporter_image(metadata):
     """Provide the statsd prometheus exporter image from the metadata."""
     yield metadata["resources"]["nginx-prometheus-exporter-image"]["upstream-source"]
 
@@ -155,7 +155,7 @@ async def app(
         application_name=app_name,
         resources={
             "content-cache-image": content_cache_image,
-            "nginx-prometheus-exporter-image": nginx_exporter_image,
+            "nginx-prometheus-exporter-image": nginx_prometheus_exporter_image,
         },
         series="jammy",
     )

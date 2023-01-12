@@ -119,7 +119,7 @@ class ContentCacheCharm(CharmBase):
         """Handle content_cache_pebble_ready event and configure workload container.
 
         Args:
-            event: Event triggering the pebble ready hook for the nginx exporter.
+            event: Event triggering the pebble ready hook for the nginx prometheus exporter.
         """
         msg = "Configuring workload container (nginx-prometheus-exporter-pebble-ready)"
         logger.info(msg)
@@ -257,7 +257,7 @@ class ContentCacheCharm(CharmBase):
                 container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
                 container.pebble.replan_services()
         else:
-            self.unit.status = WaitingStatus("waiting for Pebble to start")
+            self.unit.status = WaitingStatus("Waiting for Pebble to start (content-cache)")
             event.defer()
             return
 
@@ -269,7 +269,9 @@ class ContentCacheCharm(CharmBase):
             exporter_container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
             exporter_container.pebble.replan_services()
         else:
-            self.unit.status = WaitingStatus("waiting for Pebble to start")
+            self.unit.status = WaitingStatus(
+                "Waiting for Pebble to start (nginx-prometheus-exporter)"
+            )
             event.defer()
             return
 
@@ -302,7 +304,7 @@ class ContentCacheCharm(CharmBase):
             "services": {
                 "nginx-exporter": {
                     "override": "replace",
-                    "summary": "Nginx Exporter",
+                    "summary": "Nginx Prometheus Exporter",
                     "command": (
                         "nginx-prometheus-exporter"
                         " -nginx.scrape-uri=http://localhost:80/stub_status"
@@ -375,6 +377,7 @@ class ContentCacheCharm(CharmBase):
                 unit_name = peer.name.replace("/", "-")
                 service_url = f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
                 clients.append(f"http://{service_url}:{svc_port}")
+            # XXX: Will need to deal with multiple units at some point
             backend = clients[0]
         else:
             backend = config["backend"]
