@@ -273,10 +273,10 @@ class IngressProvides(Object):
 class IngressProxyProvides(Object):
 
     def __init__(self, charm):
-        super().__init__(charm, "ingress")
+        super().__init__(charm, "ingress-proxy")
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
-        self.framework.observe(charm.on["ingress"].relation_joined, self._on_relation_joined)
+        self.framework.observe(charm.on["ingress-proxy"].relation_joined, self._on_relation_joined)
         self.charm = charm
 
     def _on_relation_joined(self, event):
@@ -290,7 +290,7 @@ class IngressProxyProvides(Object):
             LOGGER.info("Ingress hasn't finished configuring, waiting until relation is joined again.")
             self.charm.on.ingress_available.emit()
             return
-            
+
         ingress_data = {
             field: event.relation.data[event.app].get(field)
             for field in REQUIRED_INGRESS_RELATION_FIELDS | OPTIONAL_INGRESS_RELATION_FIELDS

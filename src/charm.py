@@ -225,14 +225,13 @@ class ContentCacheCharm(CharmBase):
         Args:
             event: config-changed event.
         """
+        self.ingress.update_config(self._make_ingress_config())
         missing = sorted(self._missing_charm_configs())
         if missing:
             msg = f"Required config(s) empty: {', '.join(missing)}"
             logger.warning(msg)
             self.unit.status = BlockedStatus(msg)
             return
-
-        self.ingress.update_config(self._make_ingress_config())
         env_config = self._make_env_config()
         pebble_config = self._make_pebble_config(env_config)
         nginx_config = self._make_nginx_config(env_config)
@@ -367,7 +366,7 @@ class ContentCacheCharm(CharmBase):
         """
         config = self.model.config
         relation = self.model.get_relation("ingress-proxy")
-        if relation:
+        if relation is not None and relation.data[relation.app]:
             site = relation.data[relation.app]["service-hostname"]
             svc_name = relation.data[relation.app]["service-name"]
             svc_port = relation.data[relation.app]["service-port"]
@@ -379,6 +378,13 @@ class ContentCacheCharm(CharmBase):
                 clients.append(f"http://{service_url}:{svc_port}")
             # XXX: Will need to deal with multiple units at some point
             backend = clients[0]
+        elif relation:
+            ingress_config = self._make_ingress_config()
+            site = "localhost"
+            svc_name = ingress_config["service-name"]
+            svc_port = ingress_config["service-port"]
+            backend = f"http://{site}:{svc_port}"
+            backend_site_name = urlparse(backend).hostname
         else:
             backend = config["backend"]
             backend_site_name = config.get("backend_site_name")
@@ -464,7 +470,7 @@ class ContentCacheCharm(CharmBase):
             Missing settings in the required juju configs.
         """
         relation = self.model.get_relation("ingress-proxy")
-        if relation:
+        if relation is not None:
             return []
         config = self.model.config
         missing = [
