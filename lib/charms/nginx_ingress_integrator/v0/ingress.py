@@ -1,24 +1,31 @@
+# Copyright 2022 Canonical Ltd.
+# Licensed under the Apache2.0, see LICENCE file in charm source for details.
 """Library for the ingress relation.
 
 This library contains the Requires and Provides classes for handling
 the ingress interface.
 
 Import `IngressRequires` in your charm, with two required options:
-    - "self" (the charm itself)
-    - config_dict
+- "self" (the charm itself)
+- config_dict
 
 `config_dict` accepts the following keys:
-    - service-hostname (required)
-    - service-name (required)
-    - service-port (required)
-    - limit-rps
-    - limit-whitelist
-    - max-body-size
-    - path-routes
-    - retry-errors
-    - service-namespace
-    - session-cookie-max-age
-    - tls-secret-name
+- additional-hostnames
+- limit-rps
+- limit-whitelist
+- max-body-size
+- service-hostname (required)
+- session-cookie-max-age
+- service-name (required)
+- service-namespace
+- service-port (required)
+- tls-secret-name
+- owasp-modsecurity-crs
+- owasp-modsecurity-custom-rules
+- path-routes
+- retry-errors
+- rewrite-enabled
+- rewrite-target
 
 See [the config section](https://charmhub.io/nginx-ingress-integrator/configure) for descriptions
 of each, along with the required type.
@@ -28,9 +35,12 @@ As an example, add the following to `src/charm.py`:
 from charms.nginx_ingress_integrator.v0.ingress import IngressRequires
 
 # In your charm's `__init__` method.
-self.ingress = IngressRequires(self, {"service-hostname": self.config["external_hostname"],
-                                      "service-name": self.app.name,
-                                      "service-port": 80})
+self.ingress = IngressRequires(self, {
+        "service-hostname": self.config["external_hostname"],
+        "service-name": self.app.name,
+        "service-port": 80,
+    }
+)
 
 # In your charm's `config-changed` handler.
 self.ingress.update_config({"service-hostname": self.config["external_hostname"]})
@@ -41,12 +51,16 @@ requires:
   ingress:
     interface: ingress
 ```
+You _must_ register the IngressRequires class as part of the `__init__` method
+rather than, for instance, a config-changed event handler, for the relation 
+changed event to be properly handled.
 """
 
-import json
+import copy
 import logging
+from typing import Dict
 
-from ops.charm import CharmEvents
+from ops.charm import CharmEvents, RelationBrokenEvent, RelationChangedEvent
 from ops.framework import EventBase, EventSource, Object
 from ops.model import BlockedStatus
 
@@ -58,36 +72,42 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 7
+LIBPATCH = 13
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
-REQUIRED_INGRESS_RELATION_FIELDS = {
-    "service-hostname",
-    "service-name",
-    "service-port",
-}
+REQUIRED_INGRESS_RELATION_FIELDS = {"service-hostname", "service-name", "service-port"}
 
 OPTIONAL_INGRESS_RELATION_FIELDS = {
+    "additional-hostnames",
     "limit-rps",
     "limit-whitelist",
     "max-body-size",
+    "owasp-modsecurity-crs",
+    "owasp-modsecurity-custom-rules",
+    "path-routes",
     "retry-errors",
+    "rewrite-target",
+    "rewrite-enabled",
     "service-namespace",
     "session-cookie-max-age",
     "tls-secret-name",
-    "path-routes",
-    "cache-settings",
 }
-OPTIONAL_CACHE_SETTING_RELATION_FIELDS = {
-    "refresh-patterns",
+
+RELATION_INTERFACES_MAPPINGS = {
+    "service-hostname": "host",
+    "service-name": "name",
+    "service-namespace": "model",
+    "service-port": "port",
 }
-JSON_RELATION_FIELDS = {
-    "cache-settings"
-}
+RELATION_INTERFACES_MAPPINGS_VALUES = {v for v in RELATION_INTERFACES_MAPPINGS.values()}
 
 
 class IngressAvailableEvent(EventBase):
+    pass
+
+
+class IngressBrokenEvent(RelationBrokenEvent):
     pass
 
 
@@ -95,6 +115,7 @@ class IngressCharmEvents(CharmEvents):
     """Custom charm events."""
 
     ingress_available = EventSource(IngressAvailableEvent)
+    ingress_broken = EventSource(IngressBrokenEvent)
 
 
 class IngressRequires(Object):
@@ -109,54 +130,71 @@ class IngressRequires(Object):
 
         self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
 
-        self.config_dict = config_dict
+        # Set default values.
+        DEFAULT_RELATION_FIELDS = {
+            "service-namespace": self.model.name,
+        }
+        for default_key, default_value in DEFAULT_RELATION_FIELDS.items():
+            if default_key not in config_dict or not config_dict[default_key]:
+                config_dict[default_key] = default_value
 
-    def _config_dict_errors(self, update_only=False):
+        self.config_dict = self._convert_to_relation_interface(config_dict)
+
+    @staticmethod
+    def _convert_to_relation_interface(config_dict: Dict) -> Dict:
+        """create a new relation dict that conforms with charm-relation-interfaces."""
+        config_dict = copy.copy(config_dict)
+        for old_key, new_key in RELATION_INTERFACES_MAPPINGS.items():
+            if old_key in config_dict and config_dict[old_key]:
+                config_dict[new_key] = config_dict[old_key]
+        return config_dict
+
+    def _config_dict_errors(self, update_only: bool=False) -> bool:
         """Check our config dict for errors."""
         blocked_message = "Error in ingress relation, check `juju debug-log`"
         unknown = [
-            x
-            for x in self.config_dict
-            if x not in REQUIRED_INGRESS_RELATION_FIELDS | OPTIONAL_INGRESS_RELATION_FIELDS
+            config_key
+            for config_key in self.config_dict
+            if config_key
+            not in REQUIRED_INGRESS_RELATION_FIELDS
+            | OPTIONAL_INGRESS_RELATION_FIELDS
+            | RELATION_INTERFACES_MAPPINGS_VALUES
         ]
-        unknown.extend([
-            x
-            for x in self.config_dict.get('cache-settings', [])
-            if x not in OPTIONAL_CACHE_SETTING_RELATION_FIELDS])
         if unknown:
-            logger.error(
+            LOGGER.error(
                 "Ingress relation error, unknown key(s) in config dictionary found: %s",
                 ", ".join(unknown),
             )
             self.model.unit.status = BlockedStatus(blocked_message)
             return True
         if not update_only:
-            missing = [x for x in REQUIRED_INGRESS_RELATION_FIELDS if x not in self.config_dict]
+            missing = [
+                config_key
+                for config_key in REQUIRED_INGRESS_RELATION_FIELDS
+                if config_key not in self.config_dict
+            ]
             if missing:
-                logger.error(
+                LOGGER.error(
                     "Ingress relation error, missing required key(s) in config dictionary: %s",
-                    ", ".join(missing),
+                    ", ".join(sorted(missing)),
                 )
                 self.model.unit.status = BlockedStatus(blocked_message)
                 return True
         return False
 
-    def _on_relation_changed(self, event):
+    def _on_relation_changed(self, event: RelationChangedEvent) -> None:
         """Handle the relation-changed event."""
         # `self.unit` isn't available here, so use `self.model.unit`.
         if self.model.unit.is_leader():
             if self._config_dict_errors():
                 return
             for key in self.config_dict:
-                if key in JSON_RELATION_FIELDS:
-                    event.relation.data[self.model.app][key] = json.dumps(self.config_dict[key])
-                else:
-                    event.relation.data[self.model.app][key] = str(self.config_dict[key])
+                event.relation.data[self.model.app][key] = str(self.config_dict[key])
 
-    def update_config(self, config_dict):
+    def update_config(self, config_dict: Dict) -> None:
         """Allow for updates to relation."""
         if self.model.unit.is_leader():
-            self.config_dict = config_dict
+            self.config_dict = self._convert_to_relation_interface(config_dict)
             if self._config_dict_errors(update_only=True):
                 return
             relation = self.model.get_relation("ingress")
@@ -165,12 +203,26 @@ class IngressRequires(Object):
                     relation.data[self.model.app][key] = str(self.config_dict[key])
 
 
-class IngressBaseProvides(Object):
+class IngressProvides(Object):
+    """This class defines the functionality for the 'provides' side of the 'ingress' relation.
 
-    def _on_relation_changed(self, event):
+    Hook events observed:
+        - relation-changed
+    """
+
+    def __init__(self, charm):
+        super().__init__(charm, "ingress")
+        # Observe the relation-changed hook event and bind
+        # self.on_relation_changed() to handle the event.
+        self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
+        self.framework.observe(charm.on["ingress"].relation_broken, self._on_relation_broken)
+        self.charm = charm
+
+    def _on_relation_changed(self, event: RelationChangedEvent) -> None:
         """Handle a change to the ingress relation.
 
-        Confirm we have the fields we expect to receive."""
+        Confirm we have the fields we expect to receive.
+        """
         # `self.unit` isn't available here, so use `self.model.unit`.
         if not self.model.unit.is_leader():
             return
@@ -189,40 +241,76 @@ class IngressBaseProvides(Object):
         )
 
         if missing_fields:
-            logger.error(
-                "Missing required data fields for ingress relation: {}".format(
-                    ", ".join(missing_fields)
-                )
+            LOGGER.error(
+                "Missing required data fields for ingress relation: %s",
+                ", ".join(missing_fields),
             )
             self.model.unit.status = BlockedStatus(
-                "Missing fields for ingress: {}".format(", ".join(missing_fields))
+                f"Missing fields for ingress: {', '.join(missing_fields)}"
             )
+
+        # Conform to charm-relation-interfaces.
+        if "name" in ingress_data and "port" in ingress_data:
+            name = ingress_data["name"]
+            port = ingress_data["port"]
+        else:
+            name = ingress_data["service-name"]
+            port = ingress_data["service-port"]
+        event.relation.data[self.model.app]["url"] = f"http://{name}:{port}/"
 
         # Create an event that our charm can use to decide it's okay to
         # configure the ingress.
         self.charm.on.ingress_available.emit()
 
+    def _on_relation_broken(self, event: RelationBrokenEvent) -> None:
+        """Handle a relation-broken event in the ingress relation."""
+        if not self.model.unit.is_leader():
+            return
 
-class IngressProvides(IngressBaseProvides):
-    """This class defines the functionality for the 'provides' side of the 'ingress' relation.
+        # Create an event that our charm can use to remove the ingress resource.
+        self.charm.on.ingress_broken.emit(event.relation)
 
-    Hook events observed:
-        - relation-changed
-    """
-
-    def __init__(self, charm):
-        super().__init__(charm, "ingress")
-        # Observe the relation-changed hook event and bind
-        # self.on_relation_changed() to handle the event.
-        self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
-        self.charm = charm
-
-
-class IngressProxyProvides(IngressBaseProvides):
+class IngressProxyProvides(Object):
 
     def __init__(self, charm):
         super().__init__(charm, "ingress")
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
-        self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
+        self.framework.observe(charm.on["ingress"].relation_joined, self._on_relation_joined)
         self.charm = charm
+
+    def _on_relation_joined(self, event):
+        """Handle a change to the ingress relation.
+
+        Confirm we have the fields we expect to receive."""
+        # `self.unit` isn't available here, so use `self.model.unit`.
+        if not self.model.unit.is_leader():
+            return
+        if not event.relation.data[event.app]:
+            LOGGER.info("Ingress hasn't finished configuring, waiting until relation is joined again.")
+            self.charm.on.ingress_available.emit()
+            return
+            
+        ingress_data = {
+            field: event.relation.data[event.app].get(field)
+            for field in REQUIRED_INGRESS_RELATION_FIELDS | OPTIONAL_INGRESS_RELATION_FIELDS
+        }
+
+        missing_fields = sorted(
+            [
+                field
+                for field in REQUIRED_INGRESS_RELATION_FIELDS
+                if ingress_data.get(field) is None
+            ]
+        )
+
+        if missing_fields:
+            LOGGER.error(
+                "Missing required data fields for ingress-proxy relation: {}".format(
+                    ", ".join(missing_fields)
+                )
+            )
+            self.model.unit.status = BlockedStatus(
+                "Missing fields for ingress-proxy: {}".format(", ".join(missing_fields))
+            )
+            self.charm.on.ingress_available.emit()
