@@ -273,10 +273,10 @@ class IngressProvides(Object):
 class IngressProxyProvides(Object):
 
     def __init__(self, charm):
-        super().__init__(charm, "ingress-proxy")
+        super().__init__(charm, "ingress")
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
-        self.framework.observe(charm.on["ingress-proxy"].relation_joined, self._on_relation_joined)
+        self.framework.observe(charm.on["ingress"].relation_joined, self._on_relation_joined)
         self.charm = charm
 
     def _on_relation_joined(self, event):
