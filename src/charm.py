@@ -367,7 +367,7 @@ class ContentCacheCharm(CharmBase):
         """
         config = self.model.config
         relation = self.model.get_relation("ingress-proxy")
-        if relation.data[relation.app]:
+        if relation:
             site = relation.data[relation.app]["service-hostname"]
             svc_name = relation.data[relation.app]["service-name"]
             svc_port = relation.data[relation.app]["service-port"]
