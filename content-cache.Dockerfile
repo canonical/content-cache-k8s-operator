@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -qy update && \
     apt-get -qy install --no-install-recommends nginx-light && \
     apt-get -qy clean && \
-    rm -f /var/lib/apt/lists/*_*
+    rm -f /var/lib/apt/lists/*
 
 RUN mkdir -p /srv/content-cache
 

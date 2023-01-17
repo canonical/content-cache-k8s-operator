@@ -15,7 +15,6 @@ from charms.grafana_k8s.v0.grafana_dashboard import GrafanaDashboardProvider
 from charms.loki_k8s.v0.loki_push_api import LogProxyConsumer
 from charms.nginx_ingress_integrator.v0.ingress import (
     IngressCharmEvents,
-    IngressProvides,
     IngressProxyProvides,
     IngressRequires,
 )
@@ -103,7 +102,6 @@ class ContentCacheCharm(CharmBase):
         )
 
         self.ingress_proxy_provides = IngressProxyProvides(self)
-        self.ingress_provides = IngressProvides(self)
         self.ingress = IngressRequires(self, self._make_ingress_config())
         self.framework.observe(self.on.ingress_available, self._on_config_changed)
         self.framework.observe(self.on.ingress_proxy_available, self._on_config_changed)

@@ -233,7 +233,6 @@ class IngressProvides(Object):
 
         if not event.relation.data[event.app]:
             LOGGER.info("Ingress hasn't finished configuring, waiting until relation is changed again.")
-            self.charm.on.ingress_proxy_available.emit()
             return
 
         ingress_data = {
@@ -298,7 +297,6 @@ class IngressProxyProvides(Object):
         
         if not event.relation.data[event.app]:
             LOGGER.info("Ingress-proxy hasn't finished configuring, waiting until relation is changed again.")
-            self.charm.on.ingress_proxy_available.emit()
             return
 
         ingress_data = {
@@ -323,4 +321,4 @@ class IngressProxyProvides(Object):
             self.model.unit.status = BlockedStatus(
                 "Missing fields for ingress-proxy: {}".format(", ".join(missing_fields))
             )
-            self.charm.on.ingress_available.emit()
+            self.charm.on.ingress_proxy_available.emit()
