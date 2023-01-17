@@ -106,6 +106,9 @@ RELATION_INTERFACES_MAPPINGS_VALUES = {v for v in RELATION_INTERFACES_MAPPINGS.v
 class IngressAvailableEvent(EventBase):
     pass
 
+class IngressProxyAvailableEvent(EventBase):
+    pass
+
 
 class IngressBrokenEvent(RelationBrokenEvent):
     pass
@@ -115,6 +118,7 @@ class IngressCharmEvents(CharmEvents):
     """Custom charm events."""
 
     ingress_available = EventSource(IngressAvailableEvent)
+    ingress_proxy_available = EventSource(IngressProxyAvailableEvent)
     ingress_broken = EventSource(IngressBrokenEvent)
 
 
@@ -227,6 +231,11 @@ class IngressProvides(Object):
         if not self.model.unit.is_leader():
             return
 
+        if not event.relation.data[event.app]:
+            LOGGER.info("Ingress hasn't finished configuring, waiting until relation is changed again.")
+            self.charm.on.ingress_proxy_available.emit()
+            return
+
         ingress_data = {
             field: event.relation.data[event.app].get(field)
             for field in REQUIRED_INGRESS_RELATION_FIELDS | OPTIONAL_INGRESS_RELATION_FIELDS
@@ -273,22 +282,23 @@ class IngressProvides(Object):
 class IngressProxyProvides(Object):
 
     def __init__(self, charm):
-        super().__init__(charm, "ingress")
+        super().__init__(charm, "ingress-proxy")
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
-        self.framework.observe(charm.on["ingress"].relation_joined, self._on_relation_joined)
+        self.framework.observe(charm.on["ingress-proxy"].relation_changed, self._on_relation_changed)
         self.charm = charm
 
-    def _on_relation_joined(self, event):
+    def _on_relation_changed(self, event):
         """Handle a change to the ingress relation.
 
         Confirm we have the fields we expect to receive."""
         # `self.unit` isn't available here, so use `self.model.unit`.
         if not self.model.unit.is_leader():
             return
+        
         if not event.relation.data[event.app]:
-            LOGGER.info("Ingress hasn't finished configuring, waiting until relation is joined again.")
-            self.charm.on.ingress_available.emit()
+            LOGGER.info("Ingress-proxy hasn't finished configuring, waiting until relation is changed again.")
+            self.charm.on.ingress_proxy_available.emit()
             return
 
         ingress_data = {
