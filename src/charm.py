@@ -379,10 +379,10 @@ class ContentCacheCharm(CharmBase):
                 if relation.data[relation.app].get(nginx_config) is None:
                     field_missing = True
             if field_missing: return None
-            site = relation.data[relation.app]["service-hostname"]
-            svc_name = relation.data[relation.app]["service-name"]
-            svc_port = relation.data[relation.app]["service-port"]
-            backend_site_name = relation.data[relation.app]["service-hostname"]
+            site = relation.data[relation.app].get("service-hostname")
+            svc_name = relation.data[relation.app].get("service-name")
+            svc_port = relation.data[relation.app].get("service-port")
+            backend_site_name = relation.data[relation.app].get("service-hostname")
             clients = []
             for peer in relation.units:
                 unit_name = peer.name.replace("/", "-")

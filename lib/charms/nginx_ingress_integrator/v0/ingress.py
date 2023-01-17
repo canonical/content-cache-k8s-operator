@@ -313,7 +313,7 @@ class IngressProxyProvides(Object):
         )
 
         if missing_fields:
-            LOGGER.error(
+            LOGGER.warning(
                 "Missing required data fields for ingress-proxy relation: {}".format(
                     ", ".join(missing_fields)
                 )
