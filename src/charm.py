@@ -372,27 +372,31 @@ class ContentCacheCharm(CharmBase):
         """
         config = self.model.config
         relation = self.model.get_relation("ingress-proxy")
-        try:
-            if relation is not None and relation.data[relation.app]:
-                site = relation.data[relation.app]["service-hostname"]
-                svc_name = relation.data[relation.app]["service-name"]
-                svc_port = relation.data[relation.app]["service-port"]
-                backend_site_name = relation.data[relation.app]["service-hostname"]
-                clients = []
-                for peer in relation.units:
-                    unit_name = peer.name.replace("/", "-")
-                    service_url = f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
-                    clients.append(f"http://{service_url}:{svc_port}")
-                # XXX: Will need to deal with multiple units at some point
-                backend = clients[0]
-            else:
-                backend = config["backend"]
-                backend_site_name = config.get("backend_site_name")
-                if not backend_site_name:
-                    backend_site_name = urlparse(backend).hostname
-                site = config["site"]
-        except KeyError:
-            return None
+        if relation is not None and relation.data[relation.app]:
+            field_missing = False
+            nginx_config_list = ["service-hostname", "service-name", "service-port"]
+            for nginx_config in nginx_config_list:
+                if relation.data[relation.app].get(nginx_config) is None:
+                    field_missing = True
+            if field_missing: return None
+            site = relation.data[relation.app]["service-hostname"]
+            svc_name = relation.data[relation.app]["service-name"]
+            svc_port = relation.data[relation.app]["service-port"]
+            backend_site_name = relation.data[relation.app]["service-hostname"]
+            clients = []
+            for peer in relation.units:
+                unit_name = peer.name.replace("/", "-")
+                service_url = f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
+                clients.append(f"http://{service_url}:{svc_port}")
+            # XXX: Will need to deal with multiple units at some point
+            backend = clients[0]
+        elif relation: return None
+        else:
+            backend = config["backend"]
+            backend_site_name = config.get("backend_site_name")
+            if not backend_site_name:
+                backend_site_name = urlparse(backend).hostname
+            site = config["site"]
 
         cache_all_configs = ""
         if not config["cache_all"]:
