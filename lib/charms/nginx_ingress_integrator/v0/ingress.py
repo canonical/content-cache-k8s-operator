@@ -104,15 +104,15 @@ RELATION_INTERFACES_MAPPINGS_VALUES = {v for v in RELATION_INTERFACES_MAPPINGS.v
 
 
 class IngressAvailableEvent(EventBase):
-    """Class for the IngressAvailableEvent custom event."""
+    """IngressAvailableEvent custom event."""
 
 
 class IngressProxyAvailableEvent(EventBase):
-    """Class for the IngressProxyAvailableEvent custom event."""
+    """IngressProxyAvailableEvent custom event."""
 
 
 class IngressBrokenEvent(RelationBrokenEvent):
-    """Class for the IngressBrokenEvent custom event."""
+    """IngressBrokenEvent custom event."""
 
 
 class IngressCharmEvents(CharmEvents):
@@ -225,7 +225,7 @@ class IngressRequires(Object):
         """Handle the relation-changed event.
 
         Args:
-            event: event: Event triggering the relation-changed hook for the relation.
+            event: Event triggering the relation-changed hook for the relation.
         """
         # `self.unit` isn't available here, so use `self.model.unit`.
         if self.model.unit.is_leader():
