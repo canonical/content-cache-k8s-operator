@@ -188,6 +188,7 @@ class IngressRequires(Object):
         """Check our config dict for errors.
 
         Args:
+            config_dict: Contains all the configuration options for Ingress.
             update_only: If the charm needs to update only existing keys.
 
         Returns:
@@ -376,7 +377,5 @@ class IngressProxyProvides(IngressBaseProvides):
         super().__init__(charm, INGRESS_PROXY)
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
-        self.framework.observe(
-            charm.on[INGRESS_PROXY].relation_changed, self._on_relation_changed
-        )
+        self.framework.observe(charm.on[INGRESS_PROXY].relation_changed, self._on_relation_changed)
         self.charm = charm
