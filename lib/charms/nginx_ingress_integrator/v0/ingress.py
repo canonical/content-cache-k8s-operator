@@ -64,6 +64,9 @@ from ops.charm import CharmEvents, RelationBrokenEvent, RelationChangedEvent
 from ops.framework import EventBase, EventSource, Object
 from ops.model import BlockedStatus
 
+INGRESS = "ingress"
+INGRESS_PROXY = "ingress_proxy"
+
 # The unique Charmhub library identifier, never change it
 LIBID = "db0af4367506491c91663468fb5caa4c"
 
@@ -147,9 +150,9 @@ class IngressRequires(Object):
             charm: The charm that requires the ingress relation.
             config_dict: Contains all the configuration options for Ingress.
         """
-        super().__init__(charm, "ingress")
+        super().__init__(charm, INGRESS)
 
-        self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
+        self.framework.observe(charm.on[INGRESS].relation_changed, self._on_relation_changed)
 
         # Set default values.
         default_relation_fields = {
@@ -248,7 +251,7 @@ class IngressRequires(Object):
             self.config_dict = self._convert_to_relation_interface(config_dict)
             if self._config_dict_errors(update_only=True):
                 return
-            relation = self.model.get_relation("ingress")
+            relation = self.model.get_relation(INGRESS)
             if relation:
                 for key in self.config_dict:
                     relation.data[self.model.app][key] = str(self.config_dict[key])
@@ -301,7 +304,7 @@ class IngressBaseProvides(Object):
                 f"Missing fields for {relation_name}: {', '.join(missing_fields)}"
             )
 
-        if relation_name == "ingress":
+        if relation_name == INGRESS:
             # Conform to charm-relation-interfaces.
             if "name" in ingress_data and "port" in ingress_data:
                 name = ingress_data["name"]
@@ -314,7 +317,7 @@ class IngressBaseProvides(Object):
             # Create an event that our charm can use to decide it's okay to
             # configure the ingress.
             self.charm.on.ingress_available.emit()
-        elif relation_name == "ingress-proxy":
+        elif relation_name == INGRESS_PROXY:
             self.charm.on.ingress_proxy_available.emit()
 
 
@@ -334,11 +337,11 @@ class IngressProvides(IngressBaseProvides):
         Args:
             charm: The charm that provides the ingress relation.
         """
-        super().__init__(charm, "ingress")
+        super().__init__(charm, INGRESS)
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
-        self.framework.observe(charm.on["ingress"].relation_changed, self._on_relation_changed)
-        self.framework.observe(charm.on["ingress"].relation_broken, self._on_relation_broken)
+        self.framework.observe(charm.on[INGRESS].relation_changed, self._on_relation_changed)
+        self.framework.observe(charm.on[INGRESS].relation_broken, self._on_relation_broken)
         self.charm = charm
 
     def _on_relation_broken(self, event: RelationBrokenEvent) -> None:
@@ -370,10 +373,10 @@ class IngressProxyProvides(IngressBaseProvides):
         Args:
             charm: The charm that provides the ingress-proxy relation.
         """
-        super().__init__(charm, "ingress-proxy")
+        super().__init__(charm, INGRESS_PROXY)
         # Observe the relation-changed hook event and bind
         # self.on_relation_changed() to handle the event.
         self.framework.observe(
-            charm.on["ingress-proxy"].relation_changed, self._on_relation_changed
+            charm.on[INGRESS_PROXY].relation_changed, self._on_relation_changed
         )
         self.charm = charm
