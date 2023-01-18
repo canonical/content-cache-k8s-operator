@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 """Charm for Content Cache on kubernetes."""
@@ -51,7 +51,6 @@ class ContentCacheCharm(CharmBase):
         _metrics_endpoint: Provider of metrics for Prometheus charm
         _logging: Requirer of logs for Loki charm
         _grafana_dashboards: Dashboard Provider for Grafana charm
-        ingress_provides: Ingress provider
         ingress_proxy_provides: Ingress proxy provider
         ingress: Ingress requirer
         unit: Charm's designated juju unit
@@ -373,12 +372,12 @@ class ContentCacheCharm(CharmBase):
         config = self.model.config
         relation = self.model.get_relation("ingress-proxy")
         if relation is not None and relation.data[relation.app]:
-            field_missing = False
             nginx_config_list = ["service-hostname", "service-name", "service-port"]
-            for nginx_config in nginx_config_list:
-                if relation.data[relation.app].get(nginx_config) is None:
-                    field_missing = True
-            if field_missing: return None
+            if any(
+                relation.data[relation.app].get(nginx_config) is None
+                for nginx_config in nginx_config_list
+            ):
+                return None
             site = relation.data[relation.app].get("service-hostname")
             svc_name = relation.data[relation.app].get("service-name")
             svc_port = relation.data[relation.app].get("service-port")
@@ -390,7 +389,8 @@ class ContentCacheCharm(CharmBase):
                 clients.append(f"http://{service_url}:{svc_port}")
             # XXX: Will need to deal with multiple units at some point
             backend = clients[0]
-        elif relation: return None
+        elif relation:
+            return None
         else:
             backend = config["backend"]
             backend_site_name = config.get("backend_site_name")
