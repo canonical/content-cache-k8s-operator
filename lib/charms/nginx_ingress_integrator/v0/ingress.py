@@ -14,18 +14,18 @@ Import `IngressRequires` in your charm, with two required options:
 - limit-rps
 - limit-whitelist
 - max-body-size
-- service-hostname (required)
-- session-cookie-max-age
-- service-name (required)
-- service-namespace
-- service-port (required)
-- tls-secret-name
 - owasp-modsecurity-crs
 - owasp-modsecurity-custom-rules
 - path-routes
 - retry-errors
 - rewrite-enabled
 - rewrite-target
+- service-hostname (required)
+- service-name (required)
+- service-namespace
+- service-port (required)
+- session-cookie-max-age
+- tls-secret-name
 
 See [the config section](https://charmhub.io/nginx-ingress-integrator/configure) for descriptions
 of each, along with the required type.
@@ -141,10 +141,10 @@ class IngressRequires(Object):
     """
 
     def __init__(self, charm, config_dict):
-        """Init event for the IngressRequires class.
+        """Init function for the IngressRequires class.
 
         Args:
-            charm: The charm in which the relation takes place.
+            charm: The charm that requires the ingress relation.
             config_dict: Contains all the configuration options for Ingress.
         """
         super().__init__(charm, "ingress")
@@ -181,7 +181,7 @@ class IngressRequires(Object):
         )
         return config_dict
 
-    def _config_dict_errors(self, update_only: bool = False) -> bool:
+    def _config_dict_errors(self, config_dict: Dict, update_only: bool = False) -> bool:
         """Check our config dict for errors.
 
         Args:
@@ -193,7 +193,7 @@ class IngressRequires(Object):
         blocked_message = "Error in ingress relation, check `juju debug-log`"
         unknown = [
             config_key
-            for config_key in self.config_dict
+            for config_key in config_dict
             if config_key
             not in REQUIRED_INGRESS_RELATION_FIELDS
             | OPTIONAL_INGRESS_RELATION_FIELDS
@@ -229,7 +229,7 @@ class IngressRequires(Object):
         """
         # `self.unit` isn't available here, so use `self.model.unit`.
         if self.model.unit.is_leader():
-            if self._config_dict_errors():
+            if self._config_dict_errors(config_dict=self.config_dict):
                 return
             event.relation.data[self.model.app].update(
                 (key, str(self.config_dict[key])) for key in self.config_dict
@@ -273,12 +273,12 @@ class IngressBaseProvides(Object):
         if not self.model.unit.is_leader():
             return
 
-        relation = event.relation.name
+        relation_name = event.relation.name
 
         if not event.relation.data[event.app]:
             LOGGER.info(
                 "%s hasn't finished configuring, waiting until relation is changed again.",
-                relation,
+                relation_name,
             )
             return
 
@@ -294,14 +294,14 @@ class IngressBaseProvides(Object):
         if missing_fields:
             LOGGER.warning(
                 "Missing required data fields for %s relation: %s",
-                relation,
+                relation_name,
                 ", ".join(missing_fields),
             )
             self.model.unit.status = BlockedStatus(
-                f"Missing fields for {relation}: {', '.join(missing_fields)}"
+                f"Missing fields for {relation_name}: {', '.join(missing_fields)}"
             )
 
-        if relation == "ingress":
+        if relation_name == "ingress":
             # Conform to charm-relation-interfaces.
             if "name" in ingress_data and "port" in ingress_data:
                 name = ingress_data["name"]
@@ -314,7 +314,7 @@ class IngressBaseProvides(Object):
             # Create an event that our charm can use to decide it's okay to
             # configure the ingress.
             self.charm.on.ingress_available.emit()
-        elif relation == "ingress-proxy":
+        elif relation_name == "ingress-proxy":
             self.charm.on.ingress_proxy_available.emit()
 
 
@@ -322,17 +322,17 @@ class IngressProvides(IngressBaseProvides):
     """Class containing the functionality for the 'provides' side of the 'ingress' relation.
 
     Attrs:
-        charm: The charm in which the relation takes place.
+        charm: The charm that provides the ingress relation.
 
     Hook events observed:
         - relation-changed
     """
 
     def __init__(self, charm):
-        """Init event for the IngressProvides class.
+        """Init function for the IngressProvides class.
 
         Args:
-            charm: The charm in which the relation takes place.
+            charm: The charm that provides the ingress relation.
         """
         super().__init__(charm, "ingress")
         # Observe the relation-changed hook event and bind
@@ -358,17 +358,17 @@ class IngressProxyProvides(IngressBaseProvides):
     """Class containing the functionality for the 'provides' side of the 'ingress-proxy' relation.
 
     Attrs:
-        charm: The charm in which the relation takes place.
+        charm: The charm that provides the ingress-proxy relation.
 
     Hook events observed:
         - relation-changed
     """
 
     def __init__(self, charm):
-        """Init event for the IngressProxyProvides class.
+        """Init function for the IngressProxyProvides class.
 
         Args:
-            charm: The charm in which the relation takes place.
+            charm: The charm that provides the ingress-proxy relation.
         """
         super().__init__(charm, "ingress-proxy")
         # Observe the relation-changed hook event and bind
