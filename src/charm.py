@@ -371,7 +371,7 @@ class ContentCacheCharm(CharmBase):
         """
         config = self.model.config
         relation = self.model.get_relation("ingress-proxy")
-        if relation is not None and relation.data[relation.app]:
+        if relation is not None and relation.data[relation.app] and relation.units:
             nginx_config_list = ["service-hostname", "service-name", "service-port"]
             if any(
                 relation.data[relation.app].get(nginx_config) is None

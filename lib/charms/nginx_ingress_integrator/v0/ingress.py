@@ -65,7 +65,7 @@ from ops.framework import EventBase, EventSource, Object
 from ops.model import BlockedStatus
 
 INGRESS_RELATION_NAME = "ingress"
-INGRESS_PROXY_RELATION_NAME = "ingress_proxy"
+INGRESS_PROXY_RELATION_NAME = "ingress-proxy"
 
 # The unique Charmhub library identifier, never change it
 LIBID = "db0af4367506491c91663468fb5caa4c"
