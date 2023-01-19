@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 """Charm for Content Cache on kubernetes."""
@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 from charms.grafana_k8s.v0.grafana_dashboard import GrafanaDashboardProvider
 from charms.loki_k8s.v0.loki_push_api import LogProxyConsumer
 from charms.nginx_ingress_integrator.v0.ingress import (
+    REQUIRED_INGRESS_RELATION_FIELDS,
     IngressCharmEvents,
     IngressProxyProvides,
     IngressRequires,
@@ -103,6 +104,7 @@ class ContentCacheCharm(CharmBase):
         self.ingress_proxy_provides = IngressProxyProvides(self)
         self.ingress = IngressRequires(self, self._make_ingress_config())
         self.framework.observe(self.on.ingress_available, self._on_config_changed)
+        self.framework.observe(self.on.ingress_proxy_available, self._on_config_changed)
 
     def _on_content_cache_pebble_ready(self, event) -> None:
         """Handle content_cache_pebble_ready event and configure workload container.
@@ -225,15 +227,18 @@ class ContentCacheCharm(CharmBase):
         Args:
             event: config-changed event.
         """
+        self.ingress.update_config(self._make_ingress_config())
         missing = sorted(self._missing_charm_configs())
         if missing:
             msg = f"Required config(s) empty: {', '.join(missing)}"
             logger.warning(msg)
             self.unit.status = BlockedStatus(msg)
             return
-
-        self.ingress.update_config(self._make_ingress_config())
         env_config = self._make_env_config()
+        if env_config is None:
+            logger.debug("Ingress hasn't been configured yet, waiting")
+            event.defer()
+            return
         pebble_config = self._make_pebble_config(env_config)
         nginx_config = self._make_nginx_config(env_config)
         exporter_config = self._get_nginx_prometheus_exporter_pebble_config()
@@ -367,11 +372,16 @@ class ContentCacheCharm(CharmBase):
         """
         config = self.model.config
         relation = self.model.get_relation("ingress-proxy")
-        if relation:
-            site = relation.data[relation.app]["service-hostname"]
-            svc_name = relation.data[relation.app]["service-name"]
-            svc_port = relation.data[relation.app]["service-port"]
-            backend_site_name = relation.data[relation.app]["service-hostname"]
+        if relation and relation.data[relation.app] and relation.units:
+            if any(
+                relation.data[relation.app].get(nginx_config) is None
+                for nginx_config in REQUIRED_INGRESS_RELATION_FIELDS
+            ):
+                return None
+            site = relation.data[relation.app].get("service-hostname")
+            svc_name = relation.data[relation.app].get("service-name")
+            svc_port = relation.data[relation.app].get("service-port")
+            backend_site_name = relation.data[relation.app].get("service-hostname")
             clients = []
             for peer in relation.units:
                 unit_name = peer.name.replace("/", "-")
@@ -379,6 +389,8 @@ class ContentCacheCharm(CharmBase):
                 clients.append(f"http://{service_url}:{svc_port}")
             # XXX: Will need to deal with multiple units at some point
             backend = clients[0]
+        elif relation:
+            return None
         else:
             backend = config["backend"]
             backend_site_name = config.get("backend_site_name")
