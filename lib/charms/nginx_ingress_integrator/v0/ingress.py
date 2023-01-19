@@ -107,15 +107,24 @@ RELATION_INTERFACES_MAPPINGS_VALUES = {v for v in RELATION_INTERFACES_MAPPINGS.v
 
 
 class IngressAvailableEvent(EventBase):
-    """IngressAvailableEvent custom event."""
+    """IngressAvailableEvent custom event.
+
+    This event indicates the Ingress provider is available.
+    """
 
 
 class IngressProxyAvailableEvent(EventBase):
-    """IngressProxyAvailableEvent custom event."""
+    """IngressProxyAvailableEvent custom event.
+
+    This event indicates the IngressProxy provider is available.
+    """
 
 
 class IngressBrokenEvent(RelationBrokenEvent):
-    """IngressBrokenEvent custom event."""
+    """IngressBrokenEvent custom event.
+
+    This event indicates the Ingress provider is broken.
+    """
 
 
 class IngressCharmEvents(CharmEvents):
