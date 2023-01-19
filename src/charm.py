@@ -476,7 +476,7 @@ class ContentCacheCharm(CharmBase):
             Missing settings in the required juju configs.
         """
         relation = self.model.get_relation("ingress-proxy")
-        if relation is not None:
+        if relation:
             return []
         config = self.model.config
         missing = [
