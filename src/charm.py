@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 from charms.grafana_k8s.v0.grafana_dashboard import GrafanaDashboardProvider
 from charms.loki_k8s.v0.loki_push_api import LogProxyConsumer
 from charms.nginx_ingress_integrator.v0.ingress import (
+    REQUIRED_INGRESS_RELATION_FIELDS,
     IngressCharmEvents,
     IngressProxyProvides,
     IngressRequires,
@@ -371,11 +372,10 @@ class ContentCacheCharm(CharmBase):
         """
         config = self.model.config
         relation = self.model.get_relation("ingress-proxy")
-        if relation is not None and relation.data[relation.app] and relation.units:
-            nginx_config_list = ["service-hostname", "service-name", "service-port"]
+        if relation and relation.data[relation.app] and relation.units:
             if any(
                 relation.data[relation.app].get(nginx_config) is None
-                for nginx_config in nginx_config_list
+                for nginx_config in REQUIRED_INGRESS_RELATION_FIELDS
             ):
                 return None
             site = relation.data[relation.app].get("service-hostname")
