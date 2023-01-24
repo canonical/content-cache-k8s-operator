@@ -8,11 +8,7 @@ name: Publish to edge
 # charmhub edge channel.
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-      - track/**
+  pull_request:
 
 jobs:
   publish-to-edge:
