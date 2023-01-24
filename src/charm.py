@@ -3,7 +3,7 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Charm for Content Cache on kubernetes."""
+"""Charm for Content-cache on Kubernetes."""
 import hashlib
 import itertools
 import logging
