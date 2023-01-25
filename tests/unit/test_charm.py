@@ -138,10 +138,14 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
+    @mock.patch("ops.model.Container.get_plan")
     @mock.patch("ops.model.Container.pebble")
+    @mock.patch("ops.model.Container.can_connect")
     def test_configure_workload_container(
         self,
+        can_connect,
         pebble,
+        get_plan,
         push,
         make_dir,
         get_service,
@@ -262,9 +266,19 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
+    @mock.patch("ops.model.Container.get_plan")
     @mock.patch("ops.model.Container.pebble")
+    @mock.patch("ops.model.Container.can_connect")
     def test_configure_workload_container_pebble_services_already_configured(
-        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
+        self,
+        can_connect,
+        pebble,
+        get_plan,
+        push,
+        make_dir,
+        get_service,
+        add_layer,
+        make_pebble_config,
     ):
         """
         arrange: config is changed
@@ -286,10 +300,21 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
+    @mock.patch("ops.model.Container.get_plan")
     @mock.patch("ops.model.Container.pebble")
+    @mock.patch("ops.model.Container.can_connect")
     @mock.patch("ops.model.Container.isdir")
     def test_configure_workload_container_has_cache_directory(
-        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config, isdir
+        self,
+        can_connect,
+        pebble,
+        get_plan,
+        push,
+        make_dir,
+        get_service,
+        add_layer,
+        make_pebble_config,
+        isdir,
     ):
         """
         arrange: workload container is ready
@@ -311,9 +336,19 @@ class TestCharm:
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
     @mock.patch("ops.model.Container.push")
+    @mock.patch("ops.model.Container.get_plan")
     @mock.patch("ops.model.Container.pebble")
+    @mock.patch("ops.model.Container.can_connect")
     def test_configure_workload_container_empty_config(
-        self, pebble, push, make_dir, get_service, add_layer, make_pebble_config
+        self,
+        can_connect,
+        pebble,
+        get_plan,
+        push,
+        make_dir,
+        get_service,
+        add_layer,
+        make_pebble_config,
     ):
         """
         arrange: config is changed
