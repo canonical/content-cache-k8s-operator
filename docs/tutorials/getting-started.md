@@ -3,10 +3,10 @@
 ## What you’ll learn
 
 - Deploy the [Content-cache-k8s charm](https://charmhub.io/content-cache-k8s).
-- Relate to [the Hello-Kubecon charm](https://charmhub.io/hello-kubecon).
+- Relate to [the Hello-kubecon charm](https://charmhub.io/hello-kubecon).
 - Relate to [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
 
-Through the process, you'll inspect the Kubernetes resources created, verify the workload state, and log in to your Indico instance.
+Through the process, you'll inspect the Kubernetes resources created, verify the workload state and assign the content-cache to serve your Hello-kubecon instance.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ juju deploy content-cache-k8s
 juju deploy hello-kubecon
 ```
 
-To see the pod created by the Indico charm, run `kubectl get pods` on a namespace named for the Juju model you've deployed the Content-cache charm into. The output is similar to the following:
+To see the pod created by the Content-cache-k8s charm, run `kubectl get pods` on a namespace named for the Juju model you've deployed the Content-cache-k8s charm into. The output is similar to the following:
 
 ```bash
 modeloperator-98b8cb7df-m6stx   1/1     Running   0          2m20s
@@ -35,7 +35,7 @@ content-cache-k8s-0             3/3     Running   0          2m
 hello-kubecon-0                 0/2     Running   0          36s
 ```
 
-Run [`juju status`](https://juju.is/docs/olm/juju-status) to see the current status of the deployment. In the Unit list, you can see that Indico is waiting:
+Run [`juju status`](https://juju.is/docs/olm/juju-status) to see the current status of the deployment. In the Unit list, you can see that Content-cache-k8s is blocked:
 
 ```bash
 content-cache-k8s/0*  blocked   idle   10.1.97.227         Required config(s) empty: backend, site
@@ -44,7 +44,7 @@ hello-kubecon/0*      active    idle   10.1.97.193
 
 This means that Content-cache-k8s charm isn't integrated with hello-kubecon yet.
 
-### Relate to the Redis K8s charm the PostgreSQL K8s charm
+### Relate to the Hello-kubecon charm
 
 Provide integration between Content-cache-k8s and Hello-kubecon by running the following [`juju relate`](https://juju.is/docs/olm/juju-relate) command:
 
@@ -85,7 +85,7 @@ juju trust nginx-ingress-integrator --scope cluster
 
 Run `juju status` to verify the deployment.
 
-Provide integration between Indico and NGINX Ingress Integrator:
+Provide integration between Content-cache-k8s and NGINX Ingress Integrator:
 
 ```bash
 juju relate content-cache-k8s:ingress nginx-ingress-integrator
