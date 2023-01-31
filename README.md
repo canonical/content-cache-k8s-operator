@@ -1,4 +1,10 @@
-A service for caching content, built on top of [Nginx](https://www.nginx.com/)
+# Content Cache Operator
+
+A Juju charm for deploying and managing a content cache.
+
+## Overview
+
+A service for caching content, built on top of [Nginx](https://www.nginx.com/),
 configurable to cache any http or https web site. Tuning options include
 cache storage size, maximum request size to cache and cache validity duration.
 
@@ -9,9 +15,9 @@ for a number of services including [the Snap Store](https://snapcraft.io/store),
 the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
 [canonical.com](https://canonical.com), and [Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
 
-This Kubernetes-based version is built using the same approach, and can be
-used as a front-end caching service in a situation where your Kubernetes
-cluster and its ingress controllers have a fast connection to the Internet.
+This Kubernetes-based version can be used as a front-end caching service in
+a situation where your Kubernetes cluster and its ingress controllers have
+a fast connection to the Internet.
 
 ## Project and community
 

@@ -30,9 +30,9 @@ juju deploy hello-kubecon
 To see the pod created by the Content-cache-k8s charm, run `kubectl get pods` on a namespace named for the Juju model you've deployed the Content-cache-k8s charm into. The output is similar to the following:
 
 ```bash
-modeloperator-98b8cb7df-m6stx   1/1     Running   0          2m20s
-content-cache-k8s-0             3/3     Running   0          2m
-hello-kubecon-0                 0/2     Running   0          36s
+modeloperator-53g8qb387-h2stz   1/1     Running   0          3m
+content-cache-k8s-0             3/3     Running   0          3m
+hello-kubecon-0                 2/2     Running   0          1m36s
 ```
 
 Run [`juju status`](https://juju.is/docs/olm/juju-status) to see the current status of the deployment. In the Unit list, you can see that Content-cache-k8s is blocked:
@@ -42,7 +42,7 @@ content-cache-k8s/0*  blocked   idle   10.1.97.227         Required config(s) em
 hello-kubecon/0*      active    idle   10.1.97.193   
 ```
 
-This means that Content-cache-k8s charm isn't integrated with Hello-kubecon yet.
+This is because the Content-cache-k8s charm isn't integrated with Hello-kubecon yet.
 
 ### Relate to the Hello-kubecon charm
 
@@ -59,7 +59,7 @@ content-cache-k8s/0*  active    idle   10.1.97.227         Ready
 hello-kubecon/0*      active    idle   10.1.97.193
 ```
 
-Note: `ingress-proxy` is the name of the relation. This is needed because establishes that the two charms are compatible with each other.  You can run `juju info content-cache-k8s` to check what are the relation names provided by the Content-cache-k8s application.
+Note: `ingress-proxy` is the name of the relation. You can run `juju info content-cache-k8s` to check what are the relation names provided by the Content-cache-k8s application and `juju status --relations` to see the relations currently established in the model.
 
 The deployment finishes when the status shows "Active".
 
@@ -88,8 +88,7 @@ Run `juju status` to verify the deployment.
 Provide integration between Content-cache-k8s and NGINX Ingress Integrator:
 
 ```bash
-juju relate content-cache-k8s:ingress nginx-ingress-integrator
-
+juju relate content-cache-k8s nginx-ingress-integrator
 ```
 
 To see the Ingress resource created, run `kubectl get ingress` on a namespace named for the Juju model you've deployed the Content-cache-k8s charm into. The output is similar to the following:
@@ -105,14 +104,10 @@ Run `juju status` to see the same Ingress IP in the `nginx-ingress-integrator` m
 nginx-ingress-integrator                                active      1  nginx-ingress-integrator  stable    45  10.152.183.233  no       Ingress IP(s): 127.0.0.1, Service IP(s): 10.152.183.66
 ```
 
-The browser uses entries in the /etc/hosts file to override what is returned by a DNS server.
-
-The default hostname for the Hello-kubecon application is `hello-kubecon`. To resolve it to your Ingress IP, edit [`/etc/hosts`](https://manpages.ubuntu.com/manpages/kinetic/man5/hosts.5.html) file and add the following line accordingly:
+The default hostname for the Hello-kubecon application is `hello-kubecon`. To be able to browse to this site, that hostname will need to resolve to the IP address of your Ingress. You can achieve this by editing [`/etc/hosts`](https://manpages.ubuntu.com/manpages/kinetic/man5/hosts.5.html) file and adding the following line:
 
 ```bash
 127.0.0.1 hello-kubecon
 ```
 
-Optional: run `echo "127.0.0.1 hello-kubecon" >> /etc/hosts` to redirect the output of the command `echo` to the end of the file `/etc/hosts`.
-
-After that, visit `http://hello-kubecon` in a browser and you'll be presented with a screen to create an initial admin account.
+After that, visit `http://hello-kubecon` in a browser and you'll be presented with the home screen of the Hello-kubecon application.
