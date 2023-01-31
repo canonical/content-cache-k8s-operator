@@ -6,7 +6,7 @@
 - Relate to [the Hello-kubecon charm](https://charmhub.io/hello-kubecon).
 - Relate to [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
 
-Through the process, you'll inspect the Kubernetes resources created, verify the workload state and assign the content-cache to serve your Hello-kubecon instance.
+Through the process, you'll inspect the Kubernetes resources created, verify the workload state and assign the Content-cache-k8s to serve your Hello-kubecon instance.
 
 ## Requirements
 
@@ -42,7 +42,7 @@ content-cache-k8s/0*  blocked   idle   10.1.97.227         Required config(s) em
 hello-kubecon/0*      active    idle   10.1.97.193   
 ```
 
-This means that Content-cache-k8s charm isn't integrated with hello-kubecon yet.
+This means that Content-cache-k8s charm isn't integrated with Hello-kubecon yet.
 
 ### Relate to the Hello-kubecon charm
 
