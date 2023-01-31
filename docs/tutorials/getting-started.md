@@ -18,7 +18,7 @@ For more information about how to install Juju, see [Get started with Juju](http
 
 ### Deploy the Content-cache-k8s charm
 
-Since Content-cache is meant to serve another charm as its cache, we'll use Hello-kubecon as an example.
+Since Content-cache is meant to serve as cache for another charm, we'll use Hello-kubecon as an example.
 
 Deploy the charms:
 

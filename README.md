@@ -15,7 +15,7 @@ for a number of services including [the Snap Store](https://snapcraft.io/store),
 the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
 [canonical.com](https://canonical.com), and [Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
 
-This Kubernetes-based version can be used as a front-end caching service in
+This Kubernetes-based version is built using the same approach as the [machine content-cache charm](https://charmhub.io/content-cache), and can be used as a front-end caching service in
 a situation where your Kubernetes cluster and its ingress controllers have
 a fast connection to the Internet.
 
