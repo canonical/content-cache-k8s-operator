@@ -255,7 +255,6 @@ class ContentCacheCharm(CharmBase):
 
             services = container.get_plan().to_dict().get("services", {})
             if services != pebble_config["services"]:
-
                 msg = "Updating pebble layer config"
                 logger.info(msg)
                 self.unit.status = MaintenanceStatus(msg)
