@@ -27,9 +27,9 @@ suggestions, fixes and constructive feedback.
 * [Code of conduct](https://ubuntu.com/community/code-of-conduct)
 * [Get support](https://discourse.charmhub.io/)
 * [Join our online chat](https://chat.charmhub.io/charmhub/channels/charm-dev)
-* [Contribute](https://charmhub.io/content-cache-k8s/docs/contributing)
+* [Contribute](https://charmhub.io/content-cache-k8s/docs/how-to-guides-contributing)
 Thinking about using the Content-cache-k8s for your next project? [Get in touch](https://chat.charmhub.io/charmhub/channels/charm-dev)!
 
 ---
 
-For further details, [see here](https://charmhub.io/content-cache-k8s/docs)
+For further details, [see the charm's detailed documentation](https://charmhub.io/content-cache-k8s/docs)
