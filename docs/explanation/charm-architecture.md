@@ -27,7 +27,7 @@ And if you run `kubectl describe pod content-cache-k8s-0`, all the containers wi
 
 Configuration files for the containers can be found in [the files directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/files) and in [the templates directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/templates)
 
-### NGINX
+### Content Cache
 
 This container is the entry point for all web traffic to the pod (on port `80`). Serves static files directly.
 
