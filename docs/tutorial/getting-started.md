@@ -63,7 +63,7 @@ Note: `ingress-proxy` is the name of the relation. You can run `juju info conten
 
 The deployment finishes when the status shows "Active".
 
-### Relate to ingress by using nginx ingress integrator
+### Relate to ingress by using NGINX ingress integrator
 
 The NGINX Ingress Integrator charm can deploy and manage external access to HTTP/HTTPS services in a Kubernetes cluster.
 

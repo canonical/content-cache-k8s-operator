@@ -33,7 +33,7 @@ This container is the entry point for all web traffic to the pod (on port `80`).
 
 The workload that this container is running is defined in the [Content-cache dockerfile in the charm repository](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache.Dockerfile).
 
-### Nginx prometheus exporter
+### NGINX prometheus exporter
 
 This container runs the `nginx/nginx-prometheus-exporter` image.
 
