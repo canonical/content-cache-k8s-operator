@@ -1,4 +1,4 @@
-# Charm Architecture
+# Charm architecture
 
 At its core, Content-cache-k8s is a NGINX cache application that helps another charm serving static content for it.
 
@@ -27,13 +27,13 @@ And if you run `kubectl describe pod content-cache-k8s-0`, all the containers wi
 
 Configuration files for the containers can be found in [the files directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/files) and in [the templates directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/templates)
 
-### Content Cache
+### Content cache
 
 This container is the entry point for all web traffic to the pod (on port `80`). Serves static files directly.
 
 The workload that this container is running is defined in the [Content-cache dockerfile in the charm repository](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache.Dockerfile).
 
-### NGINX Prometheus Exporter
+### NGINX prometheus exporter
 
 This container runs the `nginx/nginx-prometheus-exporter` image.
 
@@ -41,7 +41,7 @@ The `NGINX Prometheus Exporter` is started with `-nginx.scrape-uri=http://localh
 
 This has been configured in the NGINX container to return NGINX's [stub_status](http://nginx.org/en/docs/http/ngx_http_stub_status_module.html). The exporter listens on port `9113` and metrics about web traffic to the pod can be scraped by Prometheus there.
 
-## Docker Images
+## Docker images
 
 The image defined in [Content-cache dockerfile](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache.Dockerfile) in the charm repository is published to [Charmhub](https://charmhub.io/), the official repository of charms.
 
@@ -67,7 +67,7 @@ Loki is an open-source fully-featured logging system. This charm is shipped with
 
 Prometheus is an open-source system monitoring and alerting toolkit with a dimensional data model, flexible query language, efficient time series database, and modern alerting approach. This charm is shipped with a Prometheus exporter, alerts, and support for integrating with the [Prometheus Operator](https://charmhub.io/prometheus-k8s) to automatically scrape the targets.
 
-## Juju Events
+## Juju events
 
 Accordingly to the [Juju SDK](https://juju.is/docs/sdk/event): "an event is a data structure that encapsulates part of the execution context of a charm".
 
@@ -80,7 +80,7 @@ Action: wait for the integrations, validate the configuration, update Ingress, a
 3. [report_visits_by_ip](https://charmhub.io/content-cache-k8s/actions): fired when report-visits-by-ip action is executed.
 Action: Report the amount of visits grouped by IP that have visited the service ordered by amount of visits.
 
-## Charm Code Overview
+## Charm code overview
 
 The `src/charm.py` is the default entry point for a charm and has the ContentCacheCharm Python class which inherits from CharmBase.
 

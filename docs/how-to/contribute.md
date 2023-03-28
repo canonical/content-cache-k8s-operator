@@ -1,4 +1,4 @@
-# Contributing
+# How to contribute
 
 ## Overview
 
@@ -71,6 +71,6 @@ juju deploy ./content-cache-k8s_ubuntu-20.04-amd64.charm \
   --resource content-cache-image=localhost:32000/content-cache:latest \
 ```
 
-## Canonical Contributor Agreement
+## Canonical contributor agreement
 
 Canonical welcomes contributions to the Content-cache-k8s Operator. Please check out our [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
