@@ -1,6 +1,6 @@
-# Quick Guide
+# Quick guide
 
-## What you’ll learn
+## What you’ll do
 
 - Deploy the [Content-cache-k8s charm](https://charmhub.io/content-cache-k8s).
 - Relate to [the Hello-kubecon charm](https://charmhub.io/hello-kubecon).
@@ -16,7 +16,7 @@ Through the process, you'll inspect the Kubernetes resources created, verify the
 
 For more information about how to install Juju, see [Get started with Juju](https://juju.is/docs/olm/get-started-with-juju).
 
-### Deploy the Content-cache-k8s charm
+### Deploy the content-cache-k8s charm
 
 Since Content-cache is meant to serve as cache for another charm, we'll use Hello-kubecon as an example.
 
@@ -44,7 +44,7 @@ hello-kubecon/0*      active    idle   10.1.97.193
 
 This is because the Content-cache-k8s charm isn't integrated with Hello-kubecon yet.
 
-### Relate to the Hello-kubecon charm
+### Relate to the hello-kubecon charm
 
 Provide integration between Content-cache-k8s and Hello-kubecon by running the following [`juju relate`](https://juju.is/docs/olm/juju-relate) command:
 
@@ -63,7 +63,7 @@ Note: `ingress-proxy` is the name of the relation. You can run `juju info conten
 
 The deployment finishes when the status shows "Active".
 
-### Relate to Ingress by using NGINX Ingress Integrator
+### Relate to ingress by using NGINX ingress integrator
 
 The NGINX Ingress Integrator charm can deploy and manage external access to HTTP/HTTPS services in a Kubernetes cluster.
 
