@@ -1,7 +1,9 @@
 name: content-cache-k8s
 display-name: Content-cache
 description: |
-  A service providing local caches of HTTP servers and useful for building content delivery networks (CDN).
+  A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) deploying and managing
+  NGINX content-cache in Kubernetes. A service providing local caches of HTTP servers and useful for building
+  content delivery networks (CDN).
 
   A service for caching content, built on top of [Nginx](https://www.nginx.com/),
   configurable to cache any http or https web site. Tuning options include
