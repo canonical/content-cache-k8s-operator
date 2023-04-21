@@ -21,6 +21,7 @@ description: |
   Currently used for a number of services including [the Snap Store](https://snapcraft.io/store),
   the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
   [canonical.com](https://canonical.com), and [Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
+  For DevOps or SRE teams this charm will make operating it simple and straightforward through Juju's clean interface.
 summary: |
   HTTP cache service useful for building CDNs.
 docs: https://discourse.charmhub.io/t/content-cache-documentation-overview/3992

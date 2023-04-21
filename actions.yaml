@@ -1,2 +1,5 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 report-visits-by-ip:
   description: Look at the proxy log and list the IPs that visited the proxy the most in the last 20 minutes.

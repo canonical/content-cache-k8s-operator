@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2020 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 set -eu
