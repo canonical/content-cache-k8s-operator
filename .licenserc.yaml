@@ -12,6 +12,7 @@ header:
     - '**/*.j2'
     - '**/*.md'
     - '**/*.txt'
+    - '.woke.yml'
     - '.codespellignore'
     - '.flake8'
     - '.jujuignore'
