@@ -20,6 +20,10 @@ header:
     - 'CODEOWNERS'
     - 'icon.svg'
     - 'LICENSE'
-    - 'files/nginx-logging-format-conf'
+    - 'files/nginx-logging-format.conf'
     - 'lib/**'
+    - 'src/grafana_dashboards/content-cache.json'
+    - 'src/loki_alert_rules/.gitkeep'
+    - 'src/prometheus_alert_rules/content_cache_missing.rule'
+    - 'templates/nginx_cfg.tmpl'
   comment: on-failure
