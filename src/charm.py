@@ -39,7 +39,7 @@ CACHE_PATH = "/var/lib/nginx/proxy/cache"
 CONTAINER_NAME = "content-cache"
 EXPORTER_CONTAINER_NAME = "nginx-prometheus-exporter"
 CONTAINER_PORT = 80
-REQUIRED_JUJU_CONFIGS = ["site", "backend"]
+REQUIRED_JUJU_CONFIGS = ["backend"]
 
 
 class ContentCacheCharm(CharmBase):
@@ -395,7 +395,7 @@ class ContentCacheCharm(CharmBase):
             backend_site_name = config.get("backend_site_name")
             if not backend_site_name:
                 backend_site_name = urlparse(backend).hostname
-            site = config["site"]
+            site = config.get("site") if config.get("site") else self.app.name
 
         cache_all_configs = ""
         if not config["cache_all"]:
