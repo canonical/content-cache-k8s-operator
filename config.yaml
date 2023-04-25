@@ -6,6 +6,8 @@ options:
     type: string
     description: >
       Required if no ingress-proxy relation is established. The site name, e.g. "mysite.local".
+      If the backend is set and this option is empty then the site will default to the application
+      name.
   backend:
     type: string
     description: >
