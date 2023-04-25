@@ -372,10 +372,10 @@ class TestCharm:
         """
         config = self.config
         harness = self.harness
-        config["site"] = None
+        config["backend"] = None
         harness.update_config(config)
         make_pebble_config.assert_not_called()
-        assert harness.charm.unit.status == BlockedStatus("Required config(s) empty: site")
+        assert harness.charm.unit.status == BlockedStatus("Required config(s) empty: backend")
 
     def test_generate_keys_zone(self):
         """
@@ -588,26 +588,9 @@ class TestCharm:
         config = self.config
         harness = self.harness
         harness.disable_hooks()
-        # All missing, should be sorted.
         config.pop("backend")
-        config.pop("site")
         harness.update_config(config)
-        expected = ["backend", "site"]
-        assert harness.charm._missing_charm_configs() == expected
-
-    def test_missing_charm_configs_missing_one(self):
-        """
-        arrange: define charm config with missing one
-        act: set charm config
-        assert: ensure required configs present and return those missing
-        """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        # One missing.
-        config.pop("site")
-        harness.update_config(config)
-        expected = ["site"]
+        expected = ["backend"]
         assert harness.charm._missing_charm_configs() == expected
 
     def test_missing_charm_configs_unset_all(self):
@@ -619,24 +602,7 @@ class TestCharm:
         config = self.config
         harness = self.harness
         harness.disable_hooks()
-        # All set to None, should be sorted.
         config["backend"] = None
-        config["site"] = None
         harness.update_config(config)
-        expected = ["backend", "site"]
-        assert harness.charm._missing_charm_configs() == expected
-
-    def test_missing_charm_configs_unset_one(self):
-        """
-        arrange: define charm config with one unset
-        act: set charm config
-        assert: ensure required configs present and return those missing
-        """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        # One set to None
-        config["site"] = None
-        harness.update_config(config)
-        expected = ["site"]
+        expected = ["backend"]
         assert harness.charm._missing_charm_configs() == expected
