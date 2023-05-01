@@ -83,13 +83,6 @@ Provide integration between Content-cache-k8s and NGINX Ingress Integrator:
 juju relate content-cache-k8s nginx-ingress-integrator
 ```
 
-To see the Ingress resource created, run `kubectl get ingress` on a namespace named for the Juju model you've deployed the Content-cache-k8s charm into. The output is similar to the following:
-
-```bash
-NAME                    CLASS    HOSTS           ADDRESS     PORTS   AGE
-hello-kubecon-ingress   public   hello-kubecon   127.0.0.1   80      2m11s
-```
-
 Run `juju status` to see the same Ingress IP in the `nginx-ingress-integrator` message:
 
 ```bash
