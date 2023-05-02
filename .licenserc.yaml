@@ -1,12 +1,10 @@
 header:
   - license:
-      spdx-id: Apache-2.0
       copyright-owner: Canonical Ltd.
       content: |
         Copyright [year] [owner]
         Licensed under the Apache2.0. See LICENSE file in charm source for details.
-      paths:
-        - 'lib/**'
+      path: 'lib/**'
       comment: on-failure
   - license:
       spdx-id: Apache-2.0
@@ -14,8 +12,7 @@ header:
       content: |
         Copyright [year] [owner]
         See LICENSE file for licensing details.
-      paths:
-        - '**'
+      path: '**'
       paths-ignore:
         - '.github/**'
         - 'lib/**'
