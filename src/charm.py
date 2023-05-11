@@ -249,7 +249,7 @@ class ContentCacheCharm(CharmBase):
             logger.info(msg)
             self.unit.status = MaintenanceStatus(msg)
             container.push("/etc/nginx/sites-enabled/default", nginx_config)
-            with open("contentcacherock/nginx-logging-format.conf", "r", encoding="utf-8") as file:
+            with open("rockfile/nginx-logging-format.conf", "r", encoding="utf-8") as file:
                 container.push("/etc/nginx/conf.d/nginx-logging-format.conf", file)
             container.make_dir(CACHE_PATH, make_parents=True)
 
@@ -462,7 +462,7 @@ class ContentCacheCharm(CharmBase):
         Returns:
             A fully configured NGINX conf file
         """
-        with open("contentcacherock/nginx_cfg.tmpl", "r", encoding="utf-8") as file:
+        with open("rockfile/nginx_cfg.tmpl", "r", encoding="utf-8") as file:
             content = file.read()
 
         nginx_config = content.format(**env_config)
