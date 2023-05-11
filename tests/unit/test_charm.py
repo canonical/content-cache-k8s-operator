@@ -8,6 +8,7 @@ from unittest import mock
 import pytest
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus
 from ops.testing import Harness
+from charm import CONTAINER_PORT
 
 from charm import ContentCacheCharm
 
@@ -20,7 +21,6 @@ BASE_CONFIG = {
 }
 CACHE_PATH = "/var/lib/nginx/proxy/cache"
 CONTAINER_NAME = "content-cache"
-CONTAINER_PORT = 8080
 JUJU_ENV_CONFIG = {
     "JUJU_POD_NAME": "content-cache-k8s/0",
     "JUJU_POD_NAMESPACE": None,

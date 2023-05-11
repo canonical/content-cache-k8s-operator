@@ -21,7 +21,7 @@ header:
     - 'CODEOWNERS'
     - 'icon.svg'
     - 'LICENSE'
-    - 'files/nginx-logging-format.conf'
+    - 'content-cache_rock/nginx-logging-format.conf'
     - 'lib/**'
     - 'src/grafana_dashboards/content-cache.json'
     - 'src/loki_alert_rules/.gitkeep'
