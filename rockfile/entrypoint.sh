@@ -10,13 +10,13 @@ render_template() {
     eval "echo \"$(cat "$1")\""
 }
 
-sudo cp /srv/content-cache/files/nginx-logging-format.conf /etc/nginx/conf.d/nginx-logging-format.conf
+cp /srv/content-cache/files/nginx-logging-format.conf /etc/nginx/conf.d/nginx-logging-format.conf
 
 # https://bugs.launchpad.net/juju/+bug/1894782
 JUJU_UNIT=$(basename /var/lib/juju/tools/unit-* | sed -e 's/^unit-//' -e 's/-\([0-9]\+\)$/\/\1/')
 export JUJU_UNIT
 
-sudo render_template /srv/content-cache/templates/nginx_cfg.tmpl > /etc/nginx/sites-available/default
+render_template /srv/content-cache/templates/nginx_cfg.tmpl > /etc/nginx/sites-available/default
 
 # Run the real command
 exec nginx -g 'daemon off;'
