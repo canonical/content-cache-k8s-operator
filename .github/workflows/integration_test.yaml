@@ -34,8 +34,12 @@ jobs:
       - name: Install tox
         run: python3 -m pip install tox
 
-      - name: Build docker image
-        run: tox -e test-build
+      - name: Build rock image
+        working-directory: ./content-cache_rock
+        run: |
+          rockcraft
+          skopeo --insecure-policy copy oci-archive:content-cache_latest_amd64.rock docker-daemon:localhost:32000/content-cache:test
+          docker push localhost:32000/content-cache:test
 
       - name: Run integration tests
         run: >
