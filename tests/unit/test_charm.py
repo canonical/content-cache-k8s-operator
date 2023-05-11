@@ -8,9 +8,8 @@ from unittest import mock
 import pytest
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus
 from ops.testing import Harness
-from charm import CONTAINER_PORT
 
-from charm import ContentCacheCharm
+from charm import CONTAINER_PORT, ContentCacheCharm
 
 BASE_CONFIG = {
     "site": "mysite.local",
