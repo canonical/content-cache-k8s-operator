@@ -36,7 +36,7 @@ jobs:
 
       - name: Install tox, skopeo and docker
         run: |
-          sudo snap install rockcraft --edge
+          sudo snap install --edge rockcraft
           sudo apt-get install skopeo
 
       - name: Build rock image
