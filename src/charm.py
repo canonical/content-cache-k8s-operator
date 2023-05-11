@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 CACHE_PATH = "/var/lib/nginx/proxy/cache"
 CONTAINER_NAME = "content-cache"
 EXPORTER_CONTAINER_NAME = "nginx-prometheus-exporter"
-CONTAINER_PORT = 80
+CONTAINER_PORT = 8080
 REQUIRED_JUJU_CONFIGS = ["backend"]
 
 
@@ -248,8 +248,8 @@ class ContentCacheCharm(CharmBase):
             msg = "Updating Nginx site config"
             logger.info(msg)
             self.unit.status = MaintenanceStatus(msg)
-            container.push("/etc/nginx/sites-available/default", nginx_config)
-            with open("files/nginx-logging-format.conf", "r", encoding="utf-8") as file:
+            container.push("/etc/nginx/sites-enabled/default", nginx_config)
+            with open("contentcacherock/nginx-logging-format.conf", "r", encoding="utf-8") as file:
                 container.push("/etc/nginx/conf.d/nginx-logging-format.conf", file)
             container.make_dir(CACHE_PATH, make_parents=True)
 
@@ -311,7 +311,7 @@ class ContentCacheCharm(CharmBase):
                     "summary": "Nginx Prometheus Exporter",
                     "command": (
                         "nginx-prometheus-exporter"
-                        " -nginx.scrape-uri=http://localhost:80/stub_status"
+                        f" -nginx.scrape-uri=http://localhost:{CONTAINER_PORT}/stub_status"
                     ),
                     "startup": "enabled",
                 },
@@ -445,7 +445,7 @@ class ContentCacheCharm(CharmBase):
                 CONTAINER_NAME: {
                     "override": "replace",
                     "summary": "content-cache",
-                    "command": "/usr/sbin/nginx -g 'daemon off;'",
+                    "command": "/srv/content-cache/entrypoint.sh",
                     "startup": "enabled",
                     "environment": env_config,
                 },
@@ -462,7 +462,7 @@ class ContentCacheCharm(CharmBase):
         Returns:
             A fully configured NGINX conf file
         """
-        with open("templates/nginx_cfg.tmpl", "r", encoding="utf-8") as file:
+        with open("contentcacherock/nginx_cfg.tmpl", "r", encoding="utf-8") as file:
             content = file.read()
 
         nginx_config = content.format(**env_config)

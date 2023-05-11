@@ -2,8 +2,8 @@ proxy_cache_path /var/lib/nginx/proxy/cache use_temp_path=off levels=1:2 keys_zo
 
 server {
     server_name mysite.local;
-    listen 80;
-    listen [::]:80;
+    listen 8080;
+    listen [::]:8080;
 
     client_max_body_size 1m;
 
@@ -20,7 +20,7 @@ server {
         proxy_set_header X-Forwarded-Proto "";
         proxy_set_header X-Forwarded-Scheme "";
 
-        add_header X-Cache-Status "$upstream_cache_status from content-cache-k8s/0 (None)";
+        add_header X-Cache-Status "upstream_cache_status from content-cache-k8s/0 None";
 
         proxy_force_ranges on;
         proxy_cache 39c631ffb52d-cache;

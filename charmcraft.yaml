@@ -12,5 +12,5 @@ bases:
 parts:
   charm:
     prime: 
-      - files/.
+      - contentcacherock/.
 
