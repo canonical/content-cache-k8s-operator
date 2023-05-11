@@ -34,6 +34,12 @@ jobs:
       - name: Install tox
         run: python3 -m pip install tox
 
+      - name: Install tox, skopeo and docker
+        run: |
+          sudo snap install docker --classic
+          sudo snap install rockcraft --classic
+          sudo apt-get install skopeo
+
       - name: Build rock image
         working-directory: ./content-cache_rock
         run: |
