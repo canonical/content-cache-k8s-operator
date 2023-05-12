@@ -9,3 +9,4 @@ jobs:
     secrets: inherit
     with:
       setup-devstack-swift: true
+      trivy-image-config: "trivy.yaml"
