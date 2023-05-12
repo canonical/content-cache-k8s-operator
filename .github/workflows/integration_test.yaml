@@ -10,3 +10,4 @@ jobs:
     with:
       setup-devstack-swift: true
       trivy-image-config: "trivy.yaml"
+      extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
