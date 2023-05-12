@@ -20,7 +20,7 @@ server {
         proxy_set_header X-Forwarded-Proto "";
         proxy_set_header X-Forwarded-Scheme "";
 
-        add_header X-Cache-Status "upstream_cache_status from content-cache-k8s/0 None";
+        add_header X-Cache-Status "$upstream_cache_status from content-cache-k8s/0 None";
 
         proxy_force_ranges on;
         proxy_cache 39c631ffb52d-cache;

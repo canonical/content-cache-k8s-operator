@@ -65,7 +65,7 @@ async def test_service_reachable(service_ip: str):
     act: when the dependent application is queried via the service
     assert: then the response is HTTP 200 OK.
     """
-    response = requests.get(f"http://{service_ip}", timeout=5)
+    response = requests.get(f"http://{service_ip}:8080", timeout=5)
 
     assert response.status_code == 200
 
