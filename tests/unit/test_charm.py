@@ -9,7 +9,7 @@ import pytest
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus
 from ops.testing import Harness
 
-from charm import ContentCacheCharm
+from charm import CONTAINER_PORT, ContentCacheCharm
 
 BASE_CONFIG = {
     "site": "mysite.local",
@@ -20,7 +20,6 @@ BASE_CONFIG = {
 }
 CACHE_PATH = "/var/lib/nginx/proxy/cache"
 CONTAINER_NAME = "content-cache"
-CONTAINER_PORT = 80
 JUJU_ENV_CONFIG = {
     "JUJU_POD_NAME": "content-cache-k8s/0",
     "JUJU_POD_NAMESPACE": None,
@@ -47,7 +46,7 @@ PEBBLE_CONFIG = {
         CONTAINER_NAME: {
             "override": "replace",
             "summary": "content-cache",
-            "command": "/usr/sbin/nginx -g 'daemon off;'",
+            "command": "/srv/content-cache/entrypoint.sh",
             "startup": "enabled",
             "environment": "",
         },
@@ -166,7 +165,7 @@ class TestCharm:
             "max-body-size": "1m",
             "service-hostname": "mysite.local",
             "service-name": "content-cache-k8s",
-            "service-port": 80,
+            "service-port": 8080,
         }
         ingress_update.assert_called_with(expect)
         make_pebble_config.assert_called_once()
@@ -469,7 +468,7 @@ class TestCharm:
         harness.disable_hooks()
         harness.update_config(config)
         expected = JUJU_ENV_CONFIG
-        expected["CONTAINER_PORT"] = 80
+        expected["CONTAINER_PORT"] = 8080
         expected["CONTENT_CACHE_BACKEND"] = "http://mybackend.local:80"
         expected["CONTENT_CACHE_SITE"] = "mysite.local"
         expected["NGINX_BACKEND"] = "http://mybackend.local:80"

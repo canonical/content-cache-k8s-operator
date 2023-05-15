@@ -12,5 +12,4 @@ bases:
 parts:
   charm:
     prime: 
-      - files/.
-
+      - content-cache_rock/nginx_cfg.tmpl
