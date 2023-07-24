@@ -25,5 +25,6 @@ def pytest_addoption(parser: pytest.Parser):
     # export OS_PROJECT_NAME=demo
     # export OS_PASSWORD=nomoresecret
     # export OS_IDENTITY_API_VERSION=3
+    parser.addoption("--charm-file", action="store")
     parser.addoption("--openstack-rc", action="store", default="")
     parser.addoption("--content-cache-image", action="store", default="")
