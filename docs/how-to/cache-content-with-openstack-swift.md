@@ -1,4 +1,4 @@
-# How to cache content with OpenStack/Swift storage
+# Content-cache with Openstack/Swift storage
 
 Sometimes it is desirable to cache swift storage objects inside the charm for faster processing and reducing the number of requests to the [swift](https://docs.openstack.org/swift/latest/) server. This also allows you to have a different hostname than the one from the Swift service.
 

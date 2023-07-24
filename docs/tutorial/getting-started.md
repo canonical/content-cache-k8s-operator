@@ -27,14 +27,6 @@ juju deploy content-cache-k8s
 juju deploy hello-kubecon
 ```
 
-To see the pod created by the Content-cache-k8s charm, run `kubectl get pods` on a namespace named for the Juju model you've deployed the Content-cache-k8s charm into. The output is similar to the following:
-
-```bash
-modeloperator-53g8qb387-h2stz   1/1     Running   0          3m
-content-cache-k8s-0             3/3     Running   0          3m
-hello-kubecon-0                 2/2     Running   0          1m36s
-```
-
 Run [`juju status`](https://juju.is/docs/olm/juju-status) to see the current status of the deployment. In the Unit list, you can see that Content-cache-k8s is blocked:
 
 ```bash
@@ -89,13 +81,6 @@ Provide integration between Content-cache-k8s and NGINX Ingress Integrator:
 
 ```bash
 juju relate content-cache-k8s nginx-ingress-integrator
-```
-
-To see the Ingress resource created, run `kubectl get ingress` on a namespace named for the Juju model you've deployed the Content-cache-k8s charm into. The output is similar to the following:
-
-```bash
-NAME                    CLASS    HOSTS           ADDRESS     PORTS   AGE
-hello-kubecon-ingress   public   hello-kubecon   127.0.0.1   80      2m11s
 ```
 
 Run `juju status` to see the same Ingress IP in the `nginx-ingress-integrator` message:
