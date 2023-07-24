@@ -118,10 +118,18 @@ async def nginx_integrator_app(ops_test: OpsTest):
     yield nginx_integrator_app
 
 
+@fixture(scope="module")
+def charm_file(pytestconfig: pytest.Config):
+    """Get the existing charm file."""
+    value = pytestconfig.getoption("--charm-file")
+    yield f"./{value}"
+
+
 @pytest_asyncio.fixture(scope="module")
 async def app(
     ops_test: OpsTest,
     app_name: str,
+    charm_name: str,
     content_cache_image: str,
     nginx_prometheus_exporter_image: str,
     nginx_integrator_app: Application,
@@ -149,9 +157,8 @@ async def app(
     await run_action(any_app_name, "rpc", method="start_server")
     await ops_test.model.wait_for_idle(status="active")
 
-    app_charm = await ops_test.build_charm(".")
     application = await ops_test.model.deploy(
-        app_charm,
+        charm_name,
         application_name=app_name,
         resources={
             "content-cache-image": content_cache_image,
