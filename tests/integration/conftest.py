@@ -119,7 +119,7 @@ async def nginx_integrator_app(ops_test: OpsTest):
 
 
 @fixture(scope="module")
-def charm_file(pytestconfig: pytest.Config):
+def charm_file(pytestconfig: Config):
     """Get the existing charm file."""
     value = pytestconfig.getoption("--charm-file")
     yield f"./{value}"
