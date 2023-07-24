@@ -129,7 +129,7 @@ def charm_file(pytestconfig: Config):
 async def app(
     ops_test: OpsTest,
     app_name: str,
-    charm_name: str,
+    charm_file: str,
     content_cache_image: str,
     nginx_prometheus_exporter_image: str,
     nginx_integrator_app: Application,
@@ -158,7 +158,7 @@ async def app(
     await ops_test.model.wait_for_idle(status="active")
 
     application = await ops_test.model.deploy(
-        charm_name,
+        charm_file,
         application_name=app_name,
         resources={
             "content-cache-image": content_cache_image,
