@@ -1,27 +1,65 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 name: content-cache-k8s
 display-name: Content-cache
 description: |
-  A service providing local caches of HTTP servers and useful for building content delivery networks (CDN).
+  A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) deploying and managing
+  service for caching content, built on top of [Nginx](https://www.nginx.com/), configurable to cache
+  any http or https web site and useful for building content delivery networks (CDN).
+
+  This charm simplifies initial deployment and caching operations on Kubernetes,
+  such as scaling the number of cache instances and cache configuration changes.
+  It allows for deployment on many different Kubernetes platforms, from [MicroK8s](https://microk8s.io) to
+  [Charmed Kubernetes](https://ubuntu.com/kubernetes) and public cloud Kubernetes
+  offerings.
+
+  This service was developed to provide front-end caching for web sites run by
+  Canonical's IS team, and to reduce the need for third-party CDNs by providing
+  high-bandwidth access to web sites via this caching front-end. 
+  
+  Currently used for a number of services including [the Snap Store](https://snapcraft.io/store),
+  the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
+  [canonical.com](https://canonical.com), and [Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
+  For DevOps or SRE teams this charm will make operating it simple and straightforward through Juju's clean interface.
 summary: |
-  A service providing local caches of HTTP servers and useful for building content delivery networks (CDN).
+  HTTP cache service useful for building CDNs.
 docs: https://discourse.charmhub.io/t/content-cache-documentation-overview/3992
 maintainers:
-  - launchpad.net/~content-cache-charmers
+  - https://launchpad.net/~content-cache-charmers
+assumes:
+  - k8s-api
+issues: https://github.com/canonical/content-cache-k8s-operator/issues
+source: https://github.com/canonical/content-cache-k8s-operator
 
 containers:
   content-cache:
     resource: content-cache-image
+  nginx-prometheus-exporter:
+    resource: nginx-prometheus-exporter-image
 
 resources:
   content-cache-image:
     type: oci-image
     description: Docker image for content-cache to run
+  nginx-prometheus-exporter-image:
+    type: oci-image
+    description: Prometheus exporter for nginx
+    auto-fetch: true
+    upstream-source: nginx/nginx-prometheus-exporter:0.11.0
 
 provides:
+  metrics-endpoint:
+    interface: prometheus_scrape
+  grafana-dashboard:
+    interface: grafana_dashboard
   ingress-proxy:
     interface: ingress
 
 requires:
+  logging:
+    interface: loki_push_api
+    limit: 1
   ingress:
     interface: ingress
     limit: 1

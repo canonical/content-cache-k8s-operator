@@ -1,0 +1,28 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+name: content-cache
+summary: Content-cache-k8s ROCK image.
+description: Content-cache-k8s ROCK.
+version: "latest"
+base: ubuntu:22.04
+license: Apache-2.0
+platforms:
+  amd64:
+parts:
+  content-cache:
+    plugin: nil
+    stage-packages:
+      - nginx-light
+      - bash
+      - coreutils
+  copy-config:
+    plugin: dump
+    source: .
+    organize:
+      nginx-logging-format.conf: srv/content-cache/files/nginx-logging-format.conf
+      nginx_cfg.tmpl: srv/content-cache/templates/nginx_cfg.tmpl
+      entrypoint.sh: srv/content-cache/entrypoint.sh
+
+    prime:
+      - etc/*
+      - srv/content-cache/*
