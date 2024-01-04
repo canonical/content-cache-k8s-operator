@@ -20,13 +20,7 @@ from charms.nginx_ingress_integrator.v0.ingress import (
     IngressRequires,
 )
 from charms.prometheus_k8s.v0.prometheus_scrape import MetricsEndpointProvider
-from ops.charm import (
-    ActionEvent,
-    CharmBase,
-    ConfigChangedEvent,
-    PebbleReadyEvent,
-    UpgradeCharmEvent,
-)
+from ops.charm import ActionEvent, CharmBase, ConfigChangedEvent, UpgradeCharmEvent
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 from tabulate import tabulate
@@ -79,10 +73,6 @@ class ContentCacheCharm(CharmBase):
         self.framework.observe(
             self.on.content_cache_pebble_ready, self._on_content_cache_pebble_ready
         )
-        self.framework.observe(
-            self.on.nginx_prometheus_exporter_pebble_ready,
-            self._on_nginx_prometheus_exporter_pebble_ready,
-        )
         # Provide ability for Content-cache to be scraped by Prometheus using prometheus_scrape
         self._metrics_endpoint = MetricsEndpointProvider(
             self, jobs=[{"static_configs": [{"targets": ["*:9113"]}]}]
@@ -113,17 +103,6 @@ class ContentCacheCharm(CharmBase):
             event: Event triggering the pebble ready hook for the content-cache container.
         """
         msg = "Configuring workload container (content-cache-pebble-ready)"
-        logger.info(msg)
-        self.model.unit.status = MaintenanceStatus(msg)
-        self.on.config_changed.emit()
-
-    def _on_nginx_prometheus_exporter_pebble_ready(self, event: PebbleReadyEvent) -> None:
-        """Handle content_cache_pebble_ready event and configure workload container.
-
-        Args:
-            event: Event triggering the pebble ready hook for the nginx prometheus exporter.
-        """
-        msg = "Configuring workload container (nginx-prometheus-exporter-pebble-ready)"
         logger.info(msg)
         self.model.unit.status = MaintenanceStatus(msg)
         self.on.config_changed.emit()
@@ -257,23 +236,10 @@ class ContentCacheCharm(CharmBase):
                 logger.info(msg)
                 self.unit.status = MaintenanceStatus(msg)
                 container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
+                container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
                 container.pebble.replan_services()
         else:
-            self.unit.status = WaitingStatus("Waiting for Pebble to start (content-cache)")
-            event.defer()
-            return
-
-        exporter_container = self.unit.get_container(EXPORTER_CONTAINER_NAME)
-        if exporter_container.can_connect():
-            msg = "Updating exporter pebble layer config"
-            logger.info(msg)
-            self.unit.status = MaintenanceStatus(msg)
-            exporter_container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
-            exporter_container.pebble.replan_services()
-        else:
-            self.unit.status = WaitingStatus(
-                "Waiting for Pebble to start (nginx-prometheus-exporter)"
-            )
+            self.unit.status = WaitingStatus("Waiting for Pebble to start")
             event.defer()
             return
 
@@ -298,13 +264,13 @@ class ContentCacheCharm(CharmBase):
         """Generate pebble config for the nginx-prometheus-exporter container.
 
         Returns:
-            Pebble layer config for the nginx-prometheus-exporter container.
+            Pebble layer config for the nginx-prometheus-exporter layer.
         """
         return {
             "summary": "Nginx prometheus exporter",
             "description": "Prometheus exporter for nginx",
             "services": {
-                "nginx-exporter": {
+                "nginx-prometheus-exporter": {
                     "override": "replace",
                     "summary": "Nginx Prometheus Exporter",
                     "command": (
