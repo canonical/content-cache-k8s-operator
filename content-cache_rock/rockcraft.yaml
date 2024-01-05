@@ -16,7 +16,7 @@ parts:
       - bash
       - coreutils
     stage-snaps:
-      - gtrkiller-nginx-prometheus-exporter/latest/edge
+      - rocks-nginx-prometheus-exporter/latest/edge
   copy-config:
     plugin: dump
     source: .
