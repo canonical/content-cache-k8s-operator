@@ -133,11 +133,11 @@ async def app(
     Deploy any-charm charm, builds the charm and deploys it for testing purposes.
     """
     any_app_name = "any-app"
-    ingress_lib = Path("lib/charms/nginx_ingress_integrator/v0/ingress.py").read_text()
+    ingress_lib = Path("lib/charms/nginx_ingress_integrator/v0/nginx_route.py").read_text()
     any_charm_script = Path("tests/integration/any_charm.py").read_text()
 
     any_charm_src_overwrite = {
-        "ingress.py": ingress_lib,
+        "nginx_route.py": ingress_lib,
         "any_charm.py": any_charm_script,
     }
 
@@ -167,7 +167,7 @@ async def app(
     apps = [app_name, nginx_integrator_app.name, any_app_name]
     await ops_test.model.add_relation(any_app_name, f"{app_name}:nginx-proxy")
     await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
-    await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:ingress")
+    await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:nginx-route")
     await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
 
     assert ops_test.model.applications[app_name].units[0].workload_status == ActiveStatus.name
