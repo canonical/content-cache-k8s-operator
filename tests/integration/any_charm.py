@@ -27,17 +27,7 @@ class AnyCharm(AnyCharmBase):
             kwargs: Variable list of positional keyword arguments passed to the parent constructor.
         """
         super().__init__(*args, **kwargs)
-        require_nginx_route(charm=self, **self.nginx_route_config())
-
-    @staticmethod
-    def nginx_route_config() -> Dict:
-        """Get the nginx-route configuration from a JSON file on disk.
-
-        Returns:
-            The nginx-route config to be used
-        """
-        src_path = pathlib.Path(__file__).parent
-        return json.loads((src_path / "nginx_route_config.json").read_text(encoding="utf-8"))
+        require_nginx_route(charm=self, service_hostname=self.app.name, service_name=self.app.name, service_port=80)
 
     def delete_nginx_route_relation_data(self, field: str) -> None:
         """Delete one data filed from the nginx-route relation data.
