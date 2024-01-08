@@ -162,10 +162,10 @@ async def app(
     try:
         await ops_test.model.wait_for_idle(raise_on_blocked=True)
     except (JujuAppError, JujuUnitError):
-        print("BlockedStatus raised: will be solved after relation ingress-proxy")
+        print("BlockedStatus raised: will be solved after relation nginx-proxy")
 
     apps = [app_name, nginx_integrator_app.name, any_app_name]
-    await ops_test.model.add_relation(any_app_name, f"{app_name}:ingress-proxy")
+    await ops_test.model.add_relation(any_app_name, f"{app_name}:nginx-proxy")
     await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
     await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:ingress")
     await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)

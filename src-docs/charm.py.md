@@ -20,7 +20,7 @@ Charm for Content-cache on Kubernetes.
 ## <kbd>class</kbd> `ContentCacheCharm`
 Charm the service. 
 
-Attrs:  on: Ingress Charm Events  ERROR_LOG_PATH: NGINX error log  ACCESS_LOG_PATH: NGINX access log  _metrics_endpoint: Provider of metrics for Prometheus charm  _logging: Requirer of logs for Loki charm  _grafana_dashboards: Dashboard Provider for Grafana charm  ingress_proxy_provides: Ingress proxy provider  ingress: Ingress requirer  unit: Charm's designated juju unit  model: Charm's designated juju model 
+Attrs:  on: Ingress Charm Events  ERROR_LOG_PATH: NGINX error log  ACCESS_LOG_PATH: NGINX access log  _metrics_endpoint: Provider of metrics for Prometheus charm  _logging: Requirer of logs for Loki charm  _grafana_dashboards: Dashboard Provider for Grafana charm  nginx_proxy_provides: Ingress proxy provider  ingress: Ingress requirer  unit: Charm's designated juju unit  model: Charm's designated juju model 
 
 <a href="../src/charm.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 

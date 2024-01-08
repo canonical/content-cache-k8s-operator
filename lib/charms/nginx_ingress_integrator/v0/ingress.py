@@ -79,7 +79,7 @@ from ops.framework import EventBase, EventSource, Object
 from ops.model import BlockedStatus
 
 INGRESS_RELATION_NAME = "ingress"
-INGRESS_PROXY_RELATION_NAME = "ingress-proxy"
+INGRESS_PROXY_RELATION_NAME = "nginx-proxy"
 
 # The unique Charmhub library identifier, never change it
 LIBID = "db0af4367506491c91663468fb5caa4c"
@@ -295,14 +295,14 @@ class IngressBaseProvides(Object):
         """Init function for the IngressProxyProvides class.
 
         Args:
-            charm: The charm that provides the ingress-proxy relation.
+            charm: The charm that provides the nginx-proxy relation.
             relation_name: The name of the relation.
         """
         super().__init__(charm, relation_name)
         self.charm = charm
 
     def _on_relation_changed(self, event: RelationChangedEvent) -> None:
-        """Handle a change to the ingress/ingress-proxy relation.
+        """Handle a change to the ingress/nginx-proxy relation.
 
         Confirm we have the fields we expect to receive.
 
@@ -396,7 +396,7 @@ class IngressProvides(IngressBaseProvides):
 
 
 class IngressProxyProvides(IngressBaseProvides):
-    """Class containing the functionality for the 'provides' side of the 'ingress-proxy' relation.
+    """Class containing the functionality for the 'provides' side of the 'nginx-proxy' relation.
 
     Hook events observed:
         - relation-changed
@@ -406,7 +406,7 @@ class IngressProxyProvides(IngressBaseProvides):
         """Init function for the IngressProxyProvides class.
 
         Args:
-            charm: The charm that provides the ingress-proxy relation.
+            charm: The charm that provides the nginx-proxy relation.
         """
         super().__init__(charm, INGRESS_PROXY_RELATION_NAME)
         # Observe the relation-changed hook event and bind

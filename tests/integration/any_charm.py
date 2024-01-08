@@ -13,7 +13,7 @@ from ingress import IngressRequires
 
 
 class AnyCharm(AnyCharmBase):
-    """Execute a simple web-server charm to test the ingress-proxy relation.
+    """Execute a simple web-server charm to test the nginx-proxy relation.
 
     Attrs:
         ingress: The attribute that mimics a real ingress relation.
