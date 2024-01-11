@@ -1,23 +1,21 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+# This Python script is designed to be loaded into any-charm. Some lint checks do not apply
+# pylint: disable=import-error,consider-using-with,duplicate-code
+
 """This code snippet is used to be loaded into any-charm which is used for integration tests."""
 import os
 import pathlib
 import signal
 import subprocess
-import tempfile
 
 from any_charm_base import AnyCharmBase
-from ingress import IngressRequires
+from nginx_route import require_nginx_route
 
 
 class AnyCharm(AnyCharmBase):
-    """Execute a simple web-server charm to test the ingress-proxy relation.
-
-    Attrs:
-        ingress: The attribute that mimics a real ingress relation.
-    """
+    """Execute a simple web-server charm to test the nginx-route relation."""
 
     def __init__(self, *args, **kwargs):
         """Init function for the class.
@@ -27,18 +25,18 @@ class AnyCharm(AnyCharmBase):
             kwargs: Variable list of positional keyword arguments passed to the parent constructor.
         """
         super().__init__(*args, **kwargs)
-        self.ingress = IngressRequires(
-            self,
-            {"service-hostname": self.app.name, "service-name": self.app.name, "service-port": 80},
+        require_nginx_route(
+            charm=self, service_hostname=self.app.name, service_name=self.app.name, service_port=80
         )
 
-    def update_ingress(self, ingress_config):
-        """Update Ingress config.
+    def delete_nginx_route_relation_data(self, field: str) -> None:
+        """Delete one data field from the nginx-route relation data.
 
         Args:
-            ingress_config: New Ingress configuration to be applied.
+            field: the name of the field to be deleted.
         """
-        self.ingress.update_config(ingress_config)
+        relation = self.model.get_relation("nginx-route")
+        del relation.data[self.app][field]
 
     @staticmethod
     def start_server(port: int = 80):
@@ -50,15 +48,20 @@ class AnyCharm(AnyCharmBase):
         Returns:
             The port where the server is connected.
         """
-        www_dir = tempfile.mkdtemp()
+        www_dir = pathlib.Path("/tmp/www")
+        www_dir.mkdir(exist_ok=True)
+        (www_dir / "ok").write_text("ok")
         # We create a pid file to avoid concurrent executions of the http server
         pid_file = pathlib.Path("/tmp/any.pid")
         if pid_file.exists():
-            os.kill(int(pid_file.read_text()), signal.SIGKILL)
+            os.kill(int(pid_file.read_text(encoding="utf8")), signal.SIGKILL)
             pid_file.unlink()
-        p = subprocess.Popen(
+        log_file_object = pathlib.Path("/tmp/any.log").open("wb+")
+        proc_http = subprocess.Popen(
             ["python3", "-m", "http.server", "-d", www_dir, str(port)],
             start_new_session=True,
+            stdout=log_file_object,
+            stderr=log_file_object,
         )
-        pid_file.write_text(str(p.pid))
+        pid_file.write_text(str(proc_http.pid), encoding="utf8")
         return port

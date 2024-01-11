@@ -132,7 +132,6 @@ class TestCharm:
 
     @mock.patch("charm.ContentCacheCharm._make_nginx_config")
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
-    @mock.patch("charms.nginx_ingress_integrator.v0.ingress.IngressRequires.update_config")
     @mock.patch("ops.model.Container.add_layer")
     @mock.patch("ops.model.Container.get_service")
     @mock.patch("ops.model.Container.make_dir")
@@ -149,7 +148,6 @@ class TestCharm:
         make_dir,
         get_service,
         add_layer,
-        ingress_update,
         make_pebble_config,
         make_nginx_config,
     ):
@@ -161,13 +159,6 @@ class TestCharm:
         config = self.config
         harness = self.harness
         harness.update_config(config)
-        expect = {
-            "max-body-size": "1m",
-            "service-hostname": "mysite.local",
-            "service-name": "content-cache-k8s",
-            "service-port": 8080,
-        }
-        ingress_update.assert_called_with(expect)
         make_pebble_config.assert_called_once()
         make_nginx_config.assert_called_once()
         assert add_layer.call_count == 2
@@ -439,14 +430,14 @@ class TestCharm:
 
     def test_make_ingress_config_with_proxy_relation(self):
         """
-        arrange: set ingress-proxy relation
+        arrange: set nginx-proxy relation
         act: verify ingress config
         assert: ingress config is generated as expected
         """
         harness = self.harness
         expected = copy.deepcopy(INGRESS_CONFIG)
         assert harness.charm._make_ingress_config() == expected
-        relation_id = harness.add_relation("ingress-proxy", "hello-kubecon")
+        relation_id = harness.add_relation("nginx-proxy", "hello-kubecon")
         harness.add_relation_unit(relation_id, "hello-kubecon/0")
         relations_data = {
             "service-name": "test-proxy",
@@ -479,7 +470,7 @@ class TestCharm:
 
     def test_make_env_config_with_proxy_relation(self):
         """
-        arrange: set ingress-proxy relation
+        arrange: set nginx-proxy relation
         act: verify env config
         assert: env config is generated as expected
         """
@@ -490,7 +481,7 @@ class TestCharm:
         current_env_config = harness.charm._make_env_config()
         current_site = current_env_config["CONTENT_CACHE_SITE"]
         assert current_site == "mysite.local"
-        relation_id = harness.add_relation("ingress-proxy", "hello-kubecon")
+        relation_id = harness.add_relation("nginx-proxy", "hello-kubecon")
         harness.add_relation_unit(relation_id, "hello-kubecon/0")
         relations_data = {
             "service-name": "test-proxy",

@@ -5,13 +5,13 @@ options:
   site:
     type: string
     description: >
-      Required if no ingress-proxy relation is established. The site name, e.g. "mysite.local".
+      Required if no nginx-proxy relation is established. The site name, e.g. "mysite.local".
       If the backend is set and this option is empty then the site will default to the application
       name.
   backend:
     type: string
     description: >
-      Required if no ingress-proxy relation is established. The backend to use for site, e.g. "http://mybackend.local:80".
+      Required if no nginx-proxy relation is established. The backend to use for site, e.g. "http://mybackend.local:80".
     default: ""
   backend_site_name:
     type: string
