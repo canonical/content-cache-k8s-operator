@@ -5,12 +5,10 @@
 # pylint: disable=import-error,consider-using-with,duplicate-code
 
 """This code snippet is used to be loaded into any-charm which is used for integration tests."""
-import json
 import os
 import pathlib
 import signal
 import subprocess
-from typing import Dict
 
 from any_charm_base import AnyCharmBase
 from nginx_route import require_nginx_route
@@ -27,10 +25,12 @@ class AnyCharm(AnyCharmBase):
             kwargs: Variable list of positional keyword arguments passed to the parent constructor.
         """
         super().__init__(*args, **kwargs)
-        require_nginx_route(charm=self, service_hostname=self.app.name, service_name=self.app.name, service_port=80)
+        require_nginx_route(
+            charm=self, service_hostname=self.app.name, service_name=self.app.name, service_port=80
+        )
 
     def delete_nginx_route_relation_data(self, field: str) -> None:
-        """Delete one data filed from the nginx-route relation data.
+        """Delete one data field from the nginx-route relation data.
 
         Args:
             field: the name of the field to be deleted.
@@ -39,7 +39,7 @@ class AnyCharm(AnyCharmBase):
         del relation.data[self.app][field]
 
     @staticmethod
-    def start_server(port: int = 8080):
+    def start_server(port: int = 80):
         """Start an HTTP server daemon.
 
         Args:
