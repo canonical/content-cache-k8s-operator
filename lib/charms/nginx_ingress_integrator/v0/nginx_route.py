@@ -1,4 +1,4 @@
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # Licensed under the Apache2.0. See LICENSE file in charm source for details.
 """Library for the nginx-route relation.
 
@@ -86,7 +86,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 4
+LIBPATCH = 5
 
 __all__ = ["require_nginx_route", "provide_nginx_route"]
 
@@ -97,13 +97,6 @@ class _NginxRouteAvailableEvent(ops.framework.EventBase):
     """NginxRouteAvailableEvent custom event.
 
     This event indicates the nginx-route provider is available.
-    """
-
-
-class _NginxRouteProxyAvailableEvent(ops.framework.EventBase):
-    """NginxRouteProxyAvailableEvent custom event.
-
-    This event indicates the NginxRouteProxy provider is available.
     """
 
 
@@ -122,7 +115,6 @@ class _NginxRouteCharmEvents(ops.charm.CharmEvents):
         nginx_route_broken: Event to indicate that Nginx route relation is broken.
     """
 
-    nginx_route_proxy_available = ops.framework.EventSource(_NginxRouteProxyAvailableEvent)
     nginx_route_available = ops.framework.EventSource(_NginxRouteAvailableEvent)
     nginx_route_broken = ops.framework.EventSource(_NginxRouteBrokenEvent)
 
@@ -412,7 +404,8 @@ def provide_nginx_route(
         RuntimeError: If provide_nginx_route was invoked twice with
             the same nginx-route relation name
     """
-    if __provider_references.get(charm, {}).get(nginx_route_relation_name) is not None:
+    ref_dict: typing.Dict[str, typing.Any] = __provider_references.get(charm, {})
+    if ref_dict.get(nginx_route_relation_name) is not None:
         raise RuntimeError(
             "provide_nginx_route was invoked twice with the same nginx-route relation name"
         )
