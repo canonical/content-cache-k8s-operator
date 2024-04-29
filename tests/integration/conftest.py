@@ -104,7 +104,7 @@ async def nginx_integrator_app(ops_test: OpsTest):
     """Deploy nginx-ingress-integrator charm."""
     nginx_integrator_app_name = "nginx-ingress-integrator"
     nginx_integrator_app = await ops_test.model.deploy(nginx_integrator_app_name, trust=True)
-    await ops_test.model.wait_for_idle(apps=[nginx_integrator_app.name], wait_for_active=True)
+    await ops_test.model.wait_for_idle(apps=[nginx_integrator_app.name])
     return nginx_integrator_app
 
 
