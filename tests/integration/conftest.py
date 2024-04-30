@@ -195,9 +195,3 @@ async def ip_address_list(ops_test: OpsTest, app: Application, nginx_integrator_
 async def ingress_ip(ip_address_list: List):
     """First match is the ingress IP."""
     yield ip_address_list[0]
-
-
-@pytest_asyncio.fixture(scope="module")
-async def service_ip(ip_address_list: List):
-    """Last match is the service IP."""
-    yield ip_address_list[-1]

@@ -5,6 +5,7 @@
 
 import re
 import secrets
+from typing import List
 
 import juju.action
 import pytest
@@ -59,15 +60,19 @@ async def test_an_app_cache_header(ingress_ip: str):
 
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_service_reachable(service_ip: str):
+async def test_unit_reachable(unit_ip_list: List):
     """
     arrange: given charm has been built, deployed and related to a dependent application
-    act: when the dependent application is queried via the service
+    act: when the dependent application is queried via the unit
     assert: then the response is HTTP 200 OK.
     """
-    response = requests.get(f"http://{service_ip}:8080", timeout=5)
+    # Check we are querying at least one unit.
+    assert len(unit_ip_list) > 0
 
-    assert response.status_code == 200
+    for unit_ip in unit_ip_list:
+        response = requests.get(f"http://{unit_ip}:8080", timeout=5)
+
+        assert response.status_code == 200
 
 
 async def test_report_visits_by_ip(app: Application):
