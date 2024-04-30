@@ -162,7 +162,6 @@ async def app(
 
     apps = [app_name, nginx_integrator_app.name, any_app_name]
     await ops_test.model.add_relation(any_app_name, f"{app_name}:nginx-proxy")
-    await ops_test.model.wait_for_idle(apps=apps)
     await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:nginx-route")
     await ops_test.model.wait_for_idle(apps=apps, wait_for_active=True)
 
