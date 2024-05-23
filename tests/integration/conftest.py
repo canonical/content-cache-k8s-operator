@@ -104,7 +104,8 @@ async def nginx_integrator_app(ops_test: OpsTest):
     """Deploy nginx-ingress-integrator charm."""
     nginx_integrator_app_name = "nginx-ingress-integrator"
     nginx_integrator_app = await ops_test.model.deploy(nginx_integrator_app_name, trust=True)
-    yield nginx_integrator_app
+    await ops_test.model.wait_for_idle(apps=[nginx_integrator_app.name])
+    return nginx_integrator_app
 
 
 @fixture(scope="module")
@@ -143,7 +144,7 @@ async def app(
         config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
     )
     await run_action(any_app_name, "rpc", method="start_server")
-    await ops_test.model.wait_for_idle(status="active")
+    await ops_test.model.wait_for_idle()
 
     application = await ops_test.model.deploy(
         charm_file,
@@ -161,9 +162,8 @@ async def app(
 
     apps = [app_name, nginx_integrator_app.name, any_app_name]
     await ops_test.model.add_relation(any_app_name, f"{app_name}:nginx-proxy")
-    await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
     await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:nginx-route")
-    await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
+    await ops_test.model.wait_for_idle(apps=apps, wait_for_active=True)
 
     assert ops_test.model.applications[app_name].units[0].workload_status == ActiveStatus.name
     assert ops_test.model.applications[any_app_name].units[0].workload_status == ActiveStatus.name
@@ -195,9 +195,3 @@ async def ip_address_list(ops_test: OpsTest, app: Application, nginx_integrator_
 async def ingress_ip(ip_address_list: List):
     """First match is the ingress IP."""
     yield ip_address_list[0]
-
-
-@pytest_asyncio.fixture(scope="module")
-async def service_ip(ip_address_list: List):
-    """Last match is the service IP."""
-    yield ip_address_list[-1]
