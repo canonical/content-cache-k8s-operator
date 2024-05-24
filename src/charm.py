@@ -103,7 +103,7 @@ class ContentCacheCharm(CharmBase):
             on_nginx_route_broken=self._on_config_changed,
             nginx_route_relation_name="nginx-proxy",
         )
-        self.framework.observe(self.on.nginx_route_proxy_available, self._on_config_changed)
+        self.framework.observe(self.on.nginx_route_available, self._on_config_changed)
 
     def _on_content_cache_pebble_ready(self, event) -> None:
         """Handle content_cache_pebble_ready event and configure workload container.
