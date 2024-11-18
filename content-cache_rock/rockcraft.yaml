@@ -1,4 +1,4 @@
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 name: content-cache
 summary: Content-cache-k8s ROCK image.
@@ -15,6 +15,8 @@ parts:
       - nginx-light
       - bash
       - coreutils
+    stage-snaps:
+      - rocks-nginx-prometheus-exporter/latest/edge
   copy-config:
     plugin: dump
     source: .

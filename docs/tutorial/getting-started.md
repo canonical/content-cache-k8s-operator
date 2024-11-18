@@ -41,7 +41,7 @@ This is because the Content-cache-k8s charm isn't integrated with Hello-kubecon 
 Provide integration between Content-cache-k8s and Hello-kubecon by running the following [`juju relate`](https://juju.is/docs/olm/juju-relate) command:
 
 ```bash
-juju relate content-cache-k8s:ingress-proxy hello-kubecon
+juju relate content-cache-k8s:nginx-proxy hello-kubecon
 ```
 
 Run `juju status` to see that the message has changed:
@@ -51,7 +51,7 @@ content-cache-k8s/0*  active    idle   10.1.97.227         Ready
 hello-kubecon/0*      active    idle   10.1.97.193
 ```
 
-Note: `ingress-proxy` is the name of the relation. You can run `juju info content-cache-k8s` to check what are the relation names provided by the Content-cache-k8s application and `juju status --relations` to see the relations currently established in the model.
+Note: `nginx-proxy` is the name of the relation. You can run `juju info content-cache-k8s` to check what are the relation names provided by the Content-cache-k8s application and `juju status --relations` to see the relations currently established in the model.
 
 The deployment finishes when the status shows "Active".
 

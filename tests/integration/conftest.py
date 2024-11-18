@@ -1,4 +1,4 @@
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 """General configuration module for integration tests."""
@@ -93,12 +93,6 @@ async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
     yield get_unit_ip_list_action
 
 
-@fixture(scope="module")
-def nginx_prometheus_exporter_image(metadata):
-    """Provide the statsd prometheus exporter image from the metadata."""
-    yield metadata["resources"]["nginx-prometheus-exporter-image"]["upstream-source"]
-
-
 @pytest_asyncio.fixture(scope="function")
 async def unit_ip_list(get_unit_ip_list):
     """Yield ip addresses of current units."""
@@ -110,12 +104,8 @@ async def nginx_integrator_app(ops_test: OpsTest):
     """Deploy nginx-ingress-integrator charm."""
     nginx_integrator_app_name = "nginx-ingress-integrator"
     nginx_integrator_app = await ops_test.model.deploy(nginx_integrator_app_name, trust=True)
-    await ops_test.model.wait_for_idle()
-    assert (
-        ops_test.model.applications[nginx_integrator_app_name].units[0].workload_status
-        == ActiveStatus.name
-    )
-    yield nginx_integrator_app
+    await ops_test.model.wait_for_idle(apps=[nginx_integrator_app.name])
+    return nginx_integrator_app
 
 
 @fixture(scope="module")
@@ -131,7 +121,6 @@ async def app(
     app_name: str,
     charm_file: str,
     content_cache_image: str,
-    nginx_prometheus_exporter_image: str,
     nginx_integrator_app: Application,
     run_action,
 ):
@@ -140,11 +129,11 @@ async def app(
     Deploy any-charm charm, builds the charm and deploys it for testing purposes.
     """
     any_app_name = "any-app"
-    ingress_lib = Path("lib/charms/nginx_ingress_integrator/v0/ingress.py").read_text()
+    ingress_lib = Path("lib/charms/nginx_ingress_integrator/v0/nginx_route.py").read_text()
     any_charm_script = Path("tests/integration/any_charm.py").read_text()
 
     any_charm_src_overwrite = {
-        "ingress.py": ingress_lib,
+        "nginx_route.py": ingress_lib,
         "any_charm.py": any_charm_script,
     }
 
@@ -155,14 +144,13 @@ async def app(
         config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
     )
     await run_action(any_app_name, "rpc", method="start_server")
-    await ops_test.model.wait_for_idle(status="active")
+    await ops_test.model.wait_for_idle()
 
     application = await ops_test.model.deploy(
         charm_file,
         application_name=app_name,
         resources={
             "content-cache-image": content_cache_image,
-            "nginx-prometheus-exporter-image": nginx_prometheus_exporter_image,
         },
         series="jammy",
     )
@@ -170,13 +158,12 @@ async def app(
     try:
         await ops_test.model.wait_for_idle(raise_on_blocked=True)
     except (JujuAppError, JujuUnitError):
-        print("BlockedStatus raised: will be solved after relation ingress-proxy")
+        print("BlockedStatus raised: will be solved after relation nginx-proxy")
 
     apps = [app_name, nginx_integrator_app.name, any_app_name]
-    await ops_test.model.add_relation(any_app_name, f"{app_name}:ingress-proxy")
-    await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
-    await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:ingress")
-    await ops_test.model.wait_for_idle(apps=apps, status=ActiveStatus.name, timeout=60 * 5)
+    await ops_test.model.add_relation(any_app_name, f"{app_name}:nginx-proxy")
+    await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:nginx-route")
+    await ops_test.model.wait_for_idle(apps=apps, wait_for_active=True)
 
     assert ops_test.model.applications[app_name].units[0].workload_status == ActiveStatus.name
     assert ops_test.model.applications[any_app_name].units[0].workload_status == ActiveStatus.name
@@ -208,9 +195,3 @@ async def ip_address_list(ops_test: OpsTest, app: Application, nginx_integrator_
 async def ingress_ip(ip_address_list: List):
     """First match is the ingress IP."""
     yield ip_address_list[0]
-
-
-@pytest_asyncio.fixture(scope="module")
-async def service_ip(ip_address_list: List):
-    """Last match is the service IP."""
-    yield ip_address_list[-1]
