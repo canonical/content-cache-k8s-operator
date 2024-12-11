@@ -5,16 +5,15 @@
 
 # Content Cache Operator
 
-A Juju charm for deploying and managing a content cache.
+A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) deploying and managing service for caching content on Kubernetes, built on top of [Nginx](https://www.nginx.com/), configurable to cache any http or https web site and useful for building Content Delivery Networks (CDN).
 
-## Overview
-
-A service for caching content, built on top of [Nginx](https://www.nginx.com/),
-configurable to cache any http or https web site. Tuning options include
-cache storage size, maximum request size to cache and cache validity duration.
+Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For Charmed Content Cache, this includes:
+* scaling the number of cache instances
+* cache configuration changes
+* deployment on many different Kubernetes platforms, from MicroK8s to Charmed Kubernetes and public cloud Kubernetes offerings
 
 This service was developed to provide front-end caching for web sites run by
-Canonical's IS team, and to reduce the need for third-party CDNs by providing
+Canonical's IS (Infrastructure Services) team, and to reduce the need for third-party CDNs by providing
 high-bandwidth access to web sites via this caching front-end. Currently used
 for a number of services including [the Snap Store](https://snapcraft.io/store),
 the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
@@ -24,17 +23,51 @@ This Kubernetes-based version is built using the same approach as the [machine c
 a situation where your Kubernetes cluster and its ingress controllers have
 a fast connection to the Internet.
 
+For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache Documentation](https://charmhub.io/content-cache-k8s/docs).
+
+## Get Started
+
+To begin, refer to the [Getting Started](https://charmhub.io/content-cache-k8s/docs/tutorial-getting-started) tutorial for step-by-step instructions.
+
+### Basic Operations
+
+The following actions are available for the charm:
+- report-visits-by-ip
+
+Tuning options include:
+- cache storage size
+- maximum request size to cache 
+- cache validity duration
+
+You can find more information about supported actions in [the Charmhub documentation](https://charmhub.io/content-cache-k8s/actions).
+
+## Integrations
+
+Since Content-cache is meant to serve as cache for another charm, you can use Hello-kubecon as an example:
+
+```
+juju deploy content-cache-k8s
+juju deploy hello-kubecon
+juju relate content-cache-k8s:ingress-proxy hello-kubecon
+```
+
+Apart from this integration, the charm can be integrated with other Juju charms and services as well. You can find the full list of integrations in [the Charmhub documentation](https://charmhub.io/content-cache-k8s/integrations).
+
+
+## Learn more
+
+- [Read more](https://charmhub.io/content-cache-k8s/docs)
+- [Developer documentation](https://nginx.org/en/docs/dev/development_guide.html)
+- [Official webpage](https://www.nginx.com/)
+- [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
+
+
 ## Project and community
 
-The Content-cache-k8s Operator is a member of the Ubuntu family. It's an
+The Content-cache-k8s Operator is a member of the Ubuntu family. It is an
 open source project that warmly welcomes community projects, contributions,
 suggestions, fixes and constructive feedback.
 * [Code of conduct](https://ubuntu.com/community/code-of-conduct)
 * [Get support](https://discourse.charmhub.io/)
-* [Join our online chat](https://chat.charmhub.io/charmhub/channels/charm-dev)
 * [Contribute](https://charmhub.io/content-cache-k8s/docs/how-to-guides-contributing)
-Thinking about using the Content-cache-k8s for your next project? [Get in touch](https://chat.charmhub.io/charmhub/channels/charm-dev)!
-
----
-
-For further details, [see the charm's detailed documentation](https://charmhub.io/content-cache-k8s/docs)
+* [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
