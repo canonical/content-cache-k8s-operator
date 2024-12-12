@@ -19,6 +19,7 @@ header:
     - '.flake8'
     - '.jujuignore'
     - '.gitignore'
+    - '.trivyignore'
     - '.licenserc.yaml'
     - 'CODEOWNERS'
     - 'icon.svg'
