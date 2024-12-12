@@ -13,3 +13,13 @@ parts:
   charm:
     prime: 
       - content-cache_rock/nginx_cfg.tmpl
+    build-snaps:
+      - rustup
+    override-build: |
+      rustup default stable
+      craftctl default
+    build-packages:
+      - libffi-dev
+      - libssl-dev
+      - pkg-config
+
