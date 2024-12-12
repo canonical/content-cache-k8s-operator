@@ -1,3 +1,4 @@
+pydantic ==1.10.19
 cosl==0.0.45
 ops>=2.8
 tabulate
