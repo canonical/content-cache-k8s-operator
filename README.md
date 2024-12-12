@@ -69,5 +69,5 @@ open source project that warmly welcomes community projects, contributions,
 suggestions, fixes and constructive feedback.
 * [Code of conduct](https://ubuntu.com/community/code-of-conduct)
 * [Get support](https://discourse.charmhub.io/)
-* [Contribute](https://charmhub.io/content-cache-k8s/docs/how-to-guides-contributing)
+* [Contribute](https://charmhub.io/content-cache-k8s/docs/how-to-contribute)
 * [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
