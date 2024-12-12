@@ -27,7 +27,7 @@ For information about how to deploy, integrate, and manage this charm, see the O
 
 ## Get Started
 
-To begin, refer to the [Getting Started](https://charmhub.io/content-cache-k8s/docs/tutorial-getting-started) tutorial for step-by-step instructions.
+To begin, refer to the [Content Cache tutorial](https://charmhub.io/content-cache-k8s/docs/tutorial-getting-started) for step-by-step instructions.
 
 ### Basic Operations
 
@@ -43,7 +43,7 @@ You can find more information about supported actions in [the Charmhub documenta
 
 ## Integrations
 
-Since Content-cache is meant to serve as cache for another charm, you can use Hello-kubecon as an example:
+Content-cache is meant to serve as cache for another charm. You can use Hello-kubecon as an example:
 
 ```
 juju deploy content-cache-k8s
