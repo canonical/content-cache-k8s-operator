@@ -25,7 +25,7 @@ a fast connection to the Internet.
 
 For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache Documentation](https://charmhub.io/content-cache-k8s/docs).
 
-## Get Started
+## Get started
 
 To begin, refer to the [Content Cache tutorial](https://charmhub.io/content-cache-k8s/docs/tutorial-getting-started) for step-by-step instructions.
 
