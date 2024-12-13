@@ -70,4 +70,5 @@ suggestions, fixes and constructive feedback.
 * [Code of conduct](https://ubuntu.com/community/code-of-conduct)
 * [Get support](https://discourse.charmhub.io/)
 * [Contribute](https://charmhub.io/content-cache-k8s/docs/how-to-contribute)
+* [Issues](https://github.com/canonical/content-cache-k8s-operator/issues)
 * [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
