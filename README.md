@@ -29,7 +29,7 @@ For information about how to deploy, integrate, and manage this charm, see the O
 
 To begin, refer to the [Content Cache tutorial](https://charmhub.io/content-cache-k8s/docs/tutorial-getting-started) for step-by-step instructions.
 
-### Basic Operations
+### Basic operations
 
 The following actions are available for the charm:
 - report-visits-by-ip
