@@ -8,6 +8,7 @@ jobs:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
+      juju-channel: 3.6/stable
       setup-devstack-swift: true
       trivy-image-config: "trivy.yaml"
       extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
