@@ -43,6 +43,7 @@ def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
         Returns:
             The results of the executed action
         """
+        assert ops_test.model
         application = ops_test.model.applications[application_name]
         action = await application.units[0].run_action(action_name, **params)
         await action.wait()
