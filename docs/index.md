@@ -21,6 +21,7 @@ For DevOps or SRE teams this charm will make operating it simple and straightfor
   1. [How to contribute](how-to/contribute.md)
 1. [Reference](reference)
   1. [Actions](reference/actions.md)
+  1. [## Charm Redeployment](reference/charm-redeployment.md)
   1. [Configurations](reference/configurations.md)
   1. [External access](reference/external-access.md)
   1. [Integrations](reference/integrations.md)
