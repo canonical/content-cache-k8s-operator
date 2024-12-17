@@ -43,12 +43,15 @@ You can find more information about supported actions in [the Charmhub documenta
 
 ## Integrations
 
-Content-cache is meant to serve as cache for another charm. You can use Hello-kubecon as an example:
+Content-cache is meant to serve as cache for another charm. You can use Wordpress as an example:
 
 ```
 juju deploy content-cache-k8s
-juju deploy hello-kubecon
-juju relate content-cache-k8s:ingress-proxy hello-kubecon
+juju deploy wordpress-k8s
+juju deploy mysql-k8s --trust
+
+juju integrate wordpress-k8s mysql-k8s:database
+juju integrate content-cache-k8s:nginx-proxy wordpress-k8s
 ```
 
 Apart from this integration, the charm can be integrated with other Juju charms and services as well. You can find the full list of integrations in [the Charmhub documentation](https://charmhub.io/content-cache-k8s/integrations).
