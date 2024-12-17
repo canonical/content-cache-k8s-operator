@@ -35,7 +35,7 @@ The following actions are available for the charm:
 - report-visits-by-ip
 
 Tuning options include:
-- cache storage size
+- cache storage size 
 - maximum request size to cache 
 - cache validity duration
 
