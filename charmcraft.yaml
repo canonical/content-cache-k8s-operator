@@ -13,11 +13,6 @@ parts:
   charm:
     plugin: charm
     source: .
-  rock_data:
-    plugin: dump
-    source: .
-    prime:
-      - content-cache_rock/nginx_cfg.tmpl
     build-snaps:
       - rustup
     override-build: |
@@ -27,4 +22,10 @@ parts:
       - libffi-dev
       - libssl-dev
       - pkg-config
+  rock_data:
+    plugin: dump
+    source: .
+    prime:
+      - content-cache_rock/nginx_cfg.tmpl
+    
 
