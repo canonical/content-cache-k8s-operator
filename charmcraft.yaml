@@ -11,7 +11,12 @@ bases:
         channel: "22.04"
 parts:
   charm:
-    prime: 
+    plugin: charm
+    source: .
+  rock_data:
+    plugin: dump
+    source: .
+    prime:
       - content-cache_rock/nginx_cfg.tmpl
     build-snaps:
       - rustup
