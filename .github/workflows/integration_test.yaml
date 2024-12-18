@@ -1,11 +1,11 @@
 name: Integration tests
 
 on:
-  pull_request:
+  push:
 
 jobs:
   integration-tests:
-    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@fix/conditional-export-secret-env
     secrets: inherit
     with:
       setup-devstack-swift: true
