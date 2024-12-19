@@ -11,6 +11,7 @@ from collections import Counter
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
+import ops.pebble
 from charms.grafana_k8s.v0.grafana_dashboard import GrafanaDashboardProvider
 from charms.loki_k8s.v0.loki_push_api import LogProxyConsumer
 from charms.nginx_ingress_integrator.v0.nginx_route import (
@@ -285,7 +286,6 @@ class ContentCacheCharm(CharmBase):
                         "nginx-prometheus-exporter"
                         f" -nginx.scrape-uri=http://localhost:{CONTAINER_PORT}/stub_status"
                     ),
-                    "requires": CONTAINER_NAME,
                     "startup": "enabled",
                 },
             },
@@ -402,7 +402,7 @@ class ContentCacheCharm(CharmBase):
 
         return env_config
 
-    def _make_pebble_config(self, env_config) -> dict:
+    def _make_pebble_config(self, env_config) -> ops.pebble.PlanDict:
         """Generate our pebble config layer.
 
         Args:
@@ -422,6 +422,13 @@ class ContentCacheCharm(CharmBase):
                     "startup": "enabled",
                     "environment": env_config,
                 },
+            },
+            "checks": {
+                CONTAINER_NAME: {
+                    "override": "replace",
+                    "exec": {"command": "ps -A | grep nginx"},
+                    "threshold": 1,
+                }
             },
         }
         return pebble_config
