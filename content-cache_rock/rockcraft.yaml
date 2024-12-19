@@ -4,7 +4,7 @@ name: content-cache
 summary: Content-cache-k8s ROCK image.
 description: Content-cache-k8s ROCK.
 version: "latest"
-base: ubuntu:22.04
+base: ubuntu@22.04
 license: Apache-2.0
 platforms:
   amd64:
