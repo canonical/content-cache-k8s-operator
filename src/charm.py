@@ -278,13 +278,14 @@ class ContentCacheCharm(CharmBase):
             "summary": "Nginx prometheus exporter",
             "description": "Prometheus exporter for nginx",
             "services": {
-                "nginx-prometheus-exporter": {
+                EXPORTER_CONTAINER_NAME: {
                     "override": "replace",
                     "summary": "Nginx Prometheus Exporter",
                     "command": (
                         "nginx-prometheus-exporter"
                         f" -nginx.scrape-uri=http://localhost:{CONTAINER_PORT}/stub_status"
                     ),
+                    "requires": CONTAINER_NAME,
                     "startup": "enabled",
                 },
             },
