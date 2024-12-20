@@ -51,6 +51,13 @@ PEBBLE_CONFIG = {
             "environment": "",
         },
     },
+    "checks": {
+        CONTAINER_NAME: {
+            "override": "replace",
+            "exec": {"command": "ps -A | grep nginx"},
+            "threshold": 1,
+        }
+    },
 }
 
 DATE_NOW = datetime.now().strftime("%d/%b/%Y:%H:%M:%S")
