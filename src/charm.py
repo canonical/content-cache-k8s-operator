@@ -269,7 +269,7 @@ class ContentCacheCharm(CharmBase):
         hashed_name = hashed_value.hexdigest()[0:12]
         return f"{hashed_name}-cache"
 
-    def _get_nginx_prometheus_exporter_pebble_config(self):
+    def _get_nginx_prometheus_exporter_pebble_config(self) -> ops.pebble.LayerDict:
         """Generate pebble config for the nginx-prometheus-exporter container.
 
         Returns:
@@ -287,6 +287,7 @@ class ContentCacheCharm(CharmBase):
                         f" -nginx.scrape-uri=http://localhost:{CONTAINER_PORT}/stub_status"
                     ),
                     "startup": "enabled",
+                    "requires": [CONTAINER_NAME],
                 },
             },
             "checks": {
