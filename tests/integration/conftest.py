@@ -1,4 +1,4 @@
-# Copyright 2024 Canonical Ltd.
+# Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 """General configuration module for integration tests."""
@@ -43,6 +43,7 @@ def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
         Returns:
             The results of the executed action
         """
+        assert ops_test.model
         application = ops_test.model.applications[application_name]
         action = await application.units[0].run_action(action_name, **params)
         await action.wait()
@@ -143,6 +144,7 @@ async def app(
         channel="beta",
         config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
     )
+    await ops_test.model.wait_for_idle(timeout=600)
     await run_action(any_app_name, "rpc", method="start_server")
     await ops_test.model.wait_for_idle()
 

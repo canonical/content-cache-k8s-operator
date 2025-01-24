@@ -1,4 +1,4 @@
-# Copyright 2024 Canonical Ltd.
+# Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 import copy
 import io
@@ -50,6 +50,13 @@ PEBBLE_CONFIG = {
             "startup": "enabled",
             "environment": "",
         },
+    },
+    "checks": {
+        CONTAINER_NAME: {
+            "override": "replace",
+            "exec": {"command": "ps -A | grep nginx"},
+            "threshold": 1,
+        }
     },
 }
 

@@ -10,4 +10,8 @@ jobs:
     with:
       setup-devstack-swift: true
       trivy-image-config: "trivy.yaml"
+      juju-channel: 3/stable
+      channel: 1.31-strict/stable
       extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
+      self-hosted-runner: true  
+      self-hosted-runner-label: self-hosted-linux-amd64-jammy-large
