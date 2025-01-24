@@ -201,7 +201,7 @@ class TestCharm:
         """
         arrange: some nginx log lines are simulated
         act: process the log line
-        assert: only the log liens logged less than 20 minutes ago are accepted
+        assert: only the log lines logged less than 20 minutes ago are accepted
         """
         mock_pull.return_value = io.StringIO(test_input)
         action = self.harness.charm._report_visits_by_ip()
