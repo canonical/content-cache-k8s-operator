@@ -61,6 +61,11 @@ This is done by publishing a resource to Charmhub as described in the [Juju SDK 
 
 ## Integrations
 
+The Content Cache K8S charm supports various integrations to provide additional functionality.
+
+It is possible for a type of integration to be fulfil by multiple types of charms.
+Below is a diagram of a basic Content Cache deployment with some sample charms to fulfil each integration.
+
 ```mermaid
 C4Component
 title Sample integration for Content Cache K8S Charm
