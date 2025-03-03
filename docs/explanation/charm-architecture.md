@@ -25,15 +25,15 @@ And if you run `kubectl describe pod content-cache-k8s-0`, all the containers wi
 
 ## Containers
 
-Configuration files for the containers can be found in [the files directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/files) and in [the templates directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/templates)
+Configuration files for the containers can be found in [the files directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/files) and in [the templates directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/templates).
 
 ```mermaid
 C4Component
 title Component diagram for Content Cache K8S Charm
 
 Container_Boundary(content-cache-k8s, "Content Cache K8S") {
-  Component(nginx-prometheus, "NGINX prometheus exporter", "", "Scapes metrics from the NGINX of the Content Cache container")
-  Component(charm, "Content Cache", "", "Caching static files using NGINX")
+  Component(nginx-prometheus, "NGINX prometheus exporter", "", "Scrapes metrics from the NGINX of the Content Cache container")
+  Component(charm, "Content Cache", "", "Caches static files using NGINX")
 
   Rel(nginx-prometheus, charm, "")
 }
