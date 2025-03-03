@@ -71,6 +71,9 @@ Component(grafana-agent-k8s, "Grafana Agent K8S", "", "")
 
 Rel(charm, nginx-ingress,"nginx-route")
 Rel(charm, grafana-agent-k8s, "grafana-dashboard, metric-endpoint, logging")
+
+UpdateRelStyle(charm, nginx-ingress, $offsetX="-30", $offsetY="10")
+UpdateRelStyle(charm, grafana-agent-k8s, $offsetX="-50", $offsetY="30")
 ```
 
 ### Grafana
