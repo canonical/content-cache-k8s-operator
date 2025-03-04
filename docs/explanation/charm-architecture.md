@@ -29,9 +29,9 @@ Configuration files for the containers can be found in [the files directory of t
 
 ```mermaid
 C4Component
-title Component diagram for Content Cache K8S Charm
+title Component diagram for Content Cache K8s Charm
 
-Container_Boundary(content-cache-k8s, "Content Cache K8S") {
+Container_Boundary(content-cache-k8s, "Content Cache K8s") {
   Component(nginx-prometheus, "NGINX prometheus exporter", "", "Scrapes metrics from the NGINX of the Content Cache container")
   Component(charm, "Content Cache", "", "Caches static files using NGINX")
 
@@ -61,18 +61,18 @@ This is done by publishing a resource to Charmhub as described in the [Juju SDK 
 
 ## Integrations
 
-The Content Cache K8S charm supports various integrations to provide additional functionality.
+The Content Cache K8s charm supports various integrations to provide additional functionality.
 
-It is possible for a type of integration to be fulfil by multiple types of charms.
-Below is a diagram of a basic Content Cache deployment with some sample charms to fulfil each integration.
+It is possible for a type of integration to be fulfilled by multiple types of charms.
+Below is a diagram of a basic Content Cache deployment with some sample charms to fulfill each integration.
 
 ```mermaid
 C4Component
-title Sample integration for Content Cache K8S Charm
+title Sample integration for Content Cache K8s Charm
 
 Component(nginx-ingress, "NGINX Ingress", "", "")
-Component(charm, "Content Cache K8S", "", "")
-Component(grafana-agent-k8s, "Grafana Agent K8S", "", "")
+Component(charm, "Content Cache K8s", "", "")
+Component(grafana-agent-k8s, "Grafana Agent K8s", "", "")
 
 Rel(charm, nginx-ingress,"nginx-route")
 Rel(charm, grafana-agent-k8s, "grafana-dashboard, metric-endpoint, logging")
