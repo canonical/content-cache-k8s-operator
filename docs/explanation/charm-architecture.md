@@ -25,7 +25,19 @@ And if you run `kubectl describe pod content-cache-k8s-0`, all the containers wi
 
 ## Containers
 
-Configuration files for the containers can be found in [the files directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/files) and in [the templates directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/templates)
+Configuration files for the containers can be found in [the files directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/files) and in [the templates directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/templates).
+
+```mermaid
+C4Component
+title Component diagram for Content Cache K8s Charm
+
+Container_Boundary(content-cache-k8s, "Content Cache K8s") {
+  Component(nginx-prometheus, "NGINX prometheus exporter", "", "Scrapes metrics from the NGINX of the Content Cache container")
+  Component(charm, "Content Cache", "", "Caches static files using NGINX")
+
+  Rel(nginx-prometheus, charm, "")
+}
+```
 
 ### Content cache
 
@@ -48,6 +60,26 @@ The image defined in [Content-cache dockerfile](https://github.com/canonical/con
 This is done by publishing a resource to Charmhub as described in the [Juju SDK How-to guides](https://juju.is/docs/sdk/publishing).
 
 ## Integrations
+
+The Content Cache K8s charm supports various integrations to provide additional functionality.
+
+It is possible for a type of integration to be fulfilled by multiple types of charms.
+Below is a diagram of a basic Content Cache deployment with some sample charms to fulfill each integration.
+
+```mermaid
+C4Component
+title Sample integration for Content Cache K8s Charm
+
+Component(nginx-ingress, "NGINX Ingress", "", "")
+Component(charm, "Content Cache K8s", "", "")
+Component(grafana-agent-k8s, "Grafana Agent K8s", "", "")
+
+Rel(charm, nginx-ingress,"nginx-route")
+Rel(charm, grafana-agent-k8s, "grafana-dashboard, metric-endpoint, logging")
+
+UpdateRelStyle(charm, nginx-ingress, $offsetX="-30", $offsetY="10")
+UpdateRelStyle(charm, grafana-agent-k8s, $offsetX="-50", $offsetY="30")
+```
 
 ### Grafana
 
