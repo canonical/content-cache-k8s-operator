@@ -2,7 +2,7 @@
 
 This document describes the security design of the Content Cache K8S charm. The charm manages a [nginx web server](https://nginx.org/) configured as a static web content cache. This document will detail the risk and good practices.
 
-## Man-in-the-middle attack
+## Machine-in-the-middle attack
 
 This type of attack refers to an attacker intercepting messages and pretend to be the intended recipient of the message.
 For example, if an user tries to access `ubuntu.com`, an attacker might intercept the packets and pretend to be `ubuntu.com`, and trick the user to reveal their password.
