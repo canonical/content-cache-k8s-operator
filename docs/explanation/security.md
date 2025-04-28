@@ -21,9 +21,9 @@ If the response from the host contains sensitive data, then the response should 
 
 For example, a response with `Set-Cookie` header is commonly used to store login session to the client browser. If this response is cached and reused for future requests then other people might gain access to the login session of the original request.
 
-When Nginx designed the content cache feature, this risk was considered. By default nginx does not cache response with `Set-Cookie` in the header.
+When Nginx designed the content cache feature, this risk was considered. By default Nginx does not cache responses with `Set-Cookie` in the header.
 The host can also control the caching behaviors with `Cache-Control`.
-By default, Nginx respects  the `Cache-Control` header. If the header is set to value such as `private`, `no-cache`, `no-store`, Nginx would not cache the response.
+By default, Nginx respects  the `Cache-Control` header. If the header is set to a value such as `private`, `no-cache`, or `no-store`, Nginx would not cache the response.
 The charm does not override this default setting.
 
 ### Good practice
