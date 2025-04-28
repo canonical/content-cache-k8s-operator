@@ -19,7 +19,7 @@ Enable TLS certificates with the [`tls_secret_name` configuration](https://charm
 The Content Cache K8s charm caches the response of the host and reuse it for future requests.
 If the response from the host contains sensitive data, then the response should not be stored and reused for future requests.
 
-For example, a response with `Set-Cookie` header is commonly used to store login session to the client browser. If this response is cached and reused for future requests then other people might gain access to the login session of the original request.
+For example, a response with `Set-Cookie` header is commonly used to store a login session to the client browser. If this response is cached and reused for future requests then other people might gain access to the login session of the original request.
 
 When Nginx designed the content cache feature, this risk was considered. By default Nginx does not cache responses with `Set-Cookie` in the header.
 The host can also control the caching behaviors with `Cache-Control`.
