@@ -49,9 +49,9 @@ warmly welcomes community  projects, contributions, suggestions, fixes, and cons
 
 1. [Tutorial](tutorial)
   1. [Basic deployment of the content-cache-k8s charm](tutorial/getting-started.md)
-1. [How To](how-to)
+1. [How to](how-to)
   1. [Cache content with OpenStack/Swift storage](how-to/cache-content-with-openstack-swift.md)
-  1. [How to contribute](how-to/contribute.md)
+  1. [Contribute](how-to/contribute.md)
 1. [Reference](reference)
   1. [Actions](reference/actions.md)
   1. [Configurations](reference/configurations.md)
@@ -60,3 +60,4 @@ warmly welcomes community  projects, contributions, suggestions, fixes, and cons
   1. [Redeployment](reference/charm-redeployment.md)
 1. [Explanation](explanation)
   1. [Charm architecture](explanation/charm-architecture.md)
+  1. [Security](explanation/security.md)
