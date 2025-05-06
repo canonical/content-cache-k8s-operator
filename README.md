@@ -23,7 +23,7 @@ This Kubernetes-based version is built using the same approach as the [machine c
 a situation where your Kubernetes cluster and its ingress controllers have
 a fast connection to the Internet.
 
-For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache Documentation](https://charmhub.io/content-cache-k8s/docs).
+For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache K8s Documentation](https://charmhub.io/content-cache-k8s/docs).
 
 ## Get started
 
@@ -72,6 +72,6 @@ open source project that warmly welcomes community projects, contributions,
 suggestions, fixes and constructive feedback.
 * [Code of conduct](https://ubuntu.com/community/code-of-conduct)
 * [Get support](https://discourse.charmhub.io/)
-* [Contribute](https://charmhub.io/content-cache-k8s/docs/how-to-contribute)
+* [Contribute](https://github.com/canonical/content-cache-k8s-operator/blob/main/CONTRIBUTING.md)
 * [Issues](https://github.com/canonical/content-cache-k8s-operator/issues)
 * [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
