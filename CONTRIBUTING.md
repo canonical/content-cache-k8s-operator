@@ -165,7 +165,7 @@ charmcraft pack
 juju add-model content-cache-k8s-dev
 # Enable DEBUG logging
 juju model-config logging-config="<root>=INFO;unit=DEBUG"
-# Deploy the charm (Assuming you're on amd64)
-juju deploy ./content-cache-k8s_ubuntu-20.04-amd64.charm \
+# Deploy the charm
+juju deploy ./content-cache-k8s_ubuntu-20.04*.charm \
 --resource content-cache-image=localhost:32000/content-cache:latest
 ```
