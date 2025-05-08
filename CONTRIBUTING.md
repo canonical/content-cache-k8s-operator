@@ -149,7 +149,7 @@ the MicroK8s registry:
 ```bash
 cd [project_dir]/content-cache_rock
 rockcraft pack
-skopeo --insecure-policy copy --dest-tls-verify=false oci-archive:content-cache-k8s_1.0_amd64.rock docker://localhost:32000/content-cache:latest
+rockcraft.skopeo --insecure-policy copy --dest-tls-verify=false oci-archive:content-cache-k8s_1.0_amd64.rock docker://localhost:32000/content-cache:latest
 ```
 
 Build the charm in this git repository using:
