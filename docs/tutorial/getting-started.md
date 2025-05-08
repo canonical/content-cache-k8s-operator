@@ -1,4 +1,4 @@
-# Quick guide
+# Basic deployment of the content-cache-k8s charm
 
 ## What you’ll do
 
@@ -8,7 +8,7 @@
 
 Through the process, you'll inspect the Kubernetes resources created, verify the workload state and assign the Content-cache-k8s to serve your Hello-kubecon instance.
 
-## Requirements
+## What you'll need
 
 - Juju 3 installed.
 - Juju controller and model created.

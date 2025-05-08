@@ -1,5 +1,5 @@
-## Charm Redeployment
+## Redeployment
 
-If you need to redeploy the [content-cache-k8s](https://charmhub.io/content-cache-k8s) charm, it has no underlying state.
-Hence going through a normal deployment process using the same configuration options and relations
-as your original deployment will suffice.
+The `content-cache-k8s` charm has no underlying state. To redeploy the charm,
+you need to proceed with a normal deployment process using the same
+configuration options and relations as your original deployment.
