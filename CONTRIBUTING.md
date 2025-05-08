@@ -105,7 +105,8 @@ git clone https://github.com/canonical/content-cache-k8s-operator
 
 ```
 
-You can create an environment for development with `python3-venv`:
+You can create an environment for development with `python3-venv`.
+We will also install `tox` inside the virtual environment for testing:
 
 ```bash
 sudo apt install python3-venv
@@ -113,8 +114,6 @@ python3 -m venv venv
 source venv/bin/activate
 pip install tox
 ```
-
-Install `tox` inside the virtual environment for testing.
 
 ### Test
 
