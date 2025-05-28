@@ -47,7 +47,7 @@ _Supported charms_: [loki-k8s](https://charmhub.io/loki-k8s)
 Loki is an open-source fully-featured logging system. This charm is shipped with support for the [Loki Operator](https://charmhub.io/loki-k8s) to collect the generated logs.
 
 The logging relation is a part of the COS relation to enhance logging observability. Logging relation through the `loki_push_api` interface installs and runs promtail which ships the
-contents of local logs found at `/var/log/apache2/access.log` and `/var/log/apache2/error.log` to Loki.
+contents of local logs found at `/var/log/nginx/error.log` and `/var/log/nginx/access.log` to Loki.
 This can then be queried through the Loki API or easily visualized through Grafana. Learn more about COS
 [here](https://charmhub.io/topics/canonical-observability-stack).
 
