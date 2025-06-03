@@ -61,6 +61,8 @@ This is done by publishing a resource to Charmhub as described in the [Juju SDK 
 
 ## Integrations
 
+See [relation endpoints](https://charmhub.io/content-cache-k8s/docs/reference-integrations).
+
 The Content Cache K8s charm supports various integrations to provide additional functionality.
 
 It is possible for a type of integration to be fulfilled by multiple types of charms.
@@ -81,27 +83,7 @@ UpdateRelStyle(charm, nginx-ingress, $offsetX="-30", $offsetY="10")
 UpdateRelStyle(charm, grafana-agent-k8s, $offsetX="-50", $offsetY="30")
 ```
 
-### Grafana
-
-Grafana is an open-source visualization tool that allows to query, visualize, alert on, and visualize metrics from mixed datasources in configurable dashboards for observability. This charm is shipped with its own Grafana dashboard and supports integration with the [Grafana Operator](https://charmhub.io/grafana-k8s) to simplify observability.
-
-### Ingress
-
-The Content-cache charm also supports being integrated with [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
-
-In this case, an existing Ingress controller is required. For more information, see [Adding the Ingress Relation to a Charm](https://charmhub.io/nginx-ingress-integrator/docs/adding-ingress-relation).
-
-### Loki
-
-Loki is an open-source fully-featured logging system. This charm is shipped with support for the [Loki Operator](https://charmhub.io/loki-k8s) to collect the generated logs.
-
-### Prometheus
-
-Prometheus is an open-source system monitoring and alerting toolkit with a dimensional data model, flexible query language, efficient time series database, and modern alerting approach. This charm is shipped with a Prometheus exporter, alerts, and support for integrating with the [Prometheus Operator](https://charmhub.io/prometheus-k8s) to automatically scrape the targets.
-
 ## Juju events
-
-Accordingly to the [Juju SDK](https://juju.is/docs/sdk/event): "an event is a data structure that encapsulates part of the execution context of a charm".
 
 For this charm, the following events are observed:
 
@@ -124,13 +106,13 @@ The `__init__` method guarantees that the charm observes all events relevant to 
 
 Take, for example, when a configuration is changed by using the CLI.
 
-1. User runs the command
+1. User runs the command:
 ```bash
-juju config smtp_login=user1
+juju config content-cache-k8s backend="http://mybackend.local:80"
 ```
-2. A `config-changed` event is emitted
+2. A `config-changed` event is emitted.
 3. In the `__init__` method is defined how to handle this event like this:
 ```python
 self.framework.observe(self.on.config_changed, self._on_config_changed)
 ```
-4. The method `_on_config_changed`, for its turn,  will take the necessary actions such as waiting for all the relations to be ready and then configuring the containers.
+4. The method `_on_config_changed`, for its turn, will take the necessary actions such as waiting for all the relations to be ready and then configuring the containers.
