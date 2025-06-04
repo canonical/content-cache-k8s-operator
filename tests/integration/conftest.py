@@ -142,7 +142,6 @@ async def app(
         "any-charm",
         application_name=any_app_name,
         channel="beta",
-        revision=50,
         config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
     )
     await ops_test.model.wait_for_idle(timeout=600)
@@ -164,7 +163,7 @@ async def app(
         print("BlockedStatus raised: will be solved after relation nginx-proxy")
 
     apps = [app_name, nginx_integrator_app.name, any_app_name]
-    await ops_test.model.add_relation(f"{any_app_name}:nginx-route", f"{app_name}:nginx-proxy")
+    await ops_test.model.add_relation(f"{any_app_name}:require-nginx-route", f"{app_name}:nginx-proxy")
     await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:nginx-route")
     await ops_test.model.wait_for_idle(apps=apps, wait_for_active=True)
 
