@@ -142,6 +142,7 @@ async def app(
         "any-charm",
         application_name=any_app_name,
         channel="beta",
+        revision=50,
         config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
     )
     await ops_test.model.wait_for_idle(timeout=600)
