@@ -8,7 +8,9 @@ PRAECEPTA_REPO ?= https://github.com/canonical/praecepta.git
 PRAECEPTA_DIR ?= $(VALE_DIR)/praecepta
 PRAECEPTA_CONFIG ?= $(PRAECEPTA_DIR)/vale.ini
 PRAECEPTA_REF ?= main
+PRAECEPTA_WORDLIST_DIR ?= $(PRAECEPTA_DIR)/styles/config/vocabularies/Canonical
 
+CUSTOM_WORDLIST ?= .custom_wordlist.txt
 DOCS_FILES ?= docs/
 
 .PHONY: vale-install vale-setup vale-check vale-clean
@@ -33,11 +35,19 @@ vale-setup:
 		echo "Cloning Canonical Praecepta Vale config..."; \
 		git clone --depth 1 --branch $(PRAECEPTA_REF) $(PRAECEPTA_REPO) $(PRAECEPTA_DIR); \
 	else \
-		echo "Updating Canonical Praecepta Vale config..."; \
-		cd $(PRAECEPTA_DIR) && git fetch origin && git checkout $(PRAECEPTA_REF) && git pull origin $(PRAECEPTA_REF); \
+		echo "Praecepta already cloned. Resetting and updating to $(PRAECEPTA_REF)..."; \
+		cd "$(PRAECEPTA_DIR)" && \
+		git fetch origin > /dev/null && \
+		git reset --hard origin/$(PRAECEPTA_REF) > /dev/null && \
+		git clean -fd > /dev/null; \
 	fi
 
-vale-check: vale-install vale-setup
+vale-inject-wordlist: vale-setup
+	@echo "Injecting custom wordlist into Praecepta config..."
+	@cp "$(PRAECEPTA_WORDLIST_DIR)/accept.txt" "$(PRAECEPTA_WORDLIST_DIR)/accept_backup.txt"
+	@cat "$(CUSTOM_WORDLIST)" >> "$(PRAECEPTA_WORDLIST_DIR)/accept.txt"
+
+vale-check: vale-install vale-setup vale-inject-wordlist
 	vale --config=$(PRAECEPTA_CONFIG) $(DOCS_FILES)
 
 vale-clean:
