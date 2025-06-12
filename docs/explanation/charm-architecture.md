@@ -19,7 +19,7 @@ content-cache-k8s-0              3/3     Running   0          97s
 
 ```
 
-This shows there are 3 containers - the two named above, as well as a container for the charm code itself.
+This shows there are three containers - the two named above, as well as a container for the charm code itself.
 
 And if you run `kubectl describe pod content-cache-k8s-0`, all the containers will have as Command ```/charm/bin/pebble```. That's because Pebble is responsible for the processes startup as explained above.
 
@@ -43,7 +43,7 @@ Container_Boundary(content-cache-k8s, "Content Cache K8s") {
 
 This container is the entry point for all web traffic to the pod (on port `80`). Serves static files directly.
 
-The workload that this container is running is defined in the [Content-cache dockerfile in the charm repository](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache.Dockerfile).
+The workload that this container is running is defined in the [Content-cache rock in the charm repository](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache_rock/rockcraft.yaml).
 
 ### NGINX prometheus exporter
 

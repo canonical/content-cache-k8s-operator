@@ -1,0 +1,44 @@
+# Minimal makefile for documentation
+#
+
+# Vale settings
+VALE_DIR ?= .vale
+
+PRAECEPTA_REPO ?= https://github.com/canonical/praecepta.git
+PRAECEPTA_DIR ?= $(VALE_DIR)/praecepta
+PRAECEPTA_CONFIG ?= $(PRAECEPTA_DIR)/vale.ini
+PRAECEPTA_REF ?= main
+
+DOCS_FILES ?= docs/
+
+.PHONY: vale-install vale-setup vale-check vale-clean
+
+.PHONY: list-docs-targets
+list-docs-targets:
+	@grep -E '^[a-zA-Z0-9._-]+:([^=]|$$)' $(lastword $(MAKEFILE_LIST)) \
+		| grep -vE '^(\.PHONY|list-docs-targets|help)' \
+		| sed 's/:.*//' \
+		| sort -u \
+		| sed 's/^/  make /'
+
+vale-install:
+	@command -v vale >/dev/null 2>&1 || { \
+		echo "Installing Vale using snap..."; \
+		sudo snap install vale; \
+	}
+	@vale --version
+
+vale-setup:
+	@if [ ! -d "$(PRAECEPTA_DIR)" ]; then \
+		echo "Cloning Canonical Praecepta Vale config..."; \
+		git clone --depth 1 --branch $(PRAECEPTA_REF) $(PRAECEPTA_REPO) $(PRAECEPTA_DIR); \
+	else \
+		echo "Updating Canonical Praecepta Vale config..."; \
+		cd $(PRAECEPTA_DIR) && git fetch origin && git checkout $(PRAECEPTA_REF) && git pull origin $(PRAECEPTA_REF); \
+	fi
+
+vale-check: vale-install vale-setup
+	vale --config=$(PRAECEPTA_CONFIG) $(DOCS_FILES)
+
+vale-clean:
+	rm -rf $(VALE_DIR)
