@@ -45,6 +45,10 @@ _vale-inject-wordlist: vale-setup
 vale-check: vale-install vale-setup _vale-inject-wordlist ## Validate project documentation against Canonical Style Rules
 	vale --config=$(PRAECEPTA_CONFIG) $(DOCS_FILES)
 
+.PHONY: vale-check-lines
+vale-check-lines: vale-install vale-setup _vale-inject-wordlist ## Vale check with clickable file:line output
+	vale --config=$(PRAECEPTA_CONFIG) --output=line $(DOCS_FILES)
+
 .PHONY: vale-clean
 vale-clean: ## Remove the local copy of the Canonical Styles rules
 	rm -rf $(VALE_DIR)

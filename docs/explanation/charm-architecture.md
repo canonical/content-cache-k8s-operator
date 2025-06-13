@@ -45,17 +45,17 @@ This container is the entry point for all web traffic to the pod (on port `80`).
 
 The workload that this container is running is defined in the [Content-cache rock in the charm repository](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache_rock/rockcraft.yaml).
 
-### NGINX prometheus exporter
+### Nginx pometheus exporter
 
 This container runs the `nginx/nginx-prometheus-exporter` image.
 
 The `NGINX Prometheus Exporter` is started with `-nginx.scrape-uri=http://localhost:9080/stub_status` so will scrape metrics from the NGINX container.
 
-This has been configured in the NGINX container to return NGINX's [stub_status](http://nginx.org/en/docs/http/ngx_http_stub_status_module.html). The exporter listens on port `9113` and metrics about web traffic to the pod can be scraped by Prometheus there.
+This has been configured in the NGINX container to return NGINX's [`stub_status`](http://nginx.org/en/docs/http/ngx_http_stub_status_module.html). The exporter listens on port `9113` and metrics about web traffic to the pod can be scraped by Prometheus there.
 
 ## Docker images
 
-The image defined in [Content-cache dockerfile](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache.Dockerfile) in the charm repository is published to [Charmhub](https://charmhub.io/), the official repository of charms.
+The image defined in [Content-cache `dockerfile`](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache.Dockerfile) in the charm repository is published to [Charmhub](https://charmhub.io/), the official repository of charms.
 
 This is done by publishing a resource to Charmhub as described in the [Juju SDK How-to guides](https://juju.is/docs/sdk/publishing).
 
@@ -87,11 +87,11 @@ UpdateRelStyle(charm, grafana-agent-k8s, $offsetX="-50", $offsetY="30")
 
 For this charm, the following events are observed:
 
-1. [<container name>_pebble_ready](https://juju.is/docs/sdk/container-name-pebble-ready-event): fired on Kubernetes charms when the requested container is ready.
+1. [`<container name>_pebble_ready`](https://juju.is/docs/sdk/container-name-pebble-ready-event): fired on Kubernetes charms when the requested container is ready.
 Action: wait for the integrations, and configure the containers.
-2. [config_changed](https://juju.is/docs/sdk/config-changed-event): usually fired in response to a configuration change using the CLI.
+2. [`config_changed`](https://juju.is/docs/sdk/config-changed-event): usually fired in response to a configuration change using the CLI.
 Action: wait for the integrations, validate the configuration, update Ingress, and restart the containers.
-3. [report_visits_by_ip](https://charmhub.io/content-cache-k8s/actions): fired when report-visits-by-ip action is executed.
+3. [`report_visits_by_ip`](https://charmhub.io/content-cache-k8s/actions): fired when report-visits-by-ip action is executed.
 Action: Report the amount of visits grouped by IP that have visited the service ordered by amount of visits.
 
 ## Charm code overview

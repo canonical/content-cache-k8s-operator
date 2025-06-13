@@ -1,5 +1,7 @@
 # Basic deployment of the content-cache-k8s charm
 
+Deploy and integrate the Content-cache-k8s charm using Juju.
+
 ## What you’ll do
 
 - Deploy the [Content-cache-k8s charm](https://charmhub.io/content-cache-k8s).
@@ -10,9 +12,10 @@ Through the process, you'll inspect the Kubernetes resources created, verify the
 
 ## What you'll need
 
-- Juju 3 installed.
+
+- `Juju 3` installed.
 - Juju controller and model created.
-- NGINX Ingress Controller. If you're using [MicroK8s](https://microk8s.io/), this can be done by running the command `microk8s enable ingress`. For more details, see [Addon: Ingress](https://microk8s.io/docs/addon-ingress).
+- NGINX Ingress Controller. If you're using [MicroK8s](https://microk8s.io/), this can be done by running the command `microk8s enable ingress`. For more details, see [Add-on: Ingress](https://microk8s.io/docs/addon-ingress).
 
 For more information about how to install Juju, see [Get started with Juju](https://juju.is/docs/olm/get-started-with-juju).
 
