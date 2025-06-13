@@ -3,10 +3,18 @@
 
 include Makefile.docs
 
-.PHONY: help
-help:
-	@echo "Top-level targets:"
-	@echo "  make help           - Run Help command"
-	@echo
-	@echo "Documentation-specific targets from Makefile.docs:"
-	@$(MAKE) -s -f Makefile.docs list-docs-targets
+.PHONY: help 
+help: _list-targets ## Prints all availble targets
+
+.PHONY: _list-targets
+_list-targets: ## This collects and prints all targets, ignore internal commands
+	@echo "Available targets:"
+	@awk -F'[:#]' '                                               \
+		/^[a-zA-Z0-9._-]+:([^=]|$$)/ {                            \
+			target = $$1;                                         \
+			comment = "";                                         \
+			if (match($$0, /## .*/))                              \
+				comment = substr($$0, RSTART + 3);                \
+			if (target != ".PHONY" && target !~ /^_/ && !seen[target]++) \
+				printf "  make %-20s # %s\n", target, comment;    \
+		}' $(MAKEFILE_LIST) | sort
