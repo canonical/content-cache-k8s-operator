@@ -25,3 +25,6 @@ CVE-2023-45288
 CVE-2024-34156
 # Pebble vulnerabilities
 CVE-2024-45338
+# stdlib
+CVE-2025-22874
+
