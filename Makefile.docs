@@ -23,7 +23,7 @@ vale-install: ## Make sure Vale is installed on the system
 	@vale --version
 
 .PHONY: vale-setup
-vale-setup: ## Pull in Canonical Style rules, injecting project specific wordlists
+vale-setup: ## Pull in Canonical Style rules
 	@if [ ! -d "$(PRAECEPTA_DIR)" ]; then \
 		echo "Cloning Canonical Praecepta Vale config..."; \
 		git clone --depth 1 --branch $(PRAECEPTA_REF) $(PRAECEPTA_REPO) $(PRAECEPTA_DIR); \

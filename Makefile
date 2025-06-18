@@ -7,7 +7,7 @@
 include Makefile.docs
 
 .PHONY: help 
-help: _list-targets ## Prints all availble targets
+help: _list-targets ## Prints all available targets
 
 .PHONY: _list-targets
 _list-targets: ## This collects and prints all targets, ignore internal commands
