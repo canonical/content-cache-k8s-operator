@@ -1,6 +1,8 @@
 # Relation endpoints
 
-### grafana-dashboard
+This section provides details on the available relation endpoints.
+
+### `grafana-dashboard`
 
 _Interface_: grafana-dashboard
 
@@ -21,7 +23,7 @@ Grafana-dashboard integrate command:
 juju integrate content-cache-k8s grafana-dashboard`
 ```
 
-### ingress
+### `ingress`
 
 _Interface_: ingress
 
@@ -32,21 +34,21 @@ The Content-cache charm also supports being integrated with [Ingress](https://ku
 
 Ingress manages external HTTP/HTTPS access to services in a Kubernetes cluster.
 In this case, an existing Ingress controller is required. For more information, see [Adding the Ingress Relation to a Charm](https://charmhub.io/nginx-ingress-integrator/docs/adding-ingress-relation). Documentation to enable ingress in MicroK8s can be found in
-[Addon: Ingress](https://microk8s.io/docs/addon-ingress).
+[Add-on: Ingress](https://microk8s.io/docs/addon-ingress).
 
 Ingress integrate command: 
 ```
 juju integrate content-cache-k8s nginx-ingress-integrator
 ```
 
-### logging
+### `logging`
 
-_Interface_: loki_push_api  
+_Interface_: `loki_push_api`  
 _Supported charms_: [loki-k8s](https://charmhub.io/loki-k8s)
 
 Loki is an open-source fully-featured logging system. This charm is shipped with support for the [Loki Operator](https://charmhub.io/loki-k8s) to collect the generated logs.
 
-The logging relation is a part of the COS relation to enhance logging observability. Logging relation through the `loki_push_api` interface installs and runs promtail which ships the
+The logging relation is a part of the COS relation to enhance logging observability. Logging relation through the `loki_push_api` interface installs and runs `promtail` which ships the
 contents of local logs found at `/var/log/nginx/error.log` and `/var/log/nginx/access.log` to Loki.
 This can then be queried through the Loki API or easily visualized through Grafana. Learn more about COS
 [here](https://charmhub.io/topics/canonical-observability-stack).
@@ -57,9 +59,9 @@ juju integrate content-cache-k8s loki-k8s
 ```
 
 
-### metrics-endpoint
+### `metrics-endpoint`
 
-_Interface_: [prometheus_scrape](https://charmhub.io/interfaces/prometheus_scrape-v0)
+_Interface_: [`prometheus_scrape`](https://charmhub.io/interfaces/prometheus_scrape-v0)
 
 _Supported charms_: [prometheus-k8s](https://charmhub.io/prometheus-k8s)
 

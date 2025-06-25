@@ -44,4 +44,4 @@ If your cluster has [RBAC](https://kubernetes.io/docs/reference/access-authn-aut
 ```
 juju trust nginx-ingress-integrator --scope cluster
 ```
-The deployed application name will need to resolve to the IP of your ingress controller. A great way of testing this is to upload an index.html file into the openstack container and confirm that that content is reachable when they browse to this URL now.
+The deployed application name will need to resolve to the IP of your ingress controller. A great way of testing this is to upload an index.html file into the OpenStack container and confirm that that content is reachable when they browse to this URL now.
