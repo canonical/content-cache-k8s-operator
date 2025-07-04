@@ -1,0 +1,57 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Minimal makefile for documentation
+#
+
+# Vale settings
+VALE_DIR ?= .vale
+
+PRAECEPTA_REPO ?= https://github.com/canonical/praecepta.git
+PRAECEPTA_DIR ?= $(VALE_DIR)/praecepta
+PRAECEPTA_CONFIG ?= $(PRAECEPTA_DIR)/vale.ini
+PRAECEPTA_WORDLIST_DIR ?= $(PRAECEPTA_DIR)/styles/config/vocabularies/Canonical
+PRAECEPTA_REF ?= main
+
+CUSTOM_WORDLIST ?= .custom_wordlist.txt
+DOCS_FILES ?= docs/
+
+
+.PHONY: vale-install
+vale-install: ## Make sure Vale is installed on the system
+	@command -v vale >/dev/null 2>&1 || { \
+		echo "Installing Vale using snap..."; \
+		sudo snap install vale; \
+	}
+	@vale --version
+
+.PHONY: vale-setup
+vale-setup: ## Pull in Canonical Style rules
+	@if [ ! -d "$(PRAECEPTA_DIR)" ]; then \
+		echo "Cloning Canonical Praecepta Vale config..."; \
+		git clone --depth 1 --branch $(PRAECEPTA_REF) $(PRAECEPTA_REPO) $(PRAECEPTA_DIR); \
+	else \
+		echo "Praecepta already cloned. Resetting and updating to $(PRAECEPTA_REF)..."; \
+		cd "$(PRAECEPTA_DIR)" && \
+		git fetch origin > /dev/null && \
+		git reset --hard origin/$(PRAECEPTA_REF) > /dev/null && \
+		git clean -fd > /dev/null; \
+	fi
+
+.PHONY: _vale-inject-wordlist
+_vale-inject-wordlist: vale-setup
+	@echo "Injecting custom wordlist into Praecepta config..."
+	@cp "$(PRAECEPTA_WORDLIST_DIR)/accept.txt" "$(PRAECEPTA_WORDLIST_DIR)/accept_backup.txt"
+	@cat "$(CUSTOM_WORDLIST)" >> "$(PRAECEPTA_WORDLIST_DIR)/accept.txt"
+
+.PHONY: vale-check
+vale-check: vale-install vale-setup _vale-inject-wordlist ## Validate project documentation against Canonical Style Rules
+	vale --config=$(PRAECEPTA_CONFIG) $(DOCS_FILES)
+
+.PHONY: vale-check-lines
+vale-check-lines: vale-install vale-setup _vale-inject-wordlist ## Vale check with clickable file:line output
+	vale --config=$(PRAECEPTA_CONFIG) --output=line $(DOCS_FILES)
+
+.PHONY: vale-clean
+vale-clean: ## Remove the local copy of the Canonical Styles rules
+	rm -rf $(VALE_DIR)
