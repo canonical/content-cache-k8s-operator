@@ -59,3 +59,4 @@ requires:
   nginx-route:
     interface: nginx-route
     limit: 1
+    optional: true
