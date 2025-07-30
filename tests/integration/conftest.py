@@ -5,6 +5,7 @@
 import configparser
 import json
 import re
+import subprocess  # nosec B404
 from pathlib import Path
 from typing import Any, Awaitable, Callable, List
 
@@ -110,10 +111,25 @@ async def nginx_integrator_app(ops_test: OpsTest):
 
 
 @fixture(scope="module")
-def charm_file(pytestconfig: Config):
+def charm_file(pytestconfig: Config, app_name: str):
     """Get the existing charm file."""
-    value = pytestconfig.getoption("--charm-file")
-    yield f"./{value}"
+    charm_file = pytestconfig.getoption("--charm-file")
+    if charm_file:
+        yield charm_file
+        return
+
+    try:
+        subprocess.run(
+            ["charmcraft", "pack"], check=True, capture_output=True, text=True
+        )  # nosec B603, B607
+    except subprocess.CalledProcessError as exc:
+        raise OSError(f"Error packing charm: {exc}; Stderr:\n{exc.stderr}") from None
+
+    charm_path = Path(__file__).parent.parent.parent
+    charms = [p.absolute() for p in charm_path.glob(f"{app_name}_*.charm")]
+    assert charms, f"{app_name} .charm file not found"
+    assert len(charms) == 1, f"{app_name} has more than one .charm file, unsure which to use"
+    yield str(charms[0])
 
 
 @pytest_asyncio.fixture(scope="module")
@@ -163,9 +179,7 @@ async def app(
         print("BlockedStatus raised: will be solved after relation nginx-proxy")
 
     apps = [app_name, nginx_integrator_app.name, any_app_name]
-    await ops_test.model.add_relation(
-        f"{any_app_name}:provide-nginx-route", f"{app_name}:nginx-proxy"
-    )
+    await ops_test.model.add_relation(f"{any_app_name}:nginx-route", f"{app_name}:nginx-proxy")
     await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:nginx-route")
     await ops_test.model.wait_for_idle(apps=apps, wait_for_active=True)
 
