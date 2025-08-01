@@ -130,6 +130,15 @@ to MicroK8s for the tests to run. It should be named `localhost:32000/content-ca
 Kubernetes knows to pull them from the MicroK8s repository. Note that the MicroK8s registry needs
 to be enabled. See the next section for more details. 
 
+### Integration tests
+
+Look at the following section to build the rock and the charm. Once done, run the integration tests with:
+```sh
+tox -e integration -- --charm-file=./content-cache-k8s_ubuntu-22.04-amd64.charm --content-cache-image=localhost:32000/content-cache:latest
+```
+
+Additionaly, you may want to add `--keep-models --model testing` when using test locally to be able to troubleshoot if something fails.
+
 # Build the rock and charm
 
 Use [Rockcraft](https://documentation.ubuntu.com/rockcraft/en/latest/) to create an
