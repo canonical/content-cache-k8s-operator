@@ -137,7 +137,7 @@ Look at the following section to build the rock and the charm. Once done, run th
 tox -e integration -- --charm-file=./content-cache-k8s_ubuntu-22.04-amd64.charm --content-cache-image=localhost:32000/content-cache:latest
 ```
 
-Additionaly, you may want to add `--keep-models --model testing` when using test locally to be able to troubleshoot if something fails.
+Additionally, you may want to add `--keep-models --model testing` when using test locally to be able to troubleshoot if something fails.
 
 # Build the rock and charm
 
