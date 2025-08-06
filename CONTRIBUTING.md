@@ -99,10 +99,8 @@ To make contributions to this charm, you'll need a working
 
 The code for this charm can be downloaded as follows:
 
-```
-
+```bash
 git clone https://github.com/canonical/content-cache-k8s-operator
-
 ```
 
 You can create an environment for development with `python3-venv`.
@@ -115,57 +113,56 @@ source venv/bin/activate
 pip install tox
 ```
 
+### Build the rock and charm
+
+Use [Rockcraft](https://documentation.ubuntu.com/rockcraft/en/latest/) to create an
+OCI image for `content-cache-k8s`:
+
+```bash
+cd [project_dir]/content-cache_rock
+rockcraft pack
+```
+
+Build the charm in this git repository using:
+
+```bash
+cd [project_dir]
+charmcraft pack
+```
+
 ### Test
 
 This project uses `tox` for managing test environments. There are some pre-configured environments
 that can be used for linting and formatting code when you're preparing contributions to the charm:
 
-* ``tox``: Executes all of the basic checks and tests (``lint``, ``unit``, ``static``, and ``coverage-report``).
-* ``tox -e fmt``: Runs formatting using ``black`` and ``isort``.
-* ``tox -e lint``: Runs a range of static code analysis to check the code.
-* ``tox -e static``: Runs other checks such as ``bandit`` for security issues.
-
-Note that the [content-cache-image](content-cache.Dockerfile) image needs to be built and pushed
-to MicroK8s for the tests to run. It should be named `localhost:32000/content-cache:latest` so that
-Kubernetes knows to pull them from the MicroK8s repository. Note that the MicroK8s registry needs
-to be enabled. See the next section for more details. 
+- ``tox``: Executes all of the basic checks and tests (``lint``, ``unit``, ``static``, and ``coverage-report``).
+- ``tox -e fmt``: Runs formatting using ``black`` and ``isort``.
+- ``tox -e lint``: Runs a range of static code analysis to check the code.
+- ``tox -e static``: Runs other checks such as ``bandit`` for security issues.
 
 ### Integration tests
-
-Look at the following section to build the rock and the charm. Once done, run the integration tests with:
-```sh
-tox -e integration -- --charm-file=./content-cache-k8s_ubuntu-22.04-amd64.charm --content-cache-image=localhost:32000/content-cache:latest
-```
-
-Additionally, you may want to add `--keep-models --model testing` when using test locally to be able to troubleshoot if something fails.
-
-# Build the rock and charm
-
-Use [Rockcraft](https://documentation.ubuntu.com/rockcraft/en/latest/) to create an
-OCI image for content-cache-k8s, and then upload the image to a MicroK8s registry,
-which stores OCI archives so they can be downloaded and deployed.
 
 For the integration tests (and also to deploy the charm locally), the
 `content-cache` image is required in the MicroK8s registry. To enable it:
 
-```
+```bash
 microk8s enable registry
 ```
 
-The following commands pack the OCI image and push it into
-the MicroK8s registry:
+The following commands push the image into the MicroK8s registry:
 
 ```bash
 cd [project_dir]/content-cache_rock
-rockcraft pack
 rockcraft.skopeo --insecure-policy copy --dest-tls-verify=false oci-archive:content-cache_latest_amd64.rock docker://localhost:32000/content-cache:latest
 ```
 
-Build the charm in this git repository using:
+You can run the integration tests with:
 
-```shell
-charmcraft pack
+```bash
+tox -e integration -- --charm-file=./content-cache-k8s_ubuntu-22.04-amd64.charm --content-cache-image=localhost:32000/content-cache:latest
 ```
+
+Additionally, you may want to add `--keep-models --model testing` when using test locally to be able to troubleshoot if something fails.
 
 ### Deploy
 
