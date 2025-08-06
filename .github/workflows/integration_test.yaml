@@ -17,5 +17,3 @@ jobs:
       self-hosted-runner-label: self-hosted-linux-amd64-jammy-large
       pre-run-script: |
         -c "./tests/integration/pre_run_script.sh"
-      tmate-debug: true
-      tmate-timeout: 180

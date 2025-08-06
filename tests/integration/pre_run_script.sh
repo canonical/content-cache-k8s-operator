@@ -17,5 +17,8 @@
 echo "Checking iptables: there should be only one rule"
 sudo iptables-legacy -t nat -L CNI-HOSTPORT-DNAT
 
-echo "Trying to remove extra entry"
-sudo iptables-legacy -t nat -D CNI-HOSTPORT-DNAT 2 || echo "No extra entry"
+DUP=$(sudo iptables-legacy -t nat -L CNI-HOSTPORT-DNAT 2)
+if [ -n "$DUP" ]; then
+	echo "Removing first rule"
+	sudo iptables-legacy -t nat -D CNI-HOSTPORT-DNAT 1
+fi
