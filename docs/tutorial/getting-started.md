@@ -44,7 +44,7 @@ This is because the Content-cache-k8s charm isn't integrated with our `backend-a
 
 ### Relate to the backend application
 
-Provide integration between Content-cache-k8s and `backend-app` by running the following [`juju integrate`](https://documentation.ubuntu.com/juju/3.6/reference/juju-cli/list-of-juju-cli-commands/integrate/) command:
+Provide the relation between `content-cache-k8s` and `backend-app` by running the following [`juju integrate`](https://documentation.ubuntu.com/juju/3.6/reference/juju-cli/list-of-juju-cli-commands/integrate/) command:
 
 ```bash
 juju integrate content-cache-k8s:nginx-proxy backend-app
