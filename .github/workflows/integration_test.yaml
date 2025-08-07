@@ -14,46 +14,4 @@ jobs:
       channel: 1.31-strict/stable
       extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
       tmate-debug: true
-      tmate-timeout: 60
-  test:
-    runs-on: [self-hosted, linux, ARM64, jammy, large]
-    steps:
-      - run: echo test
-  run-spread-tests:
-    # We need to keep the always() part to ensure we evaluate and can check
-    # for the result of the build-snaps job as otherwise we end up being
-    # skipped as well if it is.
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario: [appliance, all-snaps, host-appliance]
-        arch: [amd64, arm64]
-        lxd_channel: [5.0/candidate, 5.21/candidate]
-        exclude:
-        # We don't do host tests on arm64 currently as the performance the
-        # runners provide is not predictable and causes various timing issues
-        - scenario: host-appliance
-          arch: arm64
-        - scenario: host-appliance
-          lxd_channel: 6/stable
-        - scenario: appliance
-          lxd_channel: 6/stable
-        - scenario: all-snaps
-          lxd_channel: 6/stable
-        - scenario: smoke-appliance
-          lxd_channel: 5.0/candidate
-        - scenario: smoke-appliance
-          lxd_channel: 5.21/stable
-        - scenario: smoke-appliance
-          lxd_channel: 5.21/candidate
-        - scenario: host-appliance
-          lxd_channel: 5.0/candidate
-        - scenario: appliance
-          lxd_channel: 5.21/candidate
-    env:
-      DEBIAN_FRONTEND: noninteractive
-    # We use the noble runners as the jammy ones have the -kvm kernel which
-    # doesn't include the binder module.
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo self-hosted, linux, "${{ matrix.arch == 'amd64' && 'X64' || 'ARM64' }}", "${{ matrix.arch == 'amd64' && startsWith(matrix.scenario, 'host-') && 'noble' || 'jammy' }}", "${{ matrix.arch == 'arm64' || startsWith(matrix.scenario, 'host-') && 'xlarge' || 'large' }}"
+      tmate-timeout: 180
