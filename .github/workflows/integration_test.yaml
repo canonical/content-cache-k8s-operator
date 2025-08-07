@@ -5,10 +5,10 @@ on:
 
 jobs:
   integration-tests:
-    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@test-devstack
+    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@move-devstack
     secrets: inherit
     with:
-      setup-devstack-swift: false
+      setup-devstack-swift: true
       trivy-image-config: "trivy.yaml"
       juju-channel: 3/stable
       channel: 1.31-strict/stable
