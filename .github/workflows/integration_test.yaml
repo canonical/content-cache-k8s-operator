@@ -22,9 +22,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: ${{ fromJSON(inputs.test-scenarios) }}
-        arch: ${{ fromJSON(inputs.architectures) }}
-        lxd_channel: ${{ fromJSON(inputs.lxd-channels) }}
+        scenario: [appliance, all-snaps, host-appliance]
+        arch: [amd64, arm64]
+        lxd_channel: [5.0/candidate, 5.21/candidate]
         exclude:
         # We don't do host tests on arm64 currently as the performance the
         # runners provide is not predictable and causes various timing issues
