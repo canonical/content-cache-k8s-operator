@@ -5,7 +5,7 @@ on:
 
 jobs:
   integration-tests:
-    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@test-devstack
     secrets: inherit
     with:
       trivy-image-config: "trivy.yaml"
