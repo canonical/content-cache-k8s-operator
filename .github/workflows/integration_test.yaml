@@ -17,3 +17,7 @@ jobs:
       self-hosted-runner-label: self-hosted-linux-amd64-jammy-large
       tmate-debug: true
       tmate-timeout: 60
+  test:
+    runs-on: [self-hosted, linux, ARM64, noble, large]
+    steps:
+      - run: echo test
