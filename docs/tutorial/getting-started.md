@@ -5,10 +5,11 @@ In this tutorial, we will deploy and integrate the Content Cache K8s charm using
 ## What you’ll do
 
 - Deploy the [Content-cache-k8s charm](https://charmhub.io/content-cache-k8s).
-- Relate to [the Hello-kubecon charm](https://charmhub.io/hello-kubecon).
-- Relate to [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
+- Deploy [any-charm](https://charmhub.io/any-charm) as a backend application.
+- Relate both.
+- Relate `content-cache-k8s` to [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
 
-Through the process, you'll inspect the Kubernetes resources created, verify the workload state and assign the Content-cache-k8s to serve your Hello-kubecon instance.
+Through the process, you'll inspect the Kubernetes resources created, verify the workload state and assign the Content-cache-k8s to serve your `any-app` instance.
 
 ## What you'll need
 
@@ -23,37 +24,37 @@ For more information about how to install Juju, see [Get started with Juju](http
 
 ### Deploy the content-cache-k8s charm
 
-Since Content-cache is meant to serve as cache for another charm, we'll use Hello-kubecon as an example.
+Since Content-cache is meant to serve as cache for another charm, we'll use `any-charm` as an example.
 
 Deploy the charms:
 
 ```bash
 juju deploy content-cache-k8s
-juju deploy hello-kubecon
+juju deploy any-charm backend-app --channel beta --config src-overwrite="$(curl -L https://github.com/canonical/content-cache-k8s-operator/releases/download/rev62/any_app_backend_src.json))"
 ```
 
 Run [`juju status`](https://juju.is/docs/olm/juju-status) to see the current status of the deployment. In the Unit list, you can see that Content-cache-k8s is blocked:
 
 ```bash
 content-cache-k8s/0*  blocked   idle   10.1.97.227         Required config(s) empty: backend, site
-hello-kubecon/0*      active    idle   10.1.97.193   
+backend-app/0*        active    idle   10.1.97.193
 ```
 
-This is because the Content-cache-k8s charm isn't integrated with Hello-kubecon yet.
+This is because the Content-cache-k8s charm isn't integrated with our `backend-app` yet.
 
-### Relate to the hello-kubecon charm
+### Relate to the backend application
 
-Provide integration between Content-cache-k8s and Hello-kubecon by running the following [`juju relate`](https://juju.is/docs/olm/juju-relate) command:
+Provide the relation between `content-cache-k8s` and `backend-app` by running the following [`juju integrate`](https://documentation.ubuntu.com/juju/3.6/reference/juju-cli/list-of-juju-cli-commands/integrate/) command:
 
 ```bash
-juju relate content-cache-k8s:nginx-proxy hello-kubecon
+juju integrate content-cache-k8s:nginx-proxy backend-app
 ```
 
 Run `juju status` to see that the message has changed:
 
 ```bash
 content-cache-k8s/0*  active    idle   10.1.97.227         Ready
-hello-kubecon/0*      active    idle   10.1.97.193
+backend-app/0*        active    idle   10.1.97.193
 ```
 
 Note: `nginx-proxy` is the name of the relation. You can run `juju info content-cache-k8s` to check what are the relation names provided by the Content-cache-k8s application and `juju status --relations` to see the relations currently established in the model.
@@ -94,10 +95,25 @@ Run `juju status` to see the same Ingress IP in the `nginx-ingress-integrator` m
 nginx-ingress-integrator                                active      1  nginx-ingress-integrator  stable    45  10.152.183.233  no       Ingress IP(s): 127.0.0.1, Service IP(s): 10.152.183.66
 ```
 
-The default hostname for the Hello-kubecon application is `hello-kubecon`. To be able to browse to this site, that hostname will need to resolve to the IP address of your Ingress. You can achieve this by editing [`/etc/hosts`](https://manpages.ubuntu.com/manpages/kinetic/man5/hosts.5.html) file and adding the following line:
+### Test the whole thing
 
-```bash
-127.0.0.1 hello-kubecon
+The hostname of the backend application is `backend-app`.
+
+You can access it through your ingress IP with the following command:
+```sh
+curl http://127.0.0.1
 ```
 
-After that, visit `http://hello-kubecon` in a browser and you'll be presented with the home screen of the Hello-kubecon application.
+It should return a 404 as the `backend-app` is not answering to requests yet.
+
+Start the web server with:
+```sh
+juju run backend-app/0 rpc method=start_server
+```
+
+And try again:
+```sh
+curl http://127.0.0.1
+```
+
+This time you should get a HTML page containing: `ok`.

@@ -10,8 +10,6 @@ jobs:
     with:
       setup-devstack-swift: true
       trivy-image-config: "trivy.yaml"
-      juju-channel: 3/stable
-      channel: 1.31-strict/stable
+      juju-channel: 3.6/stable
+      channel: 1.32-strict/stable
       extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
-      tmate-debug: false
-      tmate-timeout: 120
