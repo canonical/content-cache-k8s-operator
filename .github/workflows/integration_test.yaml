@@ -15,6 +15,10 @@ jobs:
       extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
       tmate-debug: true
       tmate-timeout: 60
+  test:
+    runs-on: [self-hosted, linux, ARM64, jammy, large]
+    steps:
+      - run: echo test
   run-spread-tests:
     # We need to keep the always() part to ensure we evaluate and can check
     # for the result of the build-snaps job as otherwise we end up being
