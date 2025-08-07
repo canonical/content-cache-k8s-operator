@@ -17,7 +17,46 @@ jobs:
       self-hosted-runner-label: self-hosted-linux-amd64-jammy-large
       tmate-debug: true
       tmate-timeout: 60
-  test:
-    runs-on: [self-hosted, linux, ARM64, noble, large]
+  run-spread-tests:
+    # We need to keep the always() part to ensure we evaluate and can check
+    # for the result of the build-snaps job as otherwise we end up being
+    # skipped as well if it is.
+    if: |
+      always() &&
+      (inputs.scope == 'all' || inputs.scope == 'test-only') &&
+      (needs.build-snaps.result == 'success' || needs.build-snaps.result == 'skipped')
+    needs: [build-snaps, build-fake-images]
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: ${{ fromJSON(inputs.test-scenarios) }}
+        arch: ${{ fromJSON(inputs.architectures) }}
+        lxd_channel: ${{ fromJSON(inputs.lxd-channels) }}
+        exclude:
+        # We don't do host tests on arm64 currently as the performance the
+        # runners provide is not predictable and causes various timing issues
+        - scenario: host-appliance
+          arch: arm64
+        - scenario: host-appliance
+          lxd_channel: 6/stable
+        - scenario: appliance
+          lxd_channel: 6/stable
+        - scenario: all-snaps
+          lxd_channel: 6/stable
+        - scenario: smoke-appliance
+          lxd_channel: 5.0/candidate
+        - scenario: smoke-appliance
+          lxd_channel: 5.21/stable
+        - scenario: smoke-appliance
+          lxd_channel: 5.21/candidate
+        - scenario: host-appliance
+          lxd_channel: 5.0/candidate
+        - scenario: appliance
+          lxd_channel: 5.21/candidate
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    # We use the noble runners as the jammy ones have the -kvm kernel which
+    # doesn't include the binder module.
+    runs-on: ubuntu-latest
     steps:
-      - run: echo test
+      - run: echo self-hosted, linux, "${{ matrix.arch == 'amd64' && 'X64' || 'ARM64' }}", "${{ matrix.arch == 'amd64' && startsWith(matrix.scenario, 'host-') && 'noble' || 'jammy' }}", "${{ matrix.arch == 'amd64' && !startsWith(matrix.scenario, 'host-') && 'xlarge' || 'large' }}"
