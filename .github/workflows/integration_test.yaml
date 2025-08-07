@@ -25,7 +25,6 @@ jobs:
       always() &&
       (inputs.scope == 'all' || inputs.scope == 'test-only') &&
       (needs.build-snaps.result == 'success' || needs.build-snaps.result == 'skipped')
-    needs: [build-snaps, build-fake-images]
     strategy:
       fail-fast: false
       matrix:
