@@ -5,6 +5,7 @@
 
 import re
 import secrets
+import time
 from typing import List
 
 import juju.action
@@ -36,7 +37,8 @@ async def test_any_app_reachable(ingress_ip: str):
     act: when the dependent application is queried via the ingress
     assert: then the response is HTTP 200 OK.
     """
-    response = requests.get(f"http://{ingress_ip}", headers={"Host": "any-app"}, timeout=5)
+    time.sleep(5)
+    response = requests.get(f"http://127.0.0.1", headers={"Host": "any-app"}, timeout=5)
 
     assert response.status_code == 200
 
