@@ -14,4 +14,4 @@ jobs:
       channel: 1.31-strict/stable
       extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
       tmate-debug: false
-      tmate-timeout: 180
+      tmate-timeout: 120
