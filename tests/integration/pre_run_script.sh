@@ -6,8 +6,10 @@
 # Pre-run script for integration test operator-workflows action.
 # https://github.com/canonical/operator-workflows/blob/main/.github/workflows/integration_test.yaml
 
-# Workaround for a bug in Calico and/or MicroK8s which results in doubled
-# iptables entries to redirect traffic to k8s pods.
+# Workaround for some bad interactions between devstack setup and microk8s setup
+
+# When deploying devstack after microk8s some
+# iptables entries to redirect traffic to k8s pods are duplicated.
 #
 # Affected rule looks like:
 # num  target     prot opt source               destination
