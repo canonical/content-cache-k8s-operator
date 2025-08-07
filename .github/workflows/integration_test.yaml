@@ -56,4 +56,4 @@ jobs:
     # doesn't include the binder module.
     runs-on: ubuntu-latest
     steps:
-      - run: echo self-hosted, linux, "${{ matrix.arch == 'amd64' && 'X64' || 'ARM64' }}", "${{ matrix.arch == 'amd64' && startsWith(matrix.scenario, 'host-') && 'noble' || 'jammy' }}", "${{ matrix.arch == 'amd64' && !startsWith(matrix.scenario, 'host-') && 'xlarge' || 'large' }}"
+      - run: echo self-hosted, linux, "${{ matrix.arch == 'amd64' && 'X64' || 'ARM64' }}", "${{ matrix.arch == 'amd64' && startsWith(matrix.scenario, 'host-') && 'noble' || 'jammy' }}", "${{ matrix.arch == 'arm64' || startsWith(matrix.scenario, 'host-') && 'xlarge' || 'large' }}"
