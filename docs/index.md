@@ -49,7 +49,7 @@ warmly welcomes community  projects, contributions, suggestions, fixes, and cons
 
 1. [Tutorial](tutorial)
   1. [Basic deployment of the content-cache-k8s charm](tutorial/getting-started.md)
-1. [How to](how-to)
+1. [How To](how-to)
   1. [Cache content with OpenStack/Swift storage](how-to/cache-content-with-openstack-swift.md)
   1. [Contribute](how-to/contribute.md)
 1. [Reference](reference)
