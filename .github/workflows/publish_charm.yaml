@@ -10,3 +10,30 @@ jobs:
   publish-to-edge:
     uses: canonical/operator-workflows/.github/workflows/publish_charm.yaml@main
     secrets: inherit
+
+  generate-anycharm-json-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          python3 - <<'EOF' > /tmp/any_app_backend_src.json
+          import json
+          import pathlib
+          import os
+
+          workspace = os.environ["GITHUB_WORKSPACE"]
+          print(json.dumps(
+            {
+              "any_charm.py": pathlib.Path(f"{workspace}/tests/integration/any_charm.py").read_text(
+                encoding="utf-8"
+              ),
+              "nginx_route.py": pathlib.Path(f"{workspace}/lib/charms/nginx_ingress_integrator/v0/nginx_route.py").read_text(
+                encoding="utf-8"
+              ),
+            }
+          ))
+          EOF
+      - uses: actions/upload-artifact@v4
+        with:
+          name: any_app_backend_src
+          path: /tmp/any_app_backend_src.json
