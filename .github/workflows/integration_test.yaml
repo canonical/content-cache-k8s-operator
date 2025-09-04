@@ -14,4 +14,3 @@ jobs:
       channel: 1.32-strict/stable
       extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
       self-hosted-runner: true  
-      self-hosted-runner-label: self-hosted-linux-amd64-jammy-large
