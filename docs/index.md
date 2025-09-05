@@ -1,4 +1,4 @@
-A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) deploying
+A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) deploying
 and managing service for caching content, built on top of [Nginx](https://www.nginx.com/),
 configurable to cache any HTTP or HTTPS web site and useful for building content delivery
 networks (CDN).

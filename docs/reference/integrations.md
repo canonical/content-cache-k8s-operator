@@ -33,7 +33,7 @@ _Supported charms_: [nginx-ingress-integrator](https://charmhub.io/nginx-ingress
 The Content-cache charm also supports being integrated with [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
 
 Ingress manages external HTTP/HTTPS access to services in a Kubernetes cluster.
-In this case, an existing Ingress controller is required. For more information, see [Adding the Ingress Relation to a Charm](https://charmhub.io/nginx-ingress-integrator/docs/adding-ingress-relation). Documentation to enable ingress in MicroK8s can be found in
+In this case, an existing Ingress controller is required. For more information, see [Adding the Ingress Relation to a Charm](https://charmhub.io/nginx-ingress-integrator/docs/add-the-ingress-relation). Documentation to enable ingress in MicroK8s can be found in
 [Add-on: Ingress](https://microk8s.io/docs/addon-ingress).
 
 Ingress integrate command: 
@@ -61,7 +61,7 @@ juju integrate content-cache-k8s loki-k8s
 
 ### `metrics-endpoint`
 
-_Interface_: [`prometheus_scrape`](https://charmhub.io/interfaces/prometheus_scrape-v0)
+_Interface_: [`prometheus_scrape`](https://charmhub.io/interfaces/prometheus_scrape)
 
 _Supported charms_: [prometheus-k8s](https://charmhub.io/prometheus-k8s)
 
