@@ -20,7 +20,7 @@ Through the process, you'll inspect the Kubernetes resources created, verify the
 - Juju controller and model created.
 - NGINX Ingress Controller. If you're using [MicroK8s](https://microk8s.io/), this can be done by running the command `microk8s enable ingress`. For more details, see [Add-on: Ingress](https://microk8s.io/docs/addon-ingress).
 
-For more information about how to install Juju, see [Get started with Juju](https://juju.is/docs/olm/get-started-with-juju).
+For more information about how to install Juju, see [Get started with Juju](https://documentation.ubuntu.com/juju/3.6/tutorial/).
 
 ### Deploy the content-cache-k8s charm
 
