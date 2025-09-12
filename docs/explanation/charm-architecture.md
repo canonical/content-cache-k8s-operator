@@ -25,7 +25,7 @@ And if you run `kubectl describe pod content-cache-k8s-0`, all the containers wi
 
 ## Containers
 
-Configuration files for the containers can be found in [the files directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/files) and in [the templates directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/templates).
+Configuration files for the containers can be found in [the rock directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/content-cache_rock).
 
 ```mermaid
 C4Component
@@ -55,7 +55,7 @@ This has been configured in the NGINX container to return NGINX's [`stub_status`
 
 ## Docker images
 
-The image defined in [Content-cache `dockerfile`](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache.Dockerfile) in the charm repository is published to [Charmhub](https://charmhub.io/), the official repository of charms.
+The image defined in [Content-cache rock](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache_rock/rockcraft.yaml) in the charm repository is published to [Charmhub](https://charmhub.io/), the official repository of charms.
 
 This is done by publishing a resource to Charmhub as described in the [Juju SDK How-to guides](https://juju.is/docs/sdk/publishing).
 
@@ -87,9 +87,9 @@ UpdateRelStyle(charm, grafana-agent-k8s, $offsetX="-50", $offsetY="30")
 
 For this charm, the following events are observed:
 
-1. [`<container name>_pebble_ready`](https://juju.is/docs/sdk/container-name-pebble-ready-event): fired on Kubernetes charms when the requested container is ready.
+1. [`<container name>_pebble_ready`](https://documentation.ubuntu.com/juju/3.6/reference/hook/#container-pebble-ready): fired on Kubernetes charms when the requested container is ready.
 Action: wait for the integrations, and configure the containers.
-2. [`config_changed`](https://juju.is/docs/sdk/config-changed-event): usually fired in response to a configuration change using the CLI.
+2. [`config_changed`](https://documentation.ubuntu.com/juju/3.6/reference/hook/#config-changed): usually fired in response to a configuration change using the CLI.
 Action: wait for the integrations, validate the configuration, update Ingress, and restart the containers.
 3. [`report_visits_by_ip`](https://charmhub.io/content-cache-k8s/actions): fired when report-visits-by-ip action is executed.
 Action: Report the amount of visits grouped by IP that have visited the service ordered by amount of visits.
@@ -100,7 +100,7 @@ The `src/charm.py` is the default entry point for a charm and has the ContentCac
 
 CharmBase is the base class from which all Charms are formed, defined by [Ops](https://juju.is/docs/sdk/ops) (Python framework for developing charms).
 
-See more information in [Charm](https://juju.is/docs/sdk/constructs#heading--charm).
+See more information in [Charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/).
 
 The `__init__` method guarantees that the charm observes all events relevant to its operation and handles them.
 

@@ -6,52 +6,70 @@
 
 # Vale settings
 VALE_DIR ?= .vale
+PRAECEPTA_CONFIG 	?= .vale.ini
+DOCS_FILES 	?= docs/ README.md CONTRIBUTING.md
 
-PRAECEPTA_REPO ?= https://github.com/canonical/praecepta.git
-PRAECEPTA_DIR ?= $(VALE_DIR)/praecepta
-PRAECEPTA_CONFIG ?= $(PRAECEPTA_DIR)/vale.ini
-PRAECEPTA_WORDLIST_DIR ?= $(PRAECEPTA_DIR)/styles/config/vocabularies/Canonical
-PRAECEPTA_REF ?= main
+HAS_VALE			:= $(shell command -v vale;)
+HAS_LYCHEE			:= $(shell command -v lychee;)
 
-CUSTOM_WORDLIST ?= .custom_wordlist.txt
-DOCS_FILES ?= docs/
+# ==============================================================================
+# Docs Targets
+# ==============================================================================
+
+.PHONY: docs-check
+docs-check: vale lychee ## Run all Docs checks
+
+.PHONY: docs-clean
+docs-clean: vale-clean
+
+# ==============================================================================
+# Dependency Check Targets
+# ==============================================================================
+
+.PHONY: .check-vale
+.check-vale:
+ifndef HAS_VALE
+	$(call errmsg,'vale' is not installed. Please install it first) \
+	exit 1;
+endif
+
+.PHONY: .check-lychee
+.check-lychee:
+ifndef HAS_LYCHEE
+	$(call errmsg,'lychee' is not installed. Please install it first) \
+	exit 1;
+endif
 
 
-.PHONY: vale-install
-vale-install: ## Make sure Vale is installed on the system
-	@command -v vale >/dev/null 2>&1 || { \
-		echo "Installing Vale using snap..."; \
-		sudo snap install vale; \
-	}
-	@vale --version
+# ==============================================================================
+# Main Vale Targets
+# ==============================================================================
 
-.PHONY: vale-setup
-vale-setup: ## Pull in Canonical Style rules
-	@if [ ! -d "$(PRAECEPTA_DIR)" ]; then \
-		echo "Cloning Canonical Praecepta Vale config..."; \
-		git clone --depth 1 --branch $(PRAECEPTA_REF) $(PRAECEPTA_REPO) $(PRAECEPTA_DIR); \
-	else \
-		echo "Praecepta already cloned. Resetting and updating to $(PRAECEPTA_REF)..."; \
-		cd "$(PRAECEPTA_DIR)" && \
-		git fetch origin > /dev/null && \
-		git reset --hard origin/$(PRAECEPTA_REF) > /dev/null && \
-		git clean -fd > /dev/null; \
-	fi
+.PHONY: vale-sync
+vale-sync: ## Download and install external Vale configuration sources
+	$(call msg,--- Syncing Vale styles... ---)
+	@vale sync
 
-.PHONY: _vale-inject-wordlist
-_vale-inject-wordlist: vale-setup
-	@echo "Injecting custom wordlist into Praecepta config..."
-	@cp "$(PRAECEPTA_WORDLIST_DIR)/accept.txt" "$(PRAECEPTA_WORDLIST_DIR)/accept_backup.txt"
-	@cat "$(CUSTOM_WORDLIST)" >> "$(PRAECEPTA_WORDLIST_DIR)/accept.txt"
+.PHONY: vale
+vale: .check-vale vale-sync ## Run Vale checks on docs
+	$(call msg,--- Running Vale checks on "$(DOCS_FILES)"... ---)
+	@vale --config=$(PRAECEPTA_CONFIG) $(DOCS_FILES)
 
-.PHONY: vale-check
-vale-check: vale-install vale-setup _vale-inject-wordlist ## Validate project documentation against Canonical Style Rules
-	vale --config=$(PRAECEPTA_CONFIG) $(DOCS_FILES)
+# ==============================================================================
+# Main Lychee Targets
+# ==============================================================================
 
-.PHONY: vale-check-lines
-vale-check-lines: vale-install vale-setup _vale-inject-wordlist ## Vale check with clickable file:line output
-	vale --config=$(PRAECEPTA_CONFIG) --output=line $(DOCS_FILES)
+.PHONY: lychee
+lychee: .check-lychee ## Run Lychee checks on docs
+	$(call msg,--- Running lychee checks on "$(LYCHEE_DOCS_FILES)"... ---)
+	@lychee $(DOCS_FILES)
+
+# ==============================================================================
+# Helper Targets
+# ==============================================================================
 
 .PHONY: vale-clean
-vale-clean: ## Remove the local copy of the Canonical Styles rules
-	rm -rf $(VALE_DIR)
+vale-clean:
+	$(call msg,--- Cleaning downloaded packages and ignored files from "$(VALE_DIR)"... ---)
+	@git clean -dfX $(VALE_DIR)
+

@@ -3,9 +3,9 @@
 [![Promote charm](https://github.com/canonical/content-cache-k8s-operator/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/content-cache-k8s-operator/actions/workflows/promote_charm.yaml)
 [![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
 
-# Content Cache Operator
+# Content cache operator
 
-A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) deploying and managing service for caching content on Kubernetes, built on top of [Nginx](https://www.nginx.com/), configurable to cache any http or https web site and useful for building Content Delivery Networks (CDN).
+A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) deploying and managing service for caching content on Kubernetes, built on top of [Nginx](https://www.nginx.com/), configurable to cache any http or https web site and useful for building Content Delivery Networks (CDN).
 
 Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For Charmed Content Cache, this includes:
 * scaling the number of cache instances
