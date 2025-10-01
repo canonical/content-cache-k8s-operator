@@ -52,6 +52,7 @@ warmly welcomes community  projects, contributions, suggestions, fixes, and cons
 1. [How to](how-to)
   1. [Cache content with OpenStack/Swift storage](how-to/cache-content-with-openstack-swift.md)
   1. [Contribute](how-to/contribute.md)
+  1. [Upgrade](how-to/upgrade.md)
 1. [Reference](reference)
   1. [Actions](reference/actions.md)
   1. [Configurations](reference/configurations.md)
