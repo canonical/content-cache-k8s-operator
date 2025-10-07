@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Place any unreleased changes here, that are subject to release in coming versions :).
 
+## 2025-10-01
+
+- Documented charm upgrades.
+
 ## 2025-09-01
 
 - Added changelog for tracking user-relevant changes.
