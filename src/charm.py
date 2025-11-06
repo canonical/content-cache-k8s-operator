@@ -381,6 +381,10 @@ class ContentCacheCharm(CharmBase):
         if config.get("proxy_cache_revalidate", False):
             proxy_cache_revalidate = "on"
 
+        proxy_cache_lock = "off"
+        if config.get("proxy_cache_lock", False):
+            proxy_cache_lock = "on"
+
         env_config = {
             "CONTAINER_PORT": CONTAINER_PORT,
             "CONTENT_CACHE_BACKEND": backend,
@@ -396,6 +400,9 @@ class ContentCacheCharm(CharmBase):
             "NGINX_CACHE_ALL": cache_all_configs,
             "NGINX_BACKEND_SITE_NAME": backend_site_name,
             "NGINX_CACHE_INACTIVE_TIME": config.get("cache_inactive_time", "10m"),
+            "NGINX_CACHE_LOCK": proxy_cache_lock,
+            "NGINX_CACHE_LOCK_AGE": config.get("proxy_cache_lock_age", "5s"),
+            "NGINX_CACHE_LOCK_TIMEOUT": config.get("proxy_cache_lock_timeout", "5s"),
             "NGINX_CACHE_MAX_SIZE": config.get("cache_max_size", "10G"),
             "NGINX_CACHE_PATH": CACHE_PATH,
             "NGINX_CACHE_REVALIDATE": proxy_cache_revalidate,

@@ -68,3 +68,27 @@ options:
       If the proxied server returns 304 (Not Modified), the cached item will be updated
       without re-downloading the entire content, improving performance.
     default: False
+  proxy_cache_lock:
+    type: boolean
+    description: >
+      When enabled, only one request at a time will be allowed to populate a new cache element.
+      Other requests of the same cache element will either wait for a response to appear in the
+      cache or the cache lock for this element to be released, up to the time set by the
+      proxy_cache_lock_timeout directive.
+      Note: proxy_cache_lock_age and proxy_cache_lock_timeout options only have effect when
+      proxy_cache_lock is enabled (on).
+    default: False
+  proxy_cache_lock_age:
+    type: string
+    description: >
+      If the last request passed to the proxied server for populating a new cache element
+      has not completed for the specified time, one more request may be passed to the proxied
+      server. This option only has effect when proxy_cache_lock is enabled (on).
+    default: "5s"
+  proxy_cache_lock_timeout:
+    type: string
+    description: >
+      Sets a timeout for proxy_cache_lock. When the time expires, the request will be passed
+      to the proxied server, however, the response will not be cached.
+      This option only has effect when proxy_cache_lock is enabled (on).
+    default: "5s"

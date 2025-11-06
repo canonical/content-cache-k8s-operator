@@ -27,6 +27,9 @@ JUJU_ENV_CONFIG = {
     "NGINX_BACKEND_SITE_NAME": "mybackend.local",
     "NGINX_CACHE_ALL": False,
     "NGINX_CACHE_INACTIVE_TIME": "10m",
+    "NGINX_CACHE_LOCK": "off",
+    "NGINX_CACHE_LOCK_AGE": "5s",
+    "NGINX_CACHE_LOCK_TIMEOUT": "5s",
     "NGINX_CACHE_MAX_SIZE": "10G",
     "NGINX_CACHE_PATH": "/var/lib/nginx/proxy/cache",
     "NGINX_CACHE_REVALIDATE": "off",
@@ -646,5 +649,77 @@ class TestCharm:
         harness.update_config(config)
         env_config = harness.charm._make_env_config()
         with open("tests/files/nginx_config_proxy_cache_revalidate.txt", "r") as f:
+            expected = f.read()
+            assert harness.charm._make_nginx_config(env_config) == expected
+
+    def test_make_env_config_with_proxy_cache_lock(self):
+        """
+        arrange: define configuration with proxy_cache_lock enabled
+        act: generate environment configuration
+        assert: env variable NGINX_CACHE_LOCK is set correctly
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        config["proxy_cache_lock"] = True
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        assert env_config["NGINX_CACHE_LOCK"] == "on"
+
+    def test_make_env_config_without_proxy_cache_lock(self):
+        """
+        arrange: define configuration with proxy_cache_lock disabled
+        act: generate environment configuration
+        assert: env variable NGINX_CACHE_LOCK is set to off
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        config["proxy_cache_lock"] = False
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        assert env_config["NGINX_CACHE_LOCK"] == "off"
+
+    def test_make_env_config_proxy_cache_lock_age(self):
+        """
+        arrange: define configuration with custom proxy_cache_lock_age
+        act: generate environment configuration
+        assert: env variable NGINX_CACHE_LOCK_AGE is set correctly
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        config["proxy_cache_lock_age"] = "10s"
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        assert env_config["NGINX_CACHE_LOCK_AGE"] == "10s"
+
+    def test_make_env_config_proxy_cache_lock_timeout(self):
+        """
+        arrange: define configuration with custom proxy_cache_lock_timeout
+        act: generate environment configuration
+        assert: env variable NGINX_CACHE_LOCK_TIMEOUT is set correctly
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        config["proxy_cache_lock_timeout"] = "15s"
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        assert env_config["NGINX_CACHE_LOCK_TIMEOUT"] == "15s"
+
+    def test_make_nginx_config_proxy_cache_lock(self):
+        """
+        arrange: define nginx config with proxy_cache_lock enabled
+        act: set nginx config
+        assert: ensure nginx config contains proxy_cache_lock on
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        config["proxy_cache_lock"] = True
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        with open("tests/files/nginx_config_proxy_cache_lock.txt", "r") as f:
             expected = f.read()
             assert harness.charm._make_nginx_config(env_config) == expected
