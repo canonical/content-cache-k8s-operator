@@ -60,3 +60,11 @@ options:
     description: >
       The name of the K8s secret to be associated with the ingress resource.
     default: ""
+  proxy_cache_revalidate:
+    type: boolean
+    description: >
+      Enables revalidation of expired cache items using conditional requests with the
+      "If-Modified-Since" and "If-None-Match" header fields.
+      If the proxied server returns 304 (Not Modified), the cached item will be updated
+      without re-downloading the entire content, improving performance.
+    default: False
