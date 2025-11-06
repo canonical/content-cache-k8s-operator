@@ -1,0 +1,22 @@
+[32mINFO    [0m swiftclient:client.py:160 REQ: curl -i http://10.100.115.2:8080/v1/AUTH_5db6dd8364654c5d81e7a182178c7430/content-cache -I -H "X-Auth-Token: gAAAAABpDMA6cVWV..."
+[32mINFO    [0m swiftclient:client.py:161 RESP STATUS: 404 Not Found
+[32mINFO    [0m swiftclient:client.py:162 RESP HEADERS: {'Content-Type': 'text/html; charset=UTF-8', 'Content-Length': '0', 'X-Trans-Id': 'tx4d528c8ce0e74e5a8f8e8-00690cc03a', 'X-Openstack-Request-Id': 'tx4d528c8ce0e74e5a8f8e8-00690cc03a', 'Date': 'Thu, 06 Nov 2025 15:35:22 GMT'}
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model    Controller                Cloud/Region        Version  SLA          Timestamp
+testing  github-pr-fa7fc-microk8s  microk8s/localhost  3.6.11   unsupported  15:35:23Z
+
+App                       Version  Status  Scale  Charm                     Channel        Rev  Address         Exposed  Message
+any-app                            active      1  any-charm                 latest/beta     92  10.152.183.232  no       
+content-cache-k8s                  active      1  content-cache-k8s                          0  10.152.183.49   no       Ready
+nginx-ingress-integrator  24.2.0   active      1  nginx-ingress-integrator  latest/stable  203  10.152.183.83   no       Ingress IP(s): 127.0.0.1
+
+Unit                         Workload  Agent      Address     Ports  Message
+any-app/0*                   active    idle       10.1.53.10         
+content-cache-k8s/0*         active    executing  10.1.53.11         (config-changed) Ready
+nginx-ingress-integrator/0*  active    idle       10.1.53.9          Ingress IP(s): 127.0.0.1
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
