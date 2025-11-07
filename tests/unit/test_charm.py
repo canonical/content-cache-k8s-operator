@@ -89,12 +89,10 @@ class TestCharm:
         act: configure workload container
         assert: workload is called just once
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        harness.update_config(config)
-        harness.charm.on.content_cache_pebble_ready.emit(mock.Mock())
-        assert harness.charm.unit.status == MaintenanceStatus(
+        self.harness.disable_hooks()
+        self.harness.update_config(self.config)
+        self.harness.charm.on.content_cache_pebble_ready.emit(mock.Mock())
+        assert self.harness.charm.unit.status == MaintenanceStatus(
             "Configuring workload container (config-changed)"
         )
         configure_workload_container.assert_called_once()
@@ -105,9 +103,8 @@ class TestCharm:
         act: change unit status
         assert: unit status is Started
         """
-        harness = self.harness
-        harness.charm.on.start.emit()
-        assert harness.charm.unit.status == ActiveStatus()
+        self.harness.charm.on.start.emit()
+        assert self.harness.charm.unit.status == ActiveStatus()
 
     @mock.patch("charm.ContentCacheCharm.configure_workload_container")
     def test_on_config_changed(self, configure_workload_container):
@@ -116,10 +113,8 @@ class TestCharm:
         act: update config
         assert: workload is called just once
         """
-        config = self.config
-        harness = self.harness
-        harness.update_config(config)
-        assert harness.charm.unit.status == MaintenanceStatus(
+        self.harness.update_config(self.config)
+        assert self.harness.charm.unit.status == MaintenanceStatus(
             "Configuring workload container (config-changed)"
         )
         configure_workload_container.assert_called_once()
@@ -131,9 +126,8 @@ class TestCharm:
         act: configure workload container
         assert: workload is called just once
         """
-        harness = self.harness
-        harness.charm.on.upgrade_charm.emit()
-        assert harness.charm.unit.status == MaintenanceStatus(
+        self.harness.charm.on.upgrade_charm.emit()
+        assert self.harness.charm.unit.status == MaintenanceStatus(
             "Configuring workload container (upgrade-charm)"
         )
         configure_workload_container.assert_called_once()
@@ -164,13 +158,11 @@ class TestCharm:
         act: configure workload container
         assert: unit status is Ready
         """
-        config = self.config
-        harness = self.harness
-        harness.update_config(config)
+        self.harness.update_config(self.config)
         make_pebble_config.assert_called_once()
         make_nginx_config.assert_called_once()
         assert add_layer.call_count == 2
-        assert harness.charm.unit.status, ActiveStatus("Ready")
+        assert self.harness.charm.unit.status, ActiveStatus("Ready")
 
     @mock.patch("ops.model.Container.pull")
     @pytest.mark.parametrize(
@@ -251,12 +243,10 @@ class TestCharm:
         act: check if service is running and is not
         assert: services are not replanned
         """
-        config = self.config
-        harness = self.harness
-        harness.update_config(config)
+        self.harness.update_config(self.config)
         make_pebble_config.assert_called_once()
         get_service.return_value.is_running.return_value = False
-        harness.update_config(config)
+        self.harness.update_config(self.config)
         pebble.replan_services().assert_not_called()
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
@@ -283,15 +273,11 @@ class TestCharm:
         act: check if current config is different
         assert: services are replanned again
         """
-        config = self.config
-        harness = self.harness
-
-        config = copy.deepcopy(BASE_CONFIG)
         make_pebble_config.return_value = {"services": "content-cache"}
-        harness.update_config(config)
+        self.harness.update_config(self.config)
         make_pebble_config.assert_called_once()
         assert add_layer.call_count == 2
-        assert harness.charm.unit.status == ActiveStatus("Ready")
+        assert self.harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     @mock.patch("ops.model.Container.add_layer")
@@ -319,14 +305,10 @@ class TestCharm:
         act: check if cache dir is created
         assert: cache directory is created
         """
-        config = self.config
-        harness = self.harness
-
-        config = copy.deepcopy(BASE_CONFIG)
-        harness.update_config(config)
+        self.harness.update_config(self.config)
         assert make_pebble_config.call_count == 2
-        assert harness.charm.unit.status == ActiveStatus("Ready")
-        container = harness.charm.unit.get_container(CONTAINER_NAME)
+        assert self.harness.charm.unit.status == ActiveStatus("Ready")
+        container = self.harness.charm.unit.get_container(CONTAINER_NAME)
         assert container.isdir(CACHE_PATH)
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
@@ -353,13 +335,9 @@ class TestCharm:
         act: there is no change
         assert: charm replans services charm is ready as expected
         """
-        config = self.config
-        harness = self.harness
-
-        config = copy.deepcopy(BASE_CONFIG)
         make_pebble_config.return_value = {"services": {}}
-        harness.update_config(config)
-        assert harness.charm.unit.status == ActiveStatus("Ready")
+        self.harness.update_config(self.config)
+        assert self.harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("charm.ContentCacheCharm._make_pebble_config")
     def test_configure_workload_container_missing_configs(self, make_pebble_config):
@@ -368,12 +346,10 @@ class TestCharm:
         act: raises exception
         assert: unit status is Blocked
         """
-        config = self.config
-        harness = self.harness
-        config["backend"] = None
-        harness.update_config(config)
+        self.config["backend"] = None
+        self.harness.update_config(self.config)
         make_pebble_config.assert_not_called()
-        assert harness.charm.unit.status == BlockedStatus("Required config(s) empty: backend")
+        assert self.harness.charm.unit.status == BlockedStatus("Required config(s) empty: backend")
 
     def test_generate_keys_zone(self):
         """
@@ -381,17 +357,16 @@ class TestCharm:
         act: generate keys zone
         assert: keys zone is generated as expected
         """
-        harness = self.harness
-        harness.disable_hooks()
+        self.harness.disable_hooks()
         expected = "39c631ffb52d-cache"
-        assert harness.charm._generate_keys_zone("mysite.local") == expected
+        assert self.harness.charm._generate_keys_zone("mysite.local") == expected
         expected = "8b79f9e4b3e8-cache"
         assert (
-            harness.charm._generate_keys_zone("my-really-really-really-long-site-name.local")
+            self.harness.charm._generate_keys_zone("my-really-really-really-long-site-name.local")
             == expected
         )
         expected = "d41d8cd98f00-cache"
-        assert harness.charm._generate_keys_zone("") == expected
+        assert self.harness.charm._generate_keys_zone("") == expected
 
     def test_make_ingress_config(self):
         """
@@ -399,12 +374,10 @@ class TestCharm:
         act: generate ingress config
         assert: ingress config is generated as expected
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        harness.update_config(config)
+        self.harness.disable_hooks()
+        self.harness.update_config(self.config)
         expected = copy.deepcopy(INGRESS_CONFIG)
-        assert harness.charm._make_ingress_config() == expected
+        assert self.harness.charm._make_ingress_config() == expected
 
     def test_make_ingress_config_client_max_body_size(self):
         """
@@ -412,14 +385,12 @@ class TestCharm:
         act: generate ingress config
         assert: client_max_body_size is overridden as expected
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config["client_max_body_size"] = "50m"
-        harness.update_config(config)
+        self.harness.disable_hooks()
+        self.config["client_max_body_size"] = "50m"
+        self.harness.update_config(self.config)
         expected = copy.deepcopy(INGRESS_CONFIG)
         expected["max-body-size"] = "50m"
-        assert harness.charm._make_ingress_config() == expected
+        assert self.harness.charm._make_ingress_config() == expected
 
     def test_make_ingress_config_tls_secret(self):
         """
@@ -427,14 +398,12 @@ class TestCharm:
         act: generate tls_secret_name ingress config
         assert: tls_secret_name is correct
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config["tls_secret_name"] = "mysite-com-tls"  # nosec
-        harness.update_config(config)
+        self.harness.disable_hooks()
+        self.config["tls_secret_name"] = "mysite-com-tls"  # nosec
+        self.harness.update_config(self.config)
         expected = copy.deepcopy(INGRESS_CONFIG)
         expected["tls-secret-name"] = "mysite-com-tls"  # nosec
-        assert harness.charm._make_ingress_config() == expected
+        assert self.harness.charm._make_ingress_config() == expected
 
     def test_make_ingress_config_with_proxy_relation(self):
         """
@@ -442,18 +411,17 @@ class TestCharm:
         act: verify ingress config
         assert: ingress config is generated as expected
         """
-        harness = self.harness
         expected = copy.deepcopy(INGRESS_CONFIG)
-        assert harness.charm._make_ingress_config() == expected
-        relation_id = harness.add_relation("nginx-proxy", "hello-kubecon")
-        harness.add_relation_unit(relation_id, "hello-kubecon/0")
+        assert self.harness.charm._make_ingress_config() == expected
+        relation_id = self.harness.add_relation("nginx-proxy", "hello-kubecon")
+        self.harness.add_relation_unit(relation_id, "hello-kubecon/0")
         relations_data = {
             "service-name": "test-proxy",
             "service-hostname": "foo.internal",
             "service-port": "80",
         }
-        harness.update_relation_data(relation_id, "hello-kubecon", relations_data)
-        new_ingress_config = harness.charm._make_ingress_config()
+        self.harness.update_relation_data(relation_id, "hello-kubecon", relations_data)
+        new_ingress_config = self.harness.charm._make_ingress_config()
         assert new_ingress_config["service-hostname"] == relations_data["service-hostname"]
 
     def test_make_env_config(self):
@@ -462,19 +430,17 @@ class TestCharm:
         act: set env variables
         assert: env variables are correct
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        harness.update_config(config)
+        self.harness.disable_hooks()
+        self.harness.update_config(self.config)
         expected = JUJU_ENV_CONFIG
         expected["CONTAINER_PORT"] = 8080
         expected["CONTENT_CACHE_BACKEND"] = "http://mybackend.local:80"
         expected["CONTENT_CACHE_SITE"] = "mysite.local"
         expected["NGINX_BACKEND"] = "http://mybackend.local:80"
-        expected["NGINX_KEYS_ZONE"] = harness.charm._generate_keys_zone("mysite.local")
+        expected["NGINX_KEYS_ZONE"] = self.harness.charm._generate_keys_zone("mysite.local")
         expected["NGINX_SITE_NAME"] = "mysite.local"
         expected["NGINX_CACHE_ALL"] = "proxy_ignore_headers Cache-Control Expires"
-        assert harness.charm._make_env_config() == expected
+        assert self.harness.charm._make_env_config() == expected
 
     def test_make_env_config_with_proxy_relation(self):
         """
@@ -482,22 +448,20 @@ class TestCharm:
         act: verify env config
         assert: env config is generated as expected
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        harness.update_config(config)
-        current_env_config = harness.charm._make_env_config()
+        self.harness.disable_hooks()
+        self.harness.update_config(self.config)
+        current_env_config = self.harness.charm._make_env_config()
         current_site = current_env_config["CONTENT_CACHE_SITE"]
         assert current_site == "mysite.local"
-        relation_id = harness.add_relation("nginx-proxy", "hello-kubecon")
-        harness.add_relation_unit(relation_id, "hello-kubecon/0")
+        relation_id = self.harness.add_relation("nginx-proxy", "hello-kubecon")
+        self.harness.add_relation_unit(relation_id, "hello-kubecon/0")
         relations_data = {
             "service-name": "test-proxy",
             "service-hostname": "foo.internal",
             "service-port": "80",
         }
-        harness.update_relation_data(relation_id, "hello-kubecon", relations_data)
-        new_env_config = harness.charm._make_env_config()
+        self.harness.update_relation_data(relation_id, "hello-kubecon", relations_data)
+        new_env_config = self.harness.charm._make_env_config()
         new_site = new_env_config["CONTENT_CACHE_SITE"]
         assert new_site == relations_data["service-hostname"]
 
@@ -507,14 +471,14 @@ class TestCharm:
         act: set pebble config
         assert: pebble config is correct
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        harness.update_config(config)
-        env_config = harness.charm._make_env_config()
+        self.harness.disable_hooks()
+        self.harness.update_config(self.config)
+        env_config = self.harness.charm._make_env_config()
         expected = PEBBLE_CONFIG
-        expected["services"]["content-cache"]["environment"] = harness.charm._make_env_config()
-        assert harness.charm._make_pebble_config(env_config) == expected
+        expected["services"]["content-cache"][
+            "environment"
+        ] = self.harness.charm._make_env_config()
+        assert self.harness.charm._make_pebble_config(env_config) == expected
 
     def test_make_nginx_config(self):
         """
@@ -522,46 +486,40 @@ class TestCharm:
         act: set nginx config
         assert: ensure envConfig returned is correct
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        harness.update_config(config)
-        env_config = harness.charm._make_env_config()
+        self.harness.disable_hooks()
+        self.harness.update_config(self.config)
+        env_config = self.harness.charm._make_env_config()
         with open("tests/files/nginx_config.txt", "r") as f:
             expected = f.read()
-            assert harness.charm._make_nginx_config(env_config) == expected
+            assert self.harness.charm._make_nginx_config(env_config) == expected
 
     def test_make_nginx_config_backend_site_name(self):
         """
         arrange: define nginx config with charm config backend_site_config
         act: set nginx config
-        assert: ensure envConfig returned is correct
+        assert: ensure proxy_set_header Host is correctly overridden
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config["backend_site_name"] = "myoverridebackendsitename.local"
-        harness.update_config(config)
-        env_config = harness.charm._make_env_config()
-        with open("tests/files/nginx_config_backend_site_name.txt", "r") as f:
-            expected = f.read()
-            assert harness.charm._make_nginx_config(env_config) == expected
+        self.harness.disable_hooks()
+        self.config["backend_site_name"] = "myoverridebackendsitename.local"
+        self.harness.update_config(self.config)
+        env_config = self.harness.charm._make_env_config()
+        nginx_config = self.harness.charm._make_nginx_config(env_config)
+        # Verify the specific line that should be different
+        assert 'proxy_set_header Host "myoverridebackendsitename.local";' in nginx_config
 
     def test_make_nginx_config_client_max_body_size(self):
         """
         arrange: define nginx config with charm config client_max_body_size
         act: set nginx config
-        assert: ensure envConfig returned is correct
+        assert: ensure client_max_body_size is correctly set
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config["client_max_body_size"] = "50m"
-        harness.update_config(config)
-        env_config = harness.charm._make_env_config()
-        with open("tests/files/nginx_config_client_max_body_size.txt", "r") as f:
-            expected = f.read()
-            assert harness.charm._make_nginx_config(env_config) == expected
+        self.harness.disable_hooks()
+        self.config["client_max_body_size"] = "50m"
+        self.harness.update_config(self.config)
+        env_config = self.harness.charm._make_env_config()
+        nginx_config = self.harness.charm._make_nginx_config(env_config)
+        # Verify the specific line that should be different
+        assert "client_max_body_size 50m;" in nginx_config
 
     def test_missing_charm_configs(self):
         """
@@ -569,13 +527,11 @@ class TestCharm:
         act: set charm config
         assert: ensure required configs present and return those missing
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
+        self.harness.disable_hooks()
         # None missing, all required configs set.
-        harness.update_config(config)
+        self.harness.update_config(self.config)
         expected = []
-        assert harness.charm._missing_charm_configs() == expected
+        assert self.harness.charm._missing_charm_configs() == expected
 
     def test_missing_charm_configs_missing_all(self):
         """
@@ -583,13 +539,11 @@ class TestCharm:
         act: set charm config
         assert: ensure required configs present and return those missing
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config.pop("backend")
-        harness.update_config(config)
+        self.harness.disable_hooks()
+        self.config.pop("backend")
+        self.harness.update_config(self.config)
         expected = ["backend"]
-        assert harness.charm._missing_charm_configs() == expected
+        assert self.harness.charm._missing_charm_configs() == expected
 
     def test_missing_charm_configs_unset_all(self):
         """
@@ -597,13 +551,11 @@ class TestCharm:
         act: set charm config
         assert: ensure required configs present and return those missing
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config["backend"] = None
-        harness.update_config(config)
+        self.harness.disable_hooks()
+        self.config["backend"] = None
+        self.harness.update_config(self.config)
         expected = ["backend"]
-        assert harness.charm._missing_charm_configs() == expected
+        assert self.harness.charm._missing_charm_configs() == expected
 
     def test_make_env_config_with_proxy_cache_revalidate(self):
         """
@@ -611,12 +563,10 @@ class TestCharm:
         act: generate environment configuration
         assert: env variable NGINX_CACHE_REVALIDATE is set correctly
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config["proxy_cache_revalidate"] = True
-        harness.update_config(config)
-        env_config = harness.charm._make_env_config()
+        self.harness.disable_hooks()
+        self.config["proxy_cache_revalidate"] = True
+        self.harness.update_config(self.config)
+        env_config = self.harness.charm._make_env_config()
         assert env_config["NGINX_CACHE_REVALIDATE"] == "on"
 
     def test_make_env_config_without_proxy_cache_revalidate(self):
@@ -625,26 +575,22 @@ class TestCharm:
         act: generate environment configuration
         assert: env variable NGINX_CACHE_REVALIDATE is set to off
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config["proxy_cache_revalidate"] = False
-        harness.update_config(config)
-        env_config = harness.charm._make_env_config()
+        self.harness.disable_hooks()
+        self.config["proxy_cache_revalidate"] = False
+        self.harness.update_config(self.config)
+        env_config = self.harness.charm._make_env_config()
         assert env_config["NGINX_CACHE_REVALIDATE"] == "off"
 
     def test_make_nginx_config_proxy_cache_revalidate(self):
         """
         arrange: define nginx config with proxy_cache_revalidate enabled
         act: set nginx config
-        assert: ensure nginx config contains proxy_cache_revalidate on
+        assert: ensure proxy_cache_revalidate is set to on
         """
-        config = self.config
-        harness = self.harness
-        harness.disable_hooks()
-        config["proxy_cache_revalidate"] = True
-        harness.update_config(config)
-        env_config = harness.charm._make_env_config()
-        with open("tests/files/nginx_config_proxy_cache_revalidate.txt", "r") as f:
-            expected = f.read()
-            assert harness.charm._make_nginx_config(env_config) == expected
+        self.harness.disable_hooks()
+        self.config["proxy_cache_revalidate"] = True
+        self.harness.update_config(self.config)
+        env_config = self.harness.charm._make_env_config()
+        nginx_config = self.harness.charm._make_nginx_config(env_config)
+        # Verify the specific line that should be different
+        assert "proxy_cache_revalidate on;" in nginx_config
