@@ -162,7 +162,7 @@ class TestCharm:
         make_pebble_config.assert_called_once()
         make_nginx_config.assert_called_once()
         assert add_layer.call_count == 2
-        assert self.harness.charm.unit.status, ActiveStatus("Ready")
+        assert self.harness.charm.unit.status == ActiveStatus("Ready")
 
     @mock.patch("ops.model.Container.pull")
     @pytest.mark.parametrize(
