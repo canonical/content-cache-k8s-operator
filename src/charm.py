@@ -7,6 +7,7 @@
 import hashlib
 import itertools
 import logging
+import re
 from collections import Counter
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
@@ -35,6 +36,26 @@ EXPORTER_CONTAINER_NAME = "nginx-prometheus-exporter"
 CONTAINER_PORT = 8080
 REQUIRED_JUJU_CONFIGS = ["backend"]
 REQUIRED_INGRESS_RELATION_FIELDS = {"service-hostname", "service-name", "service-port"}
+
+
+def validate_nginx_time(value: str, config_name: str) -> None:
+    """Validate nginx time format.
+
+    Args:
+        value: The time value to validate (e.g., "5s", "10m", "1h").
+        config_name: The name of the configuration option for error messages.
+
+    Raises:
+        ValueError: If the time format is invalid.
+    """
+    # Nginx time format: <number><unit> where unit is ms, s, m, h, d, w, M, y
+    # Can also be just a number (seconds) or have multiple parts like "1h 30m"
+    pattern = r"^(\d+(\.\d+)?(ms|[smhdwMy])?(\s+)?)+$"
+    if not re.match(pattern, value.strip()):
+        raise ValueError(
+            f"Invalid time format for {config_name}: '{value}'. "
+            "Expected format: <number>[ms|s|m|h|d|w|M|y] (e.g., '5s', '10m', '1h')"
+        )
 
 
 class ContentCacheCharm(CharmBase):
@@ -222,7 +243,15 @@ class ContentCacheCharm(CharmBase):
             logger.warning(msg)
             self.unit.status = BlockedStatus(msg)
             return
-        env_config = self._make_env_config()
+
+        try:
+            env_config = self._make_env_config()
+        except ValueError as e:
+            msg = f"Configuration validation error: {str(e)}"
+            logger.error(msg)
+            self.unit.status = BlockedStatus(msg)
+            return
+
         if env_config is None:
             logger.debug("Ingress hasn't been configured yet, waiting")
             event.defer()
@@ -334,7 +363,7 @@ class ContentCacheCharm(CharmBase):
 
         return ingress
 
-    def _make_env_config(self, domain="svc.cluster.local") -> dict:
+    def _make_env_config(self, domain="svc.cluster.local") -> dict:  # noqa: C901
         """Return dict to be used as as runtime environment variables.
 
         Args:
@@ -342,6 +371,9 @@ class ContentCacheCharm(CharmBase):
 
         Returns:
             Charm's environment config
+
+        Raises:
+            ValueError: If proxy_cache_lock_age or proxy_cache_lock_timeout have invalid format.
         """
         config = self.model.config
         relation = self.model.get_relation("nginx-proxy")
@@ -385,6 +417,17 @@ class ContentCacheCharm(CharmBase):
         if config.get("proxy_cache_lock", False):
             proxy_cache_lock = "on"
 
+        # Validate time format for proxy_cache_lock configuration options
+        proxy_cache_lock_age = config.get("proxy_cache_lock_age", "5s")
+        proxy_cache_lock_timeout = config.get("proxy_cache_lock_timeout", "5s")
+
+        try:
+            validate_nginx_time(proxy_cache_lock_age, "proxy_cache_lock_age")
+            validate_nginx_time(proxy_cache_lock_timeout, "proxy_cache_lock_timeout")
+        except ValueError as e:
+            logger.error("Configuration validation error: %s", str(e))
+            raise
+
         env_config = {
             "CONTAINER_PORT": CONTAINER_PORT,
             "CONTENT_CACHE_BACKEND": backend,
@@ -401,8 +444,8 @@ class ContentCacheCharm(CharmBase):
             "NGINX_BACKEND_SITE_NAME": backend_site_name,
             "NGINX_CACHE_INACTIVE_TIME": config.get("cache_inactive_time", "10m"),
             "NGINX_CACHE_LOCK": proxy_cache_lock,
-            "NGINX_CACHE_LOCK_AGE": config.get("proxy_cache_lock_age", "5s"),
-            "NGINX_CACHE_LOCK_TIMEOUT": config.get("proxy_cache_lock_timeout", "5s"),
+            "NGINX_CACHE_LOCK_AGE": proxy_cache_lock_age,
+            "NGINX_CACHE_LOCK_TIMEOUT": proxy_cache_lock_timeout,
             "NGINX_CACHE_MAX_SIZE": config.get("cache_max_size", "10G"),
             "NGINX_CACHE_PATH": CACHE_PATH,
             "NGINX_CACHE_REVALIDATE": proxy_cache_revalidate,

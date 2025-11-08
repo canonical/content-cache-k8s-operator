@@ -723,3 +723,58 @@ class TestCharm:
         with open("tests/files/nginx_config_proxy_cache_lock.txt", "r") as f:
             expected = f.read()
             assert harness.charm._make_nginx_config(env_config) == expected
+
+    def test_validate_nginx_time_valid_formats(self):
+        """
+        arrange: define various valid nginx time formats
+        act: validate the time formats
+        assert: validation passes without raising errors
+        """
+        from charm import validate_nginx_time
+
+        valid_formats = ["5s", "10m", "1h", "2d", "1w", "3M", "1y", "500ms", "1h 30m", "2"]
+        for time_value in valid_formats:
+            validate_nginx_time(time_value, "test_config")
+
+    def test_validate_nginx_time_invalid_formats(self):
+        """
+        arrange: define various invalid nginx time formats
+        act: validate the time formats
+        assert: validation raises ValueError
+        """
+        from charm import validate_nginx_time
+
+        invalid_formats = ["abc", "5x", "-5s", "10 minutes", ""]
+        for time_value in invalid_formats:
+            with pytest.raises(ValueError, match="Invalid time format"):
+                validate_nginx_time(time_value, "test_config")
+
+    def test_configure_workload_container_invalid_proxy_cache_lock_age(self):
+        """
+        arrange: define configuration with invalid proxy_cache_lock_age
+        act: configure workload container
+        assert: unit status is Blocked with validation error message
+        """
+        config = self.config
+        harness = self.harness
+        config["proxy_cache_lock_age"] = "invalid"
+        harness.update_config(config)
+        assert harness.charm.unit.status == BlockedStatus(
+            "Configuration validation error: Invalid time format for proxy_cache_lock_age: "
+            "'invalid'. Expected format: <number>[ms|s|m|h|d|w|M|y] (e.g., '5s', '10m', '1h')"
+        )
+
+    def test_configure_workload_container_invalid_proxy_cache_lock_timeout(self):
+        """
+        arrange: define configuration with invalid proxy_cache_lock_timeout
+        act: configure workload container
+        assert: unit status is Blocked with validation error message
+        """
+        config = self.config
+        harness = self.harness
+        config["proxy_cache_lock_timeout"] = "10 minutes"
+        harness.update_config(config)
+        assert harness.charm.unit.status == BlockedStatus(
+            "Configuration validation error: Invalid time format for proxy_cache_lock_timeout: "
+            "'10 minutes'. Expected format: <number>[ms|s|m|h|d|w|M|y] (e.g., '5s', '10m', '1h')"
+        )
