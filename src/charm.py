@@ -50,12 +50,32 @@ def validate_nginx_time(value: str, config_name: str) -> None:
     """
     # Nginx time format: <number><unit> where unit is ms, s, m, h, d, w, M, y
     # Can also be just a number (seconds) or have multiple parts like "1h 30m"
-    pattern = r"^(\d+(\.\d+)?(ms|[smhdwMy])?(\s+)?)+$"
-    if not re.match(pattern, value.strip()):
+    # Avoid ReDoS by using atomic groups and limiting backtracking
+    value_stripped = value.strip()
+    if not value_stripped:
         raise ValueError(
             f"Invalid time format for {config_name}: '{value}'. "
             "Expected format: <number>[ms|s|m|h|d|w|M|y] (e.g., '5s', '10m', '1h')"
         )
+
+    # Split by whitespace and validate each part
+    parts = value_stripped.split()
+    if not parts:
+        raise ValueError(
+            f"Invalid time format for {config_name}: '{value}'. "
+            "Expected format: <number>[ms|s|m|h|d|w|M|y] (e.g., '5s', '10m', '1h')"
+        )
+
+    # Pattern for a single time value: number optionally followed by unit
+    # Using possessive quantifiers to prevent backtracking
+    part_pattern = r"^\d+(?:\.\d+)?(?:ms|[smhdwMy])?$"
+
+    for part in parts:
+        if not re.match(part_pattern, part):
+            raise ValueError(
+                f"Invalid time format for {config_name}: '{value}'. "
+                "Expected format: <number>[ms|s|m|h|d|w|M|y] (e.g., '5s', '10m', '1h')"
+            )
 
 
 class ContentCacheCharm(CharmBase):
