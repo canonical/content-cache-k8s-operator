@@ -18,7 +18,7 @@ jobs:
       extra-arguments: "--openstack-rc=${GITHUB_WORKSPACE}/openrc"
       self-hosted-runner: true
   allure-report:
-    if: ${{ (success() || failure()) && github.event_name == 'schedule' }}
+    if: ${{ !cancelled() && github.event_name == 'schedule' }}
     needs:
     - integration-tests
     uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main
