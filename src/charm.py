@@ -4,6 +4,7 @@
 # See LICENSE file for licensing details.
 
 """Charm for Content-cache on Kubernetes."""
+
 import hashlib
 import itertools
 import logging
@@ -448,7 +449,7 @@ class ContentCacheCharm(CharmBase):
         Returns:
             A fully configured NGINX conf file
         """
-        with open("content-cache_rock/nginx_cfg.tmpl", "r", encoding="utf-8") as file:
+        with open("content-cache_rock/nginx_cfg.tmpl", encoding="utf-8") as file:
             content = file.read()
 
         nginx_config = content.format(**env_config)

@@ -147,9 +147,9 @@ async def test_openstack_object_storage_plugin(
         swift_object_list = [
             o["name"] for o in swift_conn.get_container(container, full_listing=True)[1]
         ]
-        assert any(
-            filename in f for f in swift_object_list
-        ), "media file uploaded should be stored in swift object storage"
+        assert any(filename in f for f in swift_object_list), (
+            "media file uploaded should be stored in swift object storage"
+        )
         response = requests.get(f"{swift_conn.url}/{container}/{filename}", timeout=5)
         assert response.status_code == 200, "the image should be accessible from the swift server"
         assert response.text == content
