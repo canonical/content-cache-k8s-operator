@@ -11,21 +11,14 @@ bases:
         channel: "22.04"
 parts:
   charm:
-    plugin: charm
     source: .
+    plugin: uv
     build-snaps:
-      - rustup
-    override-build: |
-      rustup default stable
-      craftctl default
-    build-packages:
-      - libffi-dev
-      - libssl-dev
-      - pkg-config
+    - astral-uv
   rock_data:
     plugin: dump
     source: .
     prime:
-      - content-cache_rock/nginx_cfg.tmpl
-    
+    - content-cache_rock/nginx_cfg.tmpl
+
 
