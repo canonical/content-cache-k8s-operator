@@ -368,11 +368,11 @@ class ContentCacheCharm(CharmBase):
         else:
             backend = str(config["backend"])
             backend_site_name = (
-                str(config.get("backend_site_name")) if config.get("backend_site_name") else None
+                str(config["backend_site_name"]) if config.get("backend_site_name") else None
             )
             if not backend_site_name:
                 backend_site_name = urlparse(backend).hostname
-            site = str(config.get("site")) if config.get("site") else self.app.name
+            site = str(config["site"]) if config.get("site") else self.app.name
 
         cache_all_configs = ""
         if not config["cache_all"]:
