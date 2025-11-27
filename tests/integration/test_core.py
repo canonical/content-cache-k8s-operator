@@ -10,7 +10,7 @@ from typing import List
 import juju.action
 import pytest
 import pytest_operator.plugin
-import requests
+import requests  # type: ignore[import-untyped]
 import swiftclient
 import swiftclient.exceptions
 import swiftclient.service
@@ -25,7 +25,7 @@ async def test_active(app: Application):
     act: when the status is checked
     assert: then the workload status is active.
     """
-    assert app.units[0].workload_status == ActiveStatus.name
+    assert app.units[0].workload_status == ActiveStatus.name  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -81,7 +81,7 @@ async def test_report_visits_by_ip(app: Application):
     act: when report-visits-by-ip is ran
     assert: the action result is successful and returns the expected output
     """
-    action: juju.action.Action = await app.units[0].run_action("report-visits-by-ip")
+    action: juju.action.Action = await app.units[0].run_action("report-visits-by-ip")  # type: ignore[attr-defined]
     await action.wait()
     assert action.status == "completed"
     ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
@@ -126,17 +126,17 @@ async def test_openstack_object_storage_plugin(
         swift_conn.delete_container(container)
     swift_conn.put_container(container)
     app = ops_test.model.applications["content-cache-k8s"]
-    await app.set_config({"backend": f"http://{swift_conn.url}:80"})
-    await app.set_config({"site": swift_conn.url})
+    await app.set_config({"backend": f"http://{swift_conn.url}:80"})  # type: ignore[attr-defined]
+    await app.set_config({"site": swift_conn.url})  # type: ignore[attr-defined]
     swift_service = swiftclient.service.SwiftService(
-        options=dict(
-            auth_version="3",
-            os_auth_url=openstack_environment["OS_AUTH_URL"],
-            os_username=openstack_environment["OS_USERNAME"],
-            os_password=openstack_environment["OS_PASSWORD"],
-            os_project_name=openstack_environment["OS_PROJECT_NAME"],
-            os_project_domain_name=openstack_environment["OS_PROJECT_DOMAIN_ID"],
-        )
+        options={
+            "auth_version": "3",
+            "os_auth_url": openstack_environment["OS_AUTH_URL"],
+            "os_username": openstack_environment["OS_USERNAME"],
+            "os_password": openstack_environment["OS_PASSWORD"],
+            "os_project_name": openstack_environment["OS_PROJECT_NAME"],
+            "os_project_domain_name": openstack_environment["OS_PROJECT_DOMAIN_ID"],
+        }
     )
     swift_service.post(container=container, options={"read_acl": ".r:*,.rlistings"})
     for idx, unit_ip in enumerate(unit_ip_list):
