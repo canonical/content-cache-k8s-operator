@@ -5,6 +5,7 @@
 # pylint: disable=import-error,consider-using-with,duplicate-code
 
 """This code snippet is used to be loaded into any-charm which is used for integration tests."""
+
 import os
 import pathlib
 import signal
@@ -56,6 +57,7 @@ class AnyCharm(AnyCharmBase):
         if pid_file.exists():
             os.kill(int(pid_file.read_text(encoding="utf8")), signal.SIGKILL)
             pid_file.unlink()
+        # ruff: noqa: SIM115 - subprocess needs the file handle to remain open
         log_file_object = pathlib.Path("/tmp/any.log").open("wb+")
         proc_http = subprocess.Popen(
             ["python3", "-m", "http.server", "-d", www_dir, str(port)],
