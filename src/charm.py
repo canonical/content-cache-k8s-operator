@@ -24,7 +24,7 @@ from charms.prometheus_k8s.v0.prometheus_scrape import MetricsEndpointProvider
 from ops.charm import ActionEvent, CharmBase, ConfigChangedEvent, UpgradeCharmEvent
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
-from tabulate import tabulate
+from tabulate import tabulate  # type: ignore[import-untyped]
 
 from file_reader import readlines_reverse
 
@@ -187,7 +187,7 @@ class ContentCacheCharm(CharmBase):
             return line.split()[0]
         raise ValueError
 
-    def _report_visits_by_ip(self) -> list[tuple[int, str]]:
+    def _report_visits_by_ip(self) -> list[tuple[str, int]]:
         """Report requests to nginx grouped and ordered by IP and report action result.
 
         Returns:
@@ -211,11 +211,11 @@ class ContentCacheCharm(CharmBase):
         self.model.unit.status = MaintenanceStatus(msg)
         self.configure_workload_container(event)
 
-    def configure_workload_container(self, event: ConfigChangedEvent) -> None:
+    def configure_workload_container(self, event: ConfigChangedEvent | UpgradeCharmEvent) -> None:
         """Configure/set up workload container inside pod.
 
         Args:
-            event: config-changed event.
+            event: config-changed or upgrade-charm event.
         """
         missing = sorted(self._missing_charm_configs())
         if missing:
@@ -245,8 +245,8 @@ class ContentCacheCharm(CharmBase):
                 msg = "Updating pebble layer config"
                 logger.info(msg)
                 self.unit.status = MaintenanceStatus(msg)
-                container.add_layer(CONTAINER_NAME, pebble_config, combine=True)
-                container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)
+                container.add_layer(CONTAINER_NAME, pebble_config, combine=True)  # type: ignore[arg-type]
+                container.add_layer(EXPORTER_CONTAINER_NAME, exporter_config, combine=True)  # type: ignore[arg-type]
                 container.pebble.replan_services()
         else:
             self.unit.status = WaitingStatus("Waiting for Pebble to start")
@@ -335,7 +335,7 @@ class ContentCacheCharm(CharmBase):
 
         return ingress
 
-    def _make_env_config(self, domain="svc.cluster.local") -> dict:
+    def _make_env_config(self, domain="svc.cluster.local") -> dict | None:
         """Return dict to be used as as runtime environment variables.
 
         Args:
@@ -366,11 +366,13 @@ class ContentCacheCharm(CharmBase):
         elif relation:
             return None
         else:
-            backend = config["backend"]
-            backend_site_name = config.get("backend_site_name")
+            backend = str(config["backend"])
+            backend_site_name = (
+                str(config["backend_site_name"]) if config.get("backend_site_name") else None
+            )
             if not backend_site_name:
                 backend_site_name = urlparse(backend).hostname
-            site = config.get("site") if config.get("site") else self.app.name
+            site = str(config["site"]) if config.get("site") else self.app.name
 
         cache_all_configs = ""
         if not config["cache_all"]:
@@ -409,7 +411,7 @@ class ContentCacheCharm(CharmBase):
 
         return env_config
 
-    def _make_pebble_config(self, env_config) -> ops.pebble.PlanDict:
+    def _make_pebble_config(self, env_config) -> dict:
         """Generate our pebble config layer.
 
         Args:

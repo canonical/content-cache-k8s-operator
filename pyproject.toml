@@ -27,6 +27,7 @@ fmt = [
 ]
 lint = [
   "codespell",
+  "mypy",
   "pep8-naming",
   "ruff",
 ]
@@ -110,6 +111,11 @@ lint.pydocstyle.convention = "google"
 
 [tool.codespell]
 skip = "build,lib,venv,icon.svg,.tox,.git,.mypy_cache,.ruff_cache,.coverage,htmlcov,uv.lock,grafana_dashboards"
+
+[tool.mypy]
+exclude = [ "^tests/integration/conftest\\.py$" ]
+ignore_missing_imports = true
+follow_imports = "silent"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
