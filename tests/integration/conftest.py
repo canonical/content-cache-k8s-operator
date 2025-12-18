@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """General configuration module for integration tests."""
+
 import configparser
 import json
 import re
@@ -119,9 +120,7 @@ def charm_file(pytestconfig: Config, app_name: str):
         return
 
     try:
-        subprocess.run(
-            ["charmcraft", "pack"], check=True, capture_output=True, text=True
-        )  # nosec B603, B607
+        subprocess.run(["charmcraft", "pack"], check=True, capture_output=True, text=True)  # nosec B603, B607
     except subprocess.CalledProcessError as exc:
         raise OSError(f"Error packing charm: {exc}; Stderr:\n{exc.stderr}") from None
 
