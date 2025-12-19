@@ -50,6 +50,7 @@ provides:
     optional: true
   nginx-proxy:
     interface: nginx-route
+    limit: 1
 
 requires:
   logging:
