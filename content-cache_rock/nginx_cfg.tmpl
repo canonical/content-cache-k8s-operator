@@ -27,6 +27,9 @@ server {{
         proxy_cache_use_stale {NGINX_CACHE_USE_STALE};
         proxy_cache_valid {NGINX_CACHE_VALID};
         proxy_cache_revalidate {NGINX_CACHE_REVALIDATE};
+        proxy_cache_lock {NGINX_CACHE_LOCK};
+        proxy_cache_lock_age {NGINX_CACHE_LOCK_AGE};
+        proxy_cache_lock_timeout {NGINX_CACHE_LOCK_TIMEOUT};
         {NGINX_CACHE_ALL};
     }}
 
