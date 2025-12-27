@@ -1,0 +1,22 @@
+[32mINFO    [0m swiftclient:client.py:160 REQ: curl -i http://10.100.115.2:8080/v1/AUTH_d404772fb8804f70a980cbf1f9dc8cda/content-cache -I -H "X-Auth-Token: gAAAAABpT_fjGpsB..."
+[32mINFO    [0m swiftclient:client.py:161 RESP STATUS: 404 Not Found
+[32mINFO    [0m swiftclient:client.py:162 RESP HEADERS: {'Content-Type': 'text/html; charset=UTF-8', 'Content-Length': '0', 'X-Trans-Id': 'tx0420837a26294e6ba07e5-00694ff7e3', 'X-Openstack-Request-Id': 'tx0420837a26294e6ba07e5-00694ff7e3', 'Date': 'Sat, 27 Dec 2025 15:14:43 GMT'}
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model    Controller                Cloud/Region        Version  SLA          Timestamp
+testing  github-pr-9e9b7-microk8s  microk8s/localhost  3.6.12   unsupported  15:14:43Z
+
+App                       Version  Status       Scale  Charm                     Channel        Rev  Address         Exposed  Message
+any-app                            active           1  any-charm                 latest/beta    124  10.152.183.18   no       
+content-cache-k8s                  maintenance      1  content-cache-k8s                          0  10.152.183.20   no       Updating pebble layer config
+nginx-ingress-integrator  24.2.0   active           1  nginx-ingress-integrator  latest/stable  203  10.152.183.219  no       Ingress IP(s): 127.0.0.1
+
+Unit                         Workload     Agent      Address     Ports  Message
+any-app/0*                   active       idle       10.1.53.13         
+content-cache-k8s/0*         maintenance  executing  10.1.53.14         (config-changed) Updating Nginx site config
+nginx-ingress-integrator/0*  active       idle       10.1.53.12         Ingress IP(s): 127.0.0.1
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
