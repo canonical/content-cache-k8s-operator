@@ -1,0 +1,33 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+    arrange: after charm deployed and openstack swift server ready.
+    act: update charm configuration for openstack object storage plugin.
+    assert: a file should be uploaded to the openstack server and be accesibe through it.
+    ","528","test_openstack_object_storage_plugin","tests.integration","2026-01-03","passed","2026-01-03","","test_core","",""
+"
+    arrange: given charm is deployed and related with any-app and nginx-integrator
+    act: when the dependent application is queried via the ingress
+    assert: then the response is HTTP 200 OK.
+    ","4","test_any_app_reachable","tests.integration","2026-01-03","passed","2026-01-03","","test_core","",""
+"
+    arrange: given charm has been built, deployed and related to a dependent application
+    act: when the dependent application is queried via the unit
+    assert: then the response is HTTP 200 OK.
+    ","3","test_unit_reachable","tests.integration","2026-01-03","passed","2026-01-03","","test_core","",""
+"
+    arrange: given that the gunicorn application is deployed and related to another charm
+    act: when report-visits-by-ip is ran
+    assert: the action result is successful and returns the expected output
+    ","1019","test_report_visits_by_ip","tests.integration","2026-01-03","passed","2026-01-03","","test_core","",""
+"
+    arrange: given charm is deployed, related with any-app and nginx-integrator
+        and is reachable
+    act: when the dependent application is queried via the ingress
+    assert: then the response is HTTP 200 OK, has X-Cache-Status http header
+        and contains description with content-cache-k8s'
+    ","6","test_an_app_cache_header","tests.integration","2026-01-03","passed","2026-01-03","","test_core","",""
+"
+    arrange: given charm has been built, deployed and related to a dependent application
+    act: when the status is checked
+    assert: then the workload status is active.
+    ","1","test_active","tests.integration","2026-01-03","passed","2026-01-03","","test_core","",""
