@@ -4,6 +4,7 @@
 # See LICENSE file for licensing details.
 
 """Charm for Content-cache on Kubernetes."""
+
 import hashlib
 import itertools
 import logging

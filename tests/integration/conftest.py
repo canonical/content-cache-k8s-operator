@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """General configuration module for integration tests."""
+
 import configparser
 import json
 import re
