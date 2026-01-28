@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """General configuration module for tests."""
+
 import pytest
 
 

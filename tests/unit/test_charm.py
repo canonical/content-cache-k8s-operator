@@ -193,7 +193,7 @@ class TestCharm:
             ),
             (f"10.10.10.11 - - [{DATE_NOW}", [("10.10.10.11", 1)]),
             (
-                f"10.10.10.12 - - [{DATE_20}\n" f"10.10.10.10 - - [{DATE_19}\n",
+                f"10.10.10.12 - - [{DATE_20}\n10.10.10.10 - - [{DATE_19}\n",
                 [("10.10.10.10", 1)],
             ),
         ],
@@ -527,7 +527,7 @@ class TestCharm:
         harness.disable_hooks()
         harness.update_config(config)
         env_config = harness.charm._make_env_config()
-        with open("tests/files/nginx_config.txt", "r") as f:
+        with open("tests/files/nginx_config.txt") as f:
             expected = f.read()
             assert harness.charm._make_nginx_config(env_config) == expected
 
@@ -543,7 +543,7 @@ class TestCharm:
         config["backend_site_name"] = "myoverridebackendsitename.local"
         harness.update_config(config)
         env_config = harness.charm._make_env_config()
-        with open("tests/files/nginx_config_backend_site_name.txt", "r") as f:
+        with open("tests/files/nginx_config_backend_site_name.txt") as f:
             expected = f.read()
             assert harness.charm._make_nginx_config(env_config) == expected
 
@@ -559,7 +559,7 @@ class TestCharm:
         config["client_max_body_size"] = "50m"
         harness.update_config(config)
         env_config = harness.charm._make_env_config()
-        with open("tests/files/nginx_config_client_max_body_size.txt", "r") as f:
+        with open("tests/files/nginx_config_client_max_body_size.txt") as f:
             expected = f.read()
             assert harness.charm._make_nginx_config(env_config) == expected
 
@@ -645,6 +645,6 @@ class TestCharm:
         config["proxy_cache_revalidate"] = True
         harness.update_config(config)
         env_config = harness.charm._make_env_config()
-        with open("tests/files/nginx_config_proxy_cache_revalidate.txt", "r") as f:
+        with open("tests/files/nginx_config_proxy_cache_revalidate.txt") as f:
             expected = f.read()
             assert harness.charm._make_nginx_config(env_config) == expected
