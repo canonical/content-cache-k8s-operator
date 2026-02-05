@@ -8,7 +8,7 @@ from io import StringIO
 from typing import Generator
 
 
-def readlines_reverse(qfile) -> Generator[int, None, None]:
+def readlines_reverse(qfile) -> Generator[str, None, None]:
     """Read the lines of a file in reverse order in a lazy way.
 
     Args:
