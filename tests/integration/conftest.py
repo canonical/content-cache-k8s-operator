@@ -65,7 +65,8 @@ def nginx_integrator_app(juju: jubilant.Juju) -> str:
     """Deploy nginx-ingress-integrator charm and return its application name."""
     nginx_integrator_app_name = "nginx-ingress-integrator"
     juju.deploy(nginx_integrator_app_name, trust=True)
-    juju.wait(jubilant.all_active)
+    juju.wait(lambda s: jubilant.all_active(s, nginx_integrator_app_name)
+              or jubilant.all_waiting(s, nginx_integrator_app_name))
     return nginx_integrator_app_name
 
 
