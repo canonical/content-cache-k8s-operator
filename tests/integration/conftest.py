@@ -109,9 +109,9 @@ def app(
         channel="beta",
         config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
     )
-    juju.wait(jubilant.all_active, timeout=600)
+    juju.wait(lambda s: jubilant.all_active(s, any_app_name), timeout=600)
     juju.run(f"{any_app_name}/0", "rpc", {"method": "start_server"})
-    juju.wait(jubilant.all_active)
+    juju.wait(lambda s: jubilant.all_active(s, any_app_name))
 
     juju.deploy(
         charm_file,
