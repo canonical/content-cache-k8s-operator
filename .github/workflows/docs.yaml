@@ -3,7 +3,13 @@ name: Documentation
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'README.md'
+      - 'CONTRIBUTING.md'
   pull_request:
+    paths:
+      - 'README.md'
+      - 'CONTRIBUTING.md'
 
 jobs:
   docs-checks:
@@ -11,4 +17,3 @@ jobs:
     secrets: inherit
     with:
       linkcheck-fail-on-error: false
-
