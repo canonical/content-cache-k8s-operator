@@ -1,8 +1,14 @@
+---
+myst:
+  html_meta:
+    "description lang=en": "How-to guides for operating the Content Cache K8s charm, including basic operations, upgrades, and development. "
+---
+
 How-to guides
 =============
 
 The following guides cover key processes and common tasks for managing and
-using the content-cache charm.
+using the `content-cache-k8s` charm.
 
 Basic operations
 ----------------
@@ -12,6 +18,7 @@ of actions with your deployment. These guides provide instructions on
 basic operations you can complete with the charm.
 
 - [cache content with OpenStack/Swift storage](https://charmhub.io/content-cache-k8s/docs/how-to-cache-content-with-openstack-swift)
+- [Upgrade](upgrade.md)
 
 Development
 -----------

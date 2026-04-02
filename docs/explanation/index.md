@@ -1,7 +1,13 @@
+---
+myst:
+  html_meta:
+    "description lang=en": "Conceptual guides explaining the security of the Content Cache K8s charm."
+---
+
 Explanation
 ===========
 
-This section contains explanations about the content-cache charm.
+This section contains explanation guides about the `content-cache-k8s` charm.
 
 Security
 --------
