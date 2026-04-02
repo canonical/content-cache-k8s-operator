@@ -1,3 +1,5 @@
+(explanation_security)=
+
 # Security
 
 This document describes the security design of the Content Cache K8s charm. The charm manages a [nginx web server](https://nginx.org/) configured as a static web content cache. This document will detail the risks and good practices.

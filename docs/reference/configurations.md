@@ -1,3 +1,5 @@
+(reference_configurations)=
+
 # Configurations
 
 See [Configurations](https://charmhub.io/content-cache-k8s/configurations).

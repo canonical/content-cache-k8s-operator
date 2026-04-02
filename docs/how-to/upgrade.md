@@ -1,3 +1,5 @@
+(how_to_upgrade)=
+
 # How to upgrade
 
 `content-cache-k8s-operator` is a stateless charm and can be upgraded with the `refresh` command:
