@@ -10,6 +10,10 @@ myst:
 
 This section contains tutorial on the `content-cache-k8s` charm.
 
+## Getting started
+
+The following page provides information on how to get started with the charm.
+
 ```{toctree}
 :maxdepth: 1
 getting-started

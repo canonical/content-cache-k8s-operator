@@ -10,12 +10,37 @@ myst:
 
 This section contains technical details and information about the `content-cache-k8s` charm.
 
+Charm usage
+-----------
+
+The following pages provide more information about the charm's features,
+including actions, configurations, and integrations.
+
 ```{toctree}
 :maxdepth: 1
 actions
+configurations
+integrations
+```
+
+Architecture and deployments
+----------------------------
+
+The following pages provide more details about the charm architecture and
+a high-level deployment with any required dependencies.
+
+```{toctree}
+:maxdepth: 1
 charm-architecture
 charm-redeployment
-configurations
+```
+
+Advanced topics
+---------------
+
+The following page provides advanced-level topic on connecting to an external backend.
+
+```{toctree}
+:maxdepth: 1
 external-access
-integrations
 ```
