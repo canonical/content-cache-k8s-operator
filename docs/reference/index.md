@@ -10,8 +10,7 @@ myst:
 
 This section contains technical details and information about the `content-cache-k8s` charm.
 
-Charm usage
------------
+## Charm usage
 
 The following pages provide more information about the charm's features,
 including actions, configurations, and integrations.
@@ -23,8 +22,7 @@ configurations
 integrations
 ```
 
-Architecture and deployments
-----------------------------
+## Architecture and deployments
 
 The following pages provide more details about the charm architecture and
 a high-level deployment with any required dependencies.
@@ -35,8 +33,7 @@ charm-architecture
 charm-redeployment
 ```
 
-Advanced topics
----------------
+## Advanced topics
 
 The following page provides advanced-level topic on connecting to an external backend.
 

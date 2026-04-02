@@ -11,8 +11,7 @@ myst:
 The following guides cover key processes and common tasks for managing and
 using the `content-cache-k8s` charm.
 
-Basic operations
-----------------
+## Basic operations
 
 Once you've finished setting up the charm, now you can perform a number
 of actions with your deployment. These guides provide instructions on
@@ -24,8 +23,7 @@ cache-content-with-openstack-swift
 upgrade
 ```
 
-Development
------------
+## Development
 
 These guides can help you with contributing to the project.
 

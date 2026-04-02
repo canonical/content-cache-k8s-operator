@@ -40,7 +40,8 @@ _Supported charms_: [nginx-ingress-integrator](https://charmhub.io/nginx-ingress
 The Content-cache charm also supports being integrated with [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
 
 Ingress manages external HTTP/HTTPS access to services in a Kubernetes cluster.
-In this case, an existing Ingress controller is required. For more information, see [Adding the Ingress Relation to a Charm](https://charmhub.io/nginx-ingress-integrator/docs/add-the-ingress-relation). Documentation to enable ingress in MicroK8s can be found in
+In this case, an existing Ingress controller is required. 
+Documentation to enable ingress in MicroK8s can be found in
 [Add-on: Ingress](https://microk8s.io/docs/addon-ingress).
 
 Ingress integrate command: 

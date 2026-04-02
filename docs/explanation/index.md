@@ -10,8 +10,7 @@ myst:
 
 This section contains explanation guides about the `content-cache-k8s` charm.
 
-Security
---------
+## Security
 
 The following page provides explanation on the security of the charm.
 

@@ -38,7 +38,7 @@ juju deploy any-charm backend-app --channel beta --config src-overwrite="$(curl 
 
 ```
 
-Run [`juju status`](https://juju.is/docs/olm/juju-status) to see the current status of the deployment. In the Unit list, you can see that Content-cache-k8s is blocked:
+Run {ref}`juju:command-juju-status` to see the current status of the deployment. In the Unit list, you can see that Content-cache-k8s is blocked:
 
 ```bash
 content-cache-k8s/0*  blocked   idle   10.1.97.227         Required config(s) empty: backend, site
@@ -50,7 +50,7 @@ This is because the Content-cache-k8s charm isn't integrated with our `backend-a
 
 ### Relate to the backend application
 
-Provide the relation between `content-cache-k8s` and `backend-app` by running the following [`juju integrate`](https://documentation.ubuntu.com/juju/3.6/reference/juju-cli/list-of-juju-cli-commands/integrate/) command:
+Provide the relation between `content-cache-k8s` and `backend-app` by running the following {ref}`juju:command-juju-integrate` command:
 
 ```bash
 juju integrate content-cache-k8s:nginx-proxy backend-app
