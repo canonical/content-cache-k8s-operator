@@ -1,8 +1,10 @@
+(reference_integrations)=
+
 # Relation endpoints
 
 This section provides details on the available relation endpoints.
 
-### `grafana-dashboard`
+## `grafana-dashboard`
 
 _Interface_: grafana-dashboard
 
@@ -15,15 +17,20 @@ fit the needs of operators to monitor the charm. Modifications to the dashboard 
 persisted upon restart/redeployment of the charm.
 
 Grafana-Prometheus integrate command:
+
 ```
 juju integrate grafana-k8s:grafana-source prometheus-k8s:grafana-source
-```
-Grafana-dashboard integrate command:
-```
-juju integrate content-cache-k8s grafana-dashboard`
+
 ```
 
-### `ingress`
+Grafana-dashboard integrate command:
+
+```
+juju integrate content-cache-k8s grafana-dashboard`
+
+```
+
+## `ingress`
 
 _Interface_: ingress
 
@@ -33,15 +40,18 @@ _Supported charms_: [nginx-ingress-integrator](https://charmhub.io/nginx-ingress
 The Content-cache charm also supports being integrated with [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
 
 Ingress manages external HTTP/HTTPS access to services in a Kubernetes cluster.
-In this case, an existing Ingress controller is required. For more information, see [Adding the Ingress Relation to a Charm](https://charmhub.io/nginx-ingress-integrator/docs/add-the-ingress-relation). Documentation to enable ingress in MicroK8s can be found in
+In this case, an existing Ingress controller is required. 
+Documentation to enable ingress in MicroK8s can be found in
 [Add-on: Ingress](https://microk8s.io/docs/addon-ingress).
 
 Ingress integrate command: 
+
 ```
 juju integrate content-cache-k8s nginx-ingress-integrator
+
 ```
 
-### `logging`
+## `logging`
 
 _Interface_: `loki_push_api`  
 _Supported charms_: [loki-k8s](https://charmhub.io/loki-k8s)
@@ -54,12 +64,13 @@ This can then be queried through the Loki API or easily visualized through Grafa
 [here](https://charmhub.io/topics/canonical-observability-stack).
 
 Logging-endpoint integrate command: 
+
 ```
 juju integrate content-cache-k8s loki-k8s
+
 ```
 
-
-### `metrics-endpoint`
+## `metrics-endpoint`
 
 _Interface_: [`prometheus_scrape`](https://charmhub.io/interfaces/prometheus_scrape)
 
@@ -72,6 +83,8 @@ The metrics are exposed in the [open metrics format](https://github.com/OpenObse
 relation becomes active.
 
 Metrics-endpoint integrate command: 
+
 ```
 juju integrate content-cache-k8s prometheus-k8s
+
 ```
