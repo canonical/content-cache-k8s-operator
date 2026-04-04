@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
   "cosl==1.9.1",
-  "ops==3.6.0",
+  "ops==3.7.0",
   "tabulate==0.10.0",
 ]
 
