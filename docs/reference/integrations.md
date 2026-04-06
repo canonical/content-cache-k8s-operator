@@ -6,7 +6,7 @@ This section provides details on the available relation endpoints.
 
 ## `grafana-dashboard`
 
-_Interface_: grafana-dashboard
+_Interface_: `grafana_dashboard`
 
 _Supported charms_: [grafana-k8s](https://charmhub.io/grafana-k8s)
 
@@ -20,22 +20,19 @@ Grafana-Prometheus integrate command:
 
 ```
 juju integrate grafana-k8s:grafana-source prometheus-k8s:grafana-source
-
 ```
 
 Grafana-dashboard integrate command:
 
 ```
-juju integrate content-cache-k8s grafana-dashboard`
-
+juju integrate content-cache-k8s grafana-dashboard
 ```
 
-## `ingress`
+## `nginx-route`
 
-_Interface_: ingress
+_Interface_: nginx-route
 
-_Supported charms_: [nginx-ingress-integrator](https://charmhub.io/nginx-ingress-integrator),
-[traefik](https://charmhub.io/traefik-k8s)
+_Supported charms_: [nginx-ingress-integrator](https://charmhub.io/nginx-ingress-integrator)
 
 The Content-cache charm also supports being integrated with [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#what-is-ingress) by using [NGINX Ingress Integrator](https://charmhub.io/nginx-ingress-integrator/).
 
@@ -48,7 +45,6 @@ Ingress integrate command:
 
 ```
 juju integrate content-cache-k8s nginx-ingress-integrator
-
 ```
 
 ## `logging`
@@ -67,7 +63,6 @@ Logging-endpoint integrate command:
 
 ```
 juju integrate content-cache-k8s loki-k8s
-
 ```
 
 ## `metrics-endpoint`
@@ -86,5 +81,4 @@ Metrics-endpoint integrate command:
 
 ```
 juju integrate content-cache-k8s prometheus-k8s
-
 ```
