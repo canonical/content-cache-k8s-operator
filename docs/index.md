@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    "description lang=en": "TBD"
+    "description lang=en": "Documentation for the Content Cache K8s charm, a Juju charm for deploying and managing Nginx-based content caching on Kubernetes."
 ---
 
 # Content Cache K8s charm
