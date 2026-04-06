@@ -34,7 +34,7 @@ Deploy the charms:
 
 ```bash
 juju deploy content-cache-k8s
-juju deploy any-charm backend-app --channel beta --config src-overwrite="$(curl -L https://github.com/canonical/content-cache-k8s-operator/releases/download/rev62/any_app_backend_src.json))"
+juju deploy any-charm backend-app --channel beta --config src-overwrite="$(curl -L https://github.com/canonical/content-cache-k8s-operator/releases/download/rev62/any_app_backend_src.json)"
 
 ```
 
@@ -96,7 +96,7 @@ Run `juju status` to verify the deployment.
 Provide integration between Content-cache-k8s and NGINX Ingress Integrator:
 
 ```bash
-juju relate content-cache-k8s nginx-ingress-integrator
+juju integrate content-cache-k8s nginx-ingress-integrator
 
 ```
 
