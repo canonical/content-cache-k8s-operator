@@ -24,7 +24,7 @@ description: |
   For DevOps or SRE teams this charm will make operating it simple and straightforward through Juju's clean interface.
 summary: |
   HTTP cache service useful for building CDNs.
-docs: https://content-cache-k8s.readthedocs-hosted.com/
+docs: https://documentation.ubuntu.com/content-cache-k8s-charm/
 maintainers:
   - https://launchpad.net/~content-cache-charmers
 assumes:
