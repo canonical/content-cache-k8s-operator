@@ -1,3 +1,5 @@
+(changelog)=
+
 # Changelog
 
 This changelog documents user-relevant changes to the Content cache charm.

@@ -1,3 +1,5 @@
+(reference_charm_architecture)=
+
 # Charm architecture
 
 At its core, Content-cache-k8s is a NGINX cache application that helps another charm serving static content for it.
@@ -9,6 +11,7 @@ Pebble is a lightweight, API-driven process supervisor that is responsible for c
 Pebble `services` are configured through [layers](https://github.com/canonical/pebble#layer-specification), and the following containers represent each one a layer forming the effective Pebble configuration, or `plan`:
 
 1. An [NGINX](https://www.nginx.com/) container with caching features, which can be used to efficiently serve static resources, as well as be the incoming point for all web traffic to the pod. This is the content cache container itself.
+
 2. A [NGINX Prometheus Exporter](https://github.com/nginxinc/nginx-prometheus-exporter) container that can be used to provide statistics on web traffic.
 
 As a result, if you run a `kubectl get pods` on a namespace named for the Juju model you've deployed the Content-cache-k8s charm into, you'll see something like the following:
@@ -27,7 +30,7 @@ And if you run `kubectl describe pod content-cache-k8s-0`, all the containers wi
 
 Configuration files for the containers can be found in [the rock directory of the charm repository](https://github.com/canonical/content-cache-k8s-operator/tree/main/content-cache_rock).
 
-```mermaid
+```{mermaid}
 C4Component
 title Component diagram for Content Cache K8s Charm
 
@@ -37,6 +40,7 @@ Container_Boundary(content-cache-k8s, "Content Cache K8s") {
 
   Rel(nginx-prometheus, charm, "")
 }
+
 ```
 
 ### Content cache
@@ -61,14 +65,14 @@ This is done by publishing a resource to Charmhub as described in the [Juju SDK 
 
 ## Integrations
 
-See [relation endpoints](https://charmhub.io/content-cache-k8s/docs/reference-integrations).
+See {ref}`relation endpoints <reference_integrations>`.
 
 The Content Cache K8s charm supports various integrations to provide additional functionality.
 
 It is possible for a type of integration to be fulfilled by multiple types of charms.
 Below is a diagram of a basic Content Cache deployment with some sample charms to fulfill each integration.
 
-```mermaid
+```{mermaid}
 C4Component
 title Sample integration for Content Cache K8s Charm
 
@@ -81,16 +85,19 @@ Rel(charm, grafana-agent-k8s, "grafana-dashboard, metric-endpoint, logging")
 
 UpdateRelStyle(charm, nginx-ingress, $offsetX="-30", $offsetY="10")
 UpdateRelStyle(charm, grafana-agent-k8s, $offsetX="-50", $offsetY="30")
+
 ```
 
 ## Juju events
 
 For this charm, the following events are observed:
 
-1. [`<container name>_pebble_ready`](https://documentation.ubuntu.com/juju/3.6/reference/hook/#container-pebble-ready): fired on Kubernetes charms when the requested container is ready.
+1. {ref}`container-pebble-ready <juju:hook>`: fired on Kubernetes charms when the requested container is ready.
 Action: wait for the integrations, and configure the containers.
-2. [`config_changed`](https://documentation.ubuntu.com/juju/3.6/reference/hook/#config-changed): usually fired in response to a configuration change using the CLI.
+
+2. {ref}`config-changed <juju:hook>`: usually fired in response to a configuration change using the CLI.
 Action: wait for the integrations, validate the configuration, update Ingress, and restart the containers.
+
 3. [`report_visits_by_ip`](https://charmhub.io/content-cache-k8s/actions): fired when report-visits-by-ip action is executed.
 Action: Report the amount of visits grouped by IP that have visited the service ordered by amount of visits.
 
@@ -100,19 +107,26 @@ The `src/charm.py` is the default entry point for a charm and has the ContentCac
 
 CharmBase is the base class from which all Charms are formed, defined by [Ops](https://juju.is/docs/sdk/ops) (Python framework for developing charms).
 
-See more information in [Charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/).
+See more information in {ref}`Charm <juju:charm>`.
 
 The `__init__` method guarantees that the charm observes all events relevant to its operation and handles them.
 
 Take, for example, when a configuration is changed by using the CLI.
 
 1. User runs the command:
+
 ```bash
 juju config content-cache-k8s backend="http://mybackend.local:80"
+
 ```
+
 2. A `config-changed` event is emitted.
+
 3. In the `__init__` method is defined how to handle this event like this:
+
 ```python
 self.framework.observe(self.on.config_changed, self._on_config_changed)
+
 ```
+
 4. The method `_on_config_changed`, for its turn, will take the necessary actions such as waiting for all the relations to be ready and then configuring the containers.
