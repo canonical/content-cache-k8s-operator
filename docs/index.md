@@ -1,4 +1,12 @@
-A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) deploying
+---
+myst:
+  html_meta:
+    "description lang=en": "Documentation for the Content Cache K8s charm, a Juju charm for deploying and managing Nginx-based content caching on Kubernetes."
+---
+
+# Content Cache K8s charm
+
+A [Juju](https://juju.is/) {ref}`charm <juju:charm>` deploying
 and managing service for caching content, built on top of [Nginx](https://www.nginx.com/),
 configurable to cache any HTTP or HTTPS web site and useful for building content delivery
 networks (CDN).
@@ -22,43 +30,34 @@ For DevOps or SRE teams this charm will make operating it simple and straightfor
 
 | | |
 |--|--|
-|  [Tutorials](https://charmhub.io/content-cache-k8s/docs/tutorial-getting-started)</br>  Get started - a hands-on introduction to using the charm for new users </br> |  [How-to guides](https://charmhub.io/content-cache-k8s/docs/how-to-cache-content-with-openstack-swift) </br> Step-by-step guides covering key operations and common tasks |
-| [Reference](https://charmhub.io/content-cache-k8s/docs/reference-actions) </br> Technical information - specifications, APIs, architecture | [Explanation](https://charmhub.io/content-cache-k8s/docs/explanation-charm-architecture) </br> Concepts - discussion and clarification of key topics  |
+| [Tutorials](tutorial/index) Get started - a hands-on introduction to using the charm for new users | [How-to guides](how-to/index) Step-by-step guides covering key operations and common tasks |
+| [Reference](reference/index) Technical information - specifications, APIs, architecture | [Explanation](explanation/index) Concepts - discussion and clarification of key topics |
 
 ## Contributing to this documentation
 
 Documentation is an important part of this project, and we take the same open-source approach
 to the documentation as the code. As such, we welcome community contributions, suggestions,
 and constructive feedback on our documentation. See
-[How to contribute](https://charmhub.io/content-cache-k8s/docs/how-to-contribute) for more information.
+[How to contribute](how-to/contribute) for more information.
 
-If there’s a particular area of documentation that you’d like to see that’s missing,
+If there's a particular area of documentation that you'd like to see that's missing,
 please [file a bug](https://github.com/canonical/content-cache-k8s-operator/issues).
 
 ## Project and community
 
 The content-cache-k8s charm is a member of the Ubuntu family. It's an open-source project that
-warmly welcomes community  projects, contributions, suggestions, fixes, and constructive feedback.
+warmly welcomes community projects, contributions, suggestions, fixes, and constructive feedback.
 
 - [Code of conduct](https://ubuntu.com/community/code-of-conduct)
 - [Get support](https://discourse.charmhub.io/)
 - [Join our online chat](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
 - [Contribute](https://github.com/canonical/content-cache-k8s-operator/blob/main/CONTRIBUTING.md)
 
-# Contents
-
-1. [Tutorial](tutorial)
-  1. [Basic deployment of the content-cache-k8s charm](tutorial/getting-started.md)
-1. [How to](how-to)
-  1. [Cache content with OpenStack/Swift storage](how-to/cache-content-with-openstack-swift.md)
-  1. [Contribute](how-to/contribute.md)
-  1. [Upgrade](how-to/upgrade.md)
-1. [Reference](reference)
-  1. [Actions](reference/actions.md)
-  1. [Charm architecture](reference/charm-architecture.md)
-  1. [Configurations](reference/configurations.md)
-  1. [External access](reference/external-access.md)
-  1. [Relation endpoints](reference/integrations.md)
-  1. [Redeployment](reference/charm-redeployment.md)
-1. [Explanation](explanation)
-  1. [Security](explanation/security.md)
+```{toctree}
+:hidden:
+tutorial/index
+how-to/index
+reference/index
+explanation/index
+CHANGELOG
+```
