@@ -30,14 +30,14 @@ documentation_architecture:
     mermaid_code: |
       graph TD
           Python -->|installs the contents of| Reqs[/"requirements.txt"\]
-          Reqs -->|specifies| ThirdParty["Third-party extensions"]
+          Reqs -->|specifies| Third_Party["Third-party extensions"]
           Sphinx -->|provides| BuiltIn["Built-in Sphinx extensions"]
           subgraph Deps ["Various dependencies"]
               BuiltIn
-              ThirdParty
+            Third_Party
           end
           BuiltIn -->|are activated in| Conf[/"Project configuration file (docs/conf.py)"\]
-          ThirdParty -->|are activated in| Conf
+          Third_Party -->|are activated in| Conf
     rendered_image: "../explanation/assets/extensions.png"
 
   - diagram_name: "Read the Docs"
@@ -60,8 +60,8 @@ documentation_architecture:
         Sphinx[Sphinx]
         subgraph Deps ["Various dependencies"]
             BuiltIn["Built-in Sphinx extensions"]
-            ThirdParty["Third-party extensions"]
+          Third_Party["Third-party extensions"]
         end
         Python -->|installs the contents of| Reqs
-        Reqs -->|specifies| ThirdParty
+        Reqs -->|specifies| Third_Party
     rendered_image: "../explanation/assets/third-party-extensions.png"
