@@ -7,7 +7,6 @@ import configparser
 import json
 import re
 from pathlib import Path
-from typing import List
 
 import jubilant
 import jubilant.statustypes
@@ -51,7 +50,7 @@ def content_cache_image(pytestconfig: Config):
 
 
 @fixture(scope="function")
-def unit_ip_list(juju: jubilant.Juju, app_name: str) -> List[str]:
+def unit_ip_list(juju: jubilant.Juju, app_name: str) -> list[str]:
     """Return ip addresses of current units."""
     status = juju.status()
     units = status.apps[app_name].units
@@ -137,7 +136,7 @@ def app(
 
 
 @fixture(scope="module")
-def ip_address_list(juju: jubilant.Juju, app: str, nginx_integrator_app: str) -> List[str]:
+def ip_address_list(juju: jubilant.Juju, app: str, nginx_integrator_app: str) -> list[str]:
     """Get ingress IP addresses from nginx-ingress-integrator unit status message.
 
     Example message: Ingress IP(s): 127.0.0.1, Service IP(s): 10.152.183.84
@@ -162,6 +161,6 @@ def ip_address_list(juju: jubilant.Juju, app: str, nginx_integrator_app: str) ->
 
 
 @fixture(scope="module")
-def ingress_ip(ip_address_list: List[str]) -> str:
+def ingress_ip(ip_address_list: list[str]) -> str:
     """First match is the ingress IP."""
     return ip_address_list[0]
