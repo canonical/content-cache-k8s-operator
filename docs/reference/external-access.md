@@ -1,3 +1,5 @@
+(reference_external_access)=
+
 # External access
 
 This charm requires external access only if it's configured to
