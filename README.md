@@ -14,7 +14,7 @@ Like any Juju charm, this charm supports one-line deployment, configuration, int
 
 This service was developed to provide front-end caching for web sites run by
 Canonical's IS (Infrastructure Services) team, and to reduce the need for third-party CDNs by providing
-high-bandwidth access to web sites via this caching front-end. Currently used
+high-bandwidth access to web sites using this caching front-end. Currently used
 for a number of services including [the Snap Store](https://snapcraft.io/store),
 the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
 [canonical.com](https://canonical.com), and [Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
@@ -23,7 +23,7 @@ This Kubernetes-based version is built using the same approach as the [machine c
 a situation where your Kubernetes cluster and its ingress controllers have
 a fast connection to the Internet.
 
-For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache K8s Documentation](https://charmhub.io/content-cache-k8s/docs).
+For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache K8s Documentation](https://documentation.ubuntu.com/content-cache-k8s-charm/latest/).
 
 ## Documentation
 
@@ -56,7 +56,7 @@ make lint-md
 
 ## Get started
 
-To begin, refer to the [Content Cache tutorial](https://charmhub.io/content-cache-k8s/docs/tutorial-getting-started) for step-by-step instructions.
+To begin, refer to the [Content Cache tutorial](https://documentation.ubuntu.com/content-cache-k8s-charm/latest/tutorial/getting-started/) for step-by-step instructions.
 
 ### Basic operations
 
@@ -72,7 +72,7 @@ You can find more information about supported actions in [the Charmhub documenta
 
 ## Integrations
 
-Content-cache is meant to serve as cache for another charm. You can use Wordpress as an example:
+Content-cache is meant to serve as cache for another charm. You can use WordPress as an example:
 
 ```
 juju deploy content-cache-k8s
@@ -88,7 +88,7 @@ Apart from this integration, the charm can be integrated with other Juju charms 
 
 ## Learn more
 
-- [Read more](https://charmhub.io/content-cache-k8s/docs)
+- [Charm documentation](https://documentation.ubuntu.com/content-cache-k8s-charm/latest/)
 - [Developer documentation](https://nginx.org/en/docs/dev/development_guide.html)
 - [Official webpage](https://www.nginx.com/)
 - [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
