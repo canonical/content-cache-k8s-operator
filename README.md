@@ -23,7 +23,7 @@ This Kubernetes-based version is built using the same approach as the [machine c
 a situation where your Kubernetes cluster and its ingress controllers have
 a fast connection to the Internet.
 
-For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache K8s Documentation](https://charmhub.io/content-cache-k8s/docs).
+For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache K8s Documentation](https://documentation.ubuntu.com/content-cache-k8s-charm/latest/).
 
 ## Documentation
 
@@ -56,7 +56,7 @@ make lint-md
 
 ## Get started
 
-To begin, refer to the [Content Cache tutorial](https://charmhub.io/content-cache-k8s/docs/tutorial-getting-started) for step-by-step instructions.
+To begin, refer to the [Content Cache tutorial](https://documentation.ubuntu.com/content-cache-k8s-charm/latest/tutorial/getting-started/) for step-by-step instructions.
 
 ### Basic operations
 
@@ -88,7 +88,7 @@ Apart from this integration, the charm can be integrated with other Juju charms 
 
 ## Learn more
 
-- [Read more](https://charmhub.io/content-cache-k8s/docs)
+- [Charm documentation](https://documentation.ubuntu.com/content-cache-k8s-charm/latest/)
 - [Developer documentation](https://nginx.org/en/docs/dev/development_guide.html)
 - [Official webpage](https://www.nginx.com/)
 - [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
