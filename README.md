@@ -14,7 +14,7 @@ Like any Juju charm, this charm supports one-line deployment, configuration, int
 
 This service was developed to provide front-end caching for web sites run by
 Canonical's IS (Infrastructure Services) team, and to reduce the need for third-party CDNs by providing
-high-bandwidth access to web sites via this caching front-end. Currently used
+high-bandwidth access to web sites using this caching front-end. Currently used
 for a number of services including [the Snap Store](https://snapcraft.io/store),
 the majority of Canonical's web properties including [ubuntu.com](https://ubuntu.com) and
 [canonical.com](https://canonical.com), and [Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
@@ -72,7 +72,7 @@ You can find more information about supported actions in [the Charmhub documenta
 
 ## Integrations
 
-Content-cache is meant to serve as cache for another charm. You can use Wordpress as an example:
+Content-cache is meant to serve as cache for another charm. You can use WordPress as an example:
 
 ```
 juju deploy content-cache-k8s
