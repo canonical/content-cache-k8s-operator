@@ -32,4 +32,4 @@ sphinx-sitemap==2.9.0
 rst2html==2020.7.4
 vale==3.13.0.0
 
-sphinxcontrib-mermaid==2.0.1
+sphinxcontrib-mermaid==2.0.2
