@@ -384,4 +384,5 @@ intersphinx_mapping = {
     'sphinxcontrib-mermaid': ('https://sphinxcontrib-mermaid-demo.readthedocs.io/en/latest', None),
     "juju": ("https://documentation.ubuntu.com/juju/3.6/", None),
     'starter-pack': ("https://canonical-starter-pack.readthedocs-hosted.com/stable/", None),
+    "nginx-ingress-integrator-charm": ("https://canonical.com/juju/docs/nginx-ingress-integrator-charm/latest/", None),
 }
