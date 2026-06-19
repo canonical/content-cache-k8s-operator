@@ -7,6 +7,10 @@ on:
 
 jobs:
   integration-tests:
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
@@ -18,6 +22,8 @@ jobs:
       self-hosted-runner: true
       with-uv: true
   allure-report:
+    permissions:
+      contents: write
     if: ${{ !cancelled() && github.event_name == 'schedule' }}
     needs:
     - integration-tests
