@@ -75,7 +75,7 @@ The NGINX Ingress Integrator charm can deploy and manage external access to HTTP
 
 If you want to make Content-cache-k8s charm available to external clients, you need to deploy the NGINX Ingress Integrator charm and integrate Content-cache-k8s with it.
 
-See more details in [What is Ingress?](https://charmhub.io/nginx-ingress-integrator/docs/what-is-ingress).
+See more details in {ref}`What is Ingress? <nginx-ingress-integrator-charm:explanation_what_is_ingress>`.
 
 Deploy the charm NGINX Ingress Integrator:
 
