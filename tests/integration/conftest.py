@@ -6,16 +6,13 @@
 import configparser
 import json
 import re
-import subprocess  # nosec B404
 from pathlib import Path
-from typing import Any, Awaitable, Callable, List
 
-import pytest_asyncio
+import jubilant
+import jubilant.statustypes
+import pytest_jubilant
 import yaml
-from juju.errors import JujuAppError, JujuUnitError
-from ops.model import ActiveStatus, Application
 from pytest import Config, fixture
-from pytest_operator.plugin import OpsTest
 
 
 @fixture(scope="module")
@@ -28,30 +25,6 @@ def metadata():
 def app_name(metadata):
     """Provide app name from the metadata."""
     yield metadata["name"]
-
-
-@fixture(scope="module")
-def run_action(ops_test: OpsTest) -> Callable[[str, str], Awaitable[Any]]:
-    """Create a async function to run action and return results."""
-
-    async def _run_action(application_name: str, action_name: str, **params):
-        """Run a specified action.
-
-        Args:
-            application_name: Name the application is deployed with.
-            action_name: Name of the action to be executed.
-            params: Dictionary with action parameters.
-
-        Returns:
-            The results of the executed action
-        """
-        assert ops_test.model
-        application = ops_test.model.applications[application_name]
-        action = await application.units[0].run_action(action_name, **params)
-        await action.wait()
-        return action.results
-
-    return _run_action
 
 
 @fixture(scope="module")
@@ -76,73 +49,49 @@ def content_cache_image(pytestconfig: Config):
     return value
 
 
-@pytest_asyncio.fixture(scope="function")
-async def get_unit_ip_list(ops_test: OpsTest, app_name: str):
-    """Retrieve unit ip addresses, similar to fixture_get_unit_status_list."""
-
-    async def get_unit_ip_list_action():
-        """Extract the IPs from juju units.
-
-        Returns:
-            A list of IPs of the juju units in the model.
-        """
-        status = await ops_test.model.get_status()
-        units = status.applications[app_name].units
-        ip_list = [
-            units[key].address for key in sorted(units.keys(), key=lambda n: int(n.split("/")[-1]))
-        ]
-        return ip_list
-
-    yield get_unit_ip_list_action
-
-
-@pytest_asyncio.fixture(scope="function")
-async def unit_ip_list(get_unit_ip_list):
-    """Yield ip addresses of current units."""
-    yield await get_unit_ip_list()
-
-
-@pytest_asyncio.fixture(scope="module")
-async def nginx_integrator_app(ops_test: OpsTest):
-    """Deploy nginx-ingress-integrator charm."""
-    nginx_integrator_app_name = "nginx-ingress-integrator"
-    nginx_integrator_app = await ops_test.model.deploy(nginx_integrator_app_name, trust=True)
-    await ops_test.model.wait_for_idle(apps=[nginx_integrator_app.name])
-    return nginx_integrator_app
+@fixture(scope="function")
+def unit_ip_list(juju: jubilant.Juju, app_name: str) -> list[str]:
+    """Return ip addresses of current units."""
+    status = juju.status()
+    units = status.apps[app_name].units
+    return [
+        units[key].address for key in sorted(units.keys(), key=lambda n: int(n.split("/")[-1]))
+    ]
 
 
 @fixture(scope="module")
-def charm_file(pytestconfig: Config, app_name: str):
-    """Get the existing charm file."""
+def nginx_integrator_app(juju: jubilant.Juju) -> str:
+    """Deploy nginx-ingress-integrator charm and return its application name."""
+    nginx_integrator_app_name = "nginx-ingress-integrator"
+    juju.deploy(nginx_integrator_app_name, trust=True)
+    juju.wait(
+        lambda s: jubilant.all_active(s, nginx_integrator_app_name)
+        or jubilant.all_waiting(s, nginx_integrator_app_name)
+    )
+    return nginx_integrator_app_name
+
+
+@fixture(scope="module")
+def charm_file(pytestconfig: Config) -> str:
+    """Return the charm file path, packing it if not provided via --charm-file."""
     charm_file = pytestconfig.getoption("--charm-file")
     if charm_file:
-        yield charm_file
-        return
-
-    try:
-        subprocess.run(["charmcraft", "pack"], check=True, capture_output=True, text=True)  # nosec B603, B607
-    except subprocess.CalledProcessError as exc:
-        raise OSError(f"Error packing charm: {exc}; Stderr:\n{exc.stderr}") from None
-
-    charm_path = Path(__file__).parent.parent.parent
-    charms = [p.absolute() for p in charm_path.glob(f"{app_name}_*.charm")]
-    assert charms, f"{app_name} .charm file not found"
-    assert len(charms) == 1, f"{app_name} has more than one .charm file, unsure which to use"
-    yield str(charms[0])
+        return charm_file
+    return str(pytest_jubilant.pack())
 
 
-@pytest_asyncio.fixture(scope="module")
-async def app(
-    ops_test: OpsTest,
+@fixture(scope="module")
+def app(
+    juju: jubilant.Juju,
     app_name: str,
     charm_file: str,
     content_cache_image: str,
-    nginx_integrator_app: Application,
-    run_action,
-):
-    """Content-cache-k8s charm used for integration testing.
+    nginx_integrator_app: str,
+) -> str:
+    """Deploy and relate content-cache-k8s for integration testing.
 
-    Deploy any-charm charm, builds the charm and deploys it for testing purposes.
+    Deploys any-charm as a backend, builds and deploys content-cache-k8s, then
+    creates the nginx-proxy and nginx-route relations.
     """
     any_app_name = "any-app"
     ingress_lib = Path("lib/charms/nginx_ingress_integrator/v0/nginx_route.py").read_text()
@@ -153,62 +102,65 @@ async def app(
         "any_charm.py": any_charm_script,
     }
 
-    await ops_test.model.deploy(
+    juju.deploy(
         "any-charm",
-        application_name=any_app_name,
+        app=any_app_name,
         channel="beta",
         config={"src-overwrite": json.dumps(any_charm_src_overwrite)},
     )
-    await ops_test.model.wait_for_idle(timeout=600)
-    await run_action(any_app_name, "rpc", method="start_server")
-    await ops_test.model.wait_for_idle()
+    juju.wait(lambda s: jubilant.all_active(s, any_app_name), timeout=600)
+    juju.run(f"{any_app_name}/0", "rpc", {"method": "start_server"})
+    juju.wait(lambda s: jubilant.all_active(s, any_app_name))
 
-    application = await ops_test.model.deploy(
+    juju.deploy(
         charm_file,
-        application_name=app_name,
-        resources={
-            "content-cache-image": content_cache_image,
-        },
-        series="jammy",
+        app=app_name,
+        resources={"content-cache-image": content_cache_image},
+    )
+    # content-cache-k8s starts in blocked state until the nginx-proxy relation is added
+    juju.wait(
+        lambda s: app_name in s.apps
+        and (jubilant.all_active(s, app_name) or jubilant.all_blocked(s, app_name))
     )
 
-    try:
-        await ops_test.model.wait_for_idle(raise_on_blocked=True)
-    except (JujuAppError, JujuUnitError):
-        print("BlockedStatus raised: will be solved after relation nginx-proxy")
+    apps = [app_name, nginx_integrator_app, any_app_name]
+    juju.integrate(f"{any_app_name}:nginx-route", f"{app_name}:nginx-proxy")
+    juju.integrate(nginx_integrator_app, f"{app_name}:nginx-route")
+    juju.wait(lambda s: jubilant.all_active(s, *apps), timeout=600)
 
-    apps = [app_name, nginx_integrator_app.name, any_app_name]
-    await ops_test.model.add_relation(f"{any_app_name}:nginx-route", f"{app_name}:nginx-proxy")
-    await ops_test.model.add_relation(nginx_integrator_app.name, f"{app_name}:nginx-route")
-    await ops_test.model.wait_for_idle(apps=apps, wait_for_active=True)
+    status = juju.status()
+    assert status.apps[app_name].units[f"{app_name}/0"].is_active
+    assert status.apps[any_app_name].units[f"{any_app_name}/0"].is_active
 
-    assert ops_test.model.applications[app_name].units[0].workload_status == ActiveStatus.name
-    assert ops_test.model.applications[any_app_name].units[0].workload_status == ActiveStatus.name
-
-    yield application
+    yield app_name
 
 
-@pytest_asyncio.fixture(scope="module")
-async def ip_address_list(ops_test: OpsTest, app: Application, nginx_integrator_app: Application):
-    """Get unit IP address from workload message.
+@fixture(scope="module")
+def ip_address_list(juju: jubilant.Juju, app: str, nginx_integrator_app: str) -> list[str]:
+    """Get ingress IP addresses from nginx-ingress-integrator unit status message.
 
-    Example: Ingress IP(s): 127.0.0.1, Service IP(s): 10.152.183.84
+    Example message: Ingress IP(s): 127.0.0.1, Service IP(s): 10.152.183.84
     """
-    # Reduce the update_status frequency until the cluster is deployed
-    async with ops_test.fast_forward():
-        await ops_test.model.block_until(
-            lambda: "Ingress IP(s)" in nginx_integrator_app.units[0].workload_status_message,
-            timeout=100,
-        )
-    nginx_integrator_unit = nginx_integrator_app.units[0]
-    status_message = nginx_integrator_unit.workload_status_message
+
+    def _has_ingress_ip(status: jubilant.statustypes.Status) -> bool:
+        app_status = status.apps.get(nginx_integrator_app)
+        if app_status is None or not app_status.units:
+            return False
+        unit = next(iter(app_status.units.values()))
+        return "Ingress IP(s)" in unit.workload_status.message
+
+    juju.wait(_has_ingress_ip, timeout=100)
+
+    status = juju.status()
+    unit = next(iter(status.apps[nginx_integrator_app].units.values()))
+    status_message = unit.workload_status.message
     ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
-    ip_address_list = re.findall(ip_regex, status_message)
-    assert ip_address_list, f"could not find IP address in status message: {status_message}"
-    yield ip_address_list
+    ip_list = re.findall(ip_regex, status_message)
+    assert ip_list, f"could not find IP address in status message: {status_message}"
+    return ip_list
 
 
-@pytest_asyncio.fixture(scope="module")
-async def ingress_ip(ip_address_list: List):
+@fixture(scope="module")
+def ingress_ip(ip_address_list: list[str]) -> str:
     """First match is the ingress IP."""
-    yield ip_address_list[0]
+    return ip_address_list[0]

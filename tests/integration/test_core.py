@@ -7,30 +7,25 @@ import re
 import secrets
 from typing import List
 
-import juju.action
+import jubilant
 import pytest
-import pytest_operator.plugin
 import requests  # type: ignore[import-untyped]
 import swiftclient
 import swiftclient.exceptions
 import swiftclient.service
-from ops.model import ActiveStatus, Application
 
 
-@pytest.mark.asyncio
-@pytest.mark.abort_on_fail
-async def test_active(app: Application):
+def test_active(juju: jubilant.Juju, app: str):
     """
     arrange: given charm has been built, deployed and related to a dependent application
     act: when the status is checked
     assert: then the workload status is active.
     """
-    assert app.units[0].workload_status == ActiveStatus.name  # type: ignore[attr-defined]
+    status = juju.status()
+    assert status.apps[app].units[f"{app}/0"].is_active
 
 
-@pytest.mark.asyncio
-@pytest.mark.abort_on_fail
-async def test_any_app_reachable(ingress_ip: str):
+def test_any_app_reachable(ingress_ip: str):
     """
     arrange: given charm is deployed and related with any-app and nginx-integrator
     act: when the dependent application is queried via the ingress
@@ -41,9 +36,7 @@ async def test_any_app_reachable(ingress_ip: str):
     assert response.status_code == 200
 
 
-@pytest.mark.asyncio
-@pytest.mark.abort_on_fail
-async def test_an_app_cache_header(ingress_ip: str):
+def test_an_app_cache_header(ingress_ip: str):
     """
     arrange: given charm is deployed, related with any-app and nginx-integrator
         and is reachable
@@ -58,9 +51,7 @@ async def test_an_app_cache_header(ingress_ip: str):
     assert "content-cache-k8s" in response.headers["X-Cache-Status"]
 
 
-@pytest.mark.asyncio
-@pytest.mark.abort_on_fail
-async def test_unit_reachable(unit_ip_list: List):
+def test_unit_reachable(unit_ip_list: List):
     """
     arrange: given charm has been built, deployed and related to a dependent application
     act: when the dependent application is queried via the unit
@@ -75,26 +66,25 @@ async def test_unit_reachable(unit_ip_list: List):
         assert response.status_code == 200
 
 
-async def test_report_visits_by_ip(app: Application):
+def test_report_visits_by_ip(juju: jubilant.Juju, app: str):
     """
     arrange: given that the gunicorn application is deployed and related to another charm
     act: when report-visits-by-ip is ran
     assert: the action result is successful and returns the expected output
     """
-    action: juju.action.Action = await app.units[0].run_action("report-visits-by-ip")  # type: ignore[attr-defined]
-    await action.wait()
-    assert action.status == "completed"
+    task = juju.run(f"{app}/0", "report-visits-by-ip")
+    assert task.status == "completed"
     ip_regex = r"[0-9]+(?:\.[0-9]+){3}"
-    ip_address_list = re.search(ip_regex, action.results["ips"])
+    ip_address_list = re.search(ip_regex, task.results["ips"])
     assert ip_address_list
 
 
-@pytest.mark.asyncio
-async def test_openstack_object_storage_plugin(
-    ops_test: pytest_operator.plugin.OpsTest,
+@pytest.mark.openstack
+def test_openstack_object_storage_plugin(
+    juju: jubilant.Juju,
     unit_ip_list,
     openstack_environment,
-    app: Application,
+    app: str,
 ):
     """
     arrange: after charm deployed and openstack swift server ready.
@@ -125,9 +115,8 @@ async def test_openstack_object_storage_plugin(
             swift_conn.delete_object(container, swift_object["name"])
         swift_conn.delete_container(container)
     swift_conn.put_container(container)
-    app = ops_test.model.applications["content-cache-k8s"]
-    await app.set_config({"backend": f"http://{swift_conn.url}:80"})  # type: ignore[attr-defined]
-    await app.set_config({"site": swift_conn.url})  # type: ignore[attr-defined]
+    juju.config(app, {"backend": f"http://{swift_conn.url}:80"})
+    juju.config(app, {"site": swift_conn.url})
     swift_service = swiftclient.service.SwiftService(
         options={
             "auth_version": "3",
