@@ -372,9 +372,7 @@ class ContentCacheCharm(CharmBase):
                 clients = []
                 for peer in relation.units:
                     unit_name = peer.name.replace("/", "-")
-                    service_url = (
-                        f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
-                    )
+                    service_url = f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
                     clients.append(f"http://{service_url}:{svc_port}")
                 # XXX: Will need to deal with multiple units at some point
                 backend = clients[0]
