@@ -356,13 +356,28 @@ class ContentCacheCharm(CharmBase):
             svc_name = relation.data[relation.app].get("service-name")
             svc_port = relation.data[relation.app].get("service-port")
             backend_site_name = relation.data[relation.app].get("service-hostname")
-            clients = []
-            for peer in relation.units:
-                unit_name = peer.name.replace("/", "-")
-                service_url = f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
-                clients.append(f"http://{service_url}:{svc_port}")
-            # XXX: Will need to deal with multiple units at some point
-            backend = clients[0]
+            # In a Cross-Model Relation (CMR), remote unit names follow the pattern
+            # "remote-<uuid>/<n>" and cannot be used to build headless pod DNS entries
+            # (the unit name is a Juju-internal proxy token, not a real K8s pod name).
+            # Detect CMR by checking for the "remote-" prefix, and fall back to
+            # service-level DNS using the namespace provided in the relation data.
+            is_cmr = any(peer.name.startswith("remote-") for peer in relation.units)
+            if is_cmr:
+                svc_namespace = relation.data[relation.app].get(
+                    "service-namespace", self.model.name
+                )
+                service_url = f"{svc_name}.{svc_namespace}.{domain}"
+                backend = f"http://{service_url}:{svc_port}"
+            else:
+                clients = []
+                for peer in relation.units:
+                    unit_name = peer.name.replace("/", "-")
+                    service_url = (
+                        f"{unit_name}.{svc_name}-endpoints.{self.model.name}.{domain}"
+                    )
+                    clients.append(f"http://{service_url}:{svc_port}")
+                # XXX: Will need to deal with multiple units at some point
+                backend = clients[0]
         elif relation:
             return None
         else:
