@@ -384,6 +384,10 @@ class ContentCacheCharm(CharmBase):
         if config.get("proxy_cache_revalidate", False):
             proxy_cache_revalidate = "on"
 
+        proxy_cache_background_update = "off"
+        if config.get("proxy_cache_background_update", False):
+            proxy_cache_background_update = "on"
+
         env_config = {
             "CONTAINER_PORT": CONTAINER_PORT,
             "CONTENT_CACHE_BACKEND": backend,
@@ -402,6 +406,7 @@ class ContentCacheCharm(CharmBase):
             "NGINX_CACHE_MAX_SIZE": config.get("cache_max_size", "10G"),
             "NGINX_CACHE_PATH": CACHE_PATH,
             "NGINX_CACHE_REVALIDATE": proxy_cache_revalidate,
+            "NGINX_CACHE_BACKGROUND_UPDATE": proxy_cache_background_update,
             "NGINX_CACHE_USE_STALE": config["cache_use_stale"],
             "NGINX_CACHE_VALID": config["cache_valid"],
             "NGINX_CLIENT_MAX_BODY_SIZE": client_max_body_size,

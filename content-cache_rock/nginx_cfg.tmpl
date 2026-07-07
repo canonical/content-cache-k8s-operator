@@ -27,6 +27,7 @@ server {{
         proxy_cache_use_stale {NGINX_CACHE_USE_STALE};
         proxy_cache_valid {NGINX_CACHE_VALID};
         proxy_cache_revalidate {NGINX_CACHE_REVALIDATE};
+        proxy_cache_background_update {NGINX_CACHE_BACKGROUND_UPDATE};
         {NGINX_CACHE_ALL};
     }}
 
