@@ -30,6 +30,7 @@ JUJU_ENV_CONFIG = {
     "NGINX_CACHE_MAX_SIZE": "10G",
     "NGINX_CACHE_PATH": "/var/lib/nginx/proxy/cache",
     "NGINX_CACHE_REVALIDATE": "off",
+    "NGINX_CACHE_BACKGROUND_UPDATE": "off",
     "NGINX_CACHE_USE_STALE": "error timeout updating http_500 http_502 http_503 http_504",
     "NGINX_CACHE_VALID": "200 1h",
     "NGINX_CLIENT_MAX_BODY_SIZE": "1m",
@@ -646,5 +647,49 @@ class TestCharm:
         harness.update_config(config)
         env_config = harness.charm._make_env_config()
         with open("tests/files/nginx_config_proxy_cache_revalidate.txt") as f:
+            expected = f.read()
+            assert harness.charm._make_nginx_config(env_config) == expected
+
+    def test_make_env_config_with_proxy_cache_background_update(self):
+        """
+        arrange: define configuration with proxy_cache_background_update enabled
+        act: generate environment configuration
+        assert: env variable NGINX_CACHE_BACKGROUND_UPDATE is set correctly
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        config["proxy_cache_background_update"] = True
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        assert env_config["NGINX_CACHE_BACKGROUND_UPDATE"] == "on"
+
+    def test_make_env_config_without_proxy_cache_background_update(self):
+        """
+        arrange: define configuration with proxy_cache_background_update disabled
+        act: generate environment configuration
+        assert: env variable NGINX_CACHE_BACKGROUND_UPDATE is set to off
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        config["proxy_cache_background_update"] = False
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        assert env_config["NGINX_CACHE_BACKGROUND_UPDATE"] == "off"
+
+    def test_make_nginx_config_proxy_cache_background_update(self):
+        """
+        arrange: define nginx config with proxy_cache_background_update enabled
+        act: set nginx config
+        assert: ensure nginx config contains proxy_cache_background_update on
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        config["proxy_cache_background_update"] = True
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        with open("tests/files/nginx_config_proxy_cache_background_update.txt") as f:
             expected = f.read()
             assert harness.charm._make_nginx_config(env_config) == expected
