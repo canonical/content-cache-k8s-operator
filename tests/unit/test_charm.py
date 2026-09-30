@@ -501,6 +501,61 @@ class TestCharm:
         new_site = new_env_config["CONTENT_CACHE_SITE"]
         assert new_site == relations_data["service-hostname"]
 
+    def test_make_env_config_with_cmr_proxy_relation(self):
+        """
+        arrange: set nginx-proxy relation with a CMR (Cross-Model Relation) remote unit
+        act: verify env config
+        assert: backend uses service-level DNS with service-namespace, not pod-level DNS
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        harness.update_config(config)
+        # CMR remote application names follow the "remote-<uuid>" pattern
+        cmr_app_name = "remote-9e5538f0707b46568cc9b04d9f39f708"
+        relation_id = harness.add_relation("nginx-proxy", cmr_app_name)
+        harness.add_relation_unit(relation_id, f"{cmr_app_name}/0")
+        relations_data = {
+            "service-name": "indico",
+            "service-hostname": "indico.example.com",
+            "service-port": "8080",
+            "service-namespace": "target-model",
+        }
+        harness.update_relation_data(relation_id, cmr_app_name, relations_data)
+        env_config = harness.charm._make_env_config()
+        # The backend must use service-level K8s DNS, not pod-level headless DNS
+        assert env_config["CONTENT_CACHE_BACKEND"] == (
+            "http://indico.target-model.svc.cluster.local:8080"
+        )
+        assert env_config["NGINX_BACKEND"] == "http://indico.target-model.svc.cluster.local:8080"
+        assert env_config["CONTENT_CACHE_SITE"] == "indico.example.com"
+
+    def test_make_env_config_with_cmr_proxy_relation_no_namespace(self):
+        """
+        arrange: set nginx-proxy relation with a CMR remote unit but no service-namespace
+        act: verify env config
+        assert: backend falls back to service-level DNS using the local model name
+        """
+        config = self.config
+        harness = self.harness
+        harness.disable_hooks()
+        harness.update_config(config)
+        cmr_app_name = "remote-9e5538f0707b46568cc9b04d9f39f708"
+        relation_id = harness.add_relation("nginx-proxy", cmr_app_name)
+        harness.add_relation_unit(relation_id, f"{cmr_app_name}/0")
+        relations_data = {
+            "service-name": "indico",
+            "service-hostname": "indico.example.com",
+            "service-port": "8080",
+        }
+        harness.update_relation_data(relation_id, cmr_app_name, relations_data)
+        env_config = harness.charm._make_env_config()
+        # Falls back to local model name when service-namespace is absent
+        local_model = harness.charm.model.name
+        assert env_config["CONTENT_CACHE_BACKEND"] == (
+            f"http://indico.{local_model}.svc.cluster.local:8080"
+        )
+
     def test_make_pebble_config(self):
         """
         arrange: define pebble config
