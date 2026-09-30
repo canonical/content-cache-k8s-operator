@@ -711,7 +711,7 @@ class TestCharm:
         act: generate environment configuration
         assert: env variable NGINX_CACHE_BACKGROUND_UPDATE is set correctly
         """
-        config = self.config
+        config = self.config.copy()
         harness = self.harness
         harness.disable_hooks()
         config["proxy_cache_background_update"] = True
