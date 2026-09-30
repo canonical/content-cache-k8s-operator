@@ -196,6 +196,8 @@ html_baseurl = f"https://canonical.com/juju/docs/content-cache-k8s-charm/{versio
 
 sitemap_url_scheme = '{link}'
 
+sitemap_filename = "doc-sitemap.xml"
+
 # Include `lastmod` dates in the sitemap:
 
 sitemap_show_lastmod = True
