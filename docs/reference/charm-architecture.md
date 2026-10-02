@@ -49,7 +49,7 @@ This container is the entry point for all web traffic to the pod (on port `80`).
 
 The workload that this container is running is defined in the [Content-cache rock in the charm repository](https://github.com/canonical/content-cache-k8s-operator/blob/main/content-cache_rock/rockcraft.yaml).
 
-### Nginx pometheus exporter
+### Nginx Prometheus exporter
 
 This container runs the `nginx/nginx-prometheus-exporter` image.
 
