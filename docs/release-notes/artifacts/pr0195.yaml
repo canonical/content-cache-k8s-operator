@@ -1,0 +1,16 @@
+# --- Release notes artifact ----
+
+schema_version: 1
+changes:
+  - title: Add background updates for expired cache items
+    author: Copilot
+    type: minor
+    description: |
+      Add the `proxy_cache_background_update` configuration option to update expired
+      cache items in the background while serving stale responses.
+    urls:
+      pr: https://github.com/canonical/content-cache-k8s-operator/pull/195
+      related_doc:
+      related_issue:
+    visibility: hidden
+    highlight: false

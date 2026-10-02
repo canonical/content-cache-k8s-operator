@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Each revision is versioned by the date of the revision.
 
+## 2026-09-30
+
+- Add a configuration option to update expired cache items in the background while serving stale responses.
+
 ## 2026-06-18
 
 - Migrate the RTD documentation URL under the Canonical domain.
