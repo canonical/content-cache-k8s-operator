@@ -22,8 +22,8 @@ run "basic_deploy" {
   }
 
   assert {
-    condition     = output.provides.value.endpoint == "grafana-dashboard"
-    error_message = "content-cache-k8s module should provide 'provides.value' output"
+    condition     = output.provides.grafana_dashboard.endpoint == "grafana-dashboard"
+    error_message = "content-cache-k8s module should provide 'provides.grafana_dashboard' output"
   }
 
   assert {
@@ -37,8 +37,8 @@ run "basic_deploy" {
   }
 
   assert {
-    condition     = output.requires.value.endpoint == "logging"
-    error_message = "content-cache-k8s module should provide 'requires.value' output"
+    condition     = output.requires.logging.endpoint == "logging"
+    error_message = "content-cache-k8s module should provide 'requires.logging' output"
   }
 
   assert {
