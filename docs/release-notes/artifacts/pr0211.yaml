@@ -10,7 +10,7 @@ changes:
       integrate the `content-cache-k8s` charm, along with the CI workflows that
       test, release and document it.
     urls:
-      pr: https://github.com/canonical/content-cache-k8s-operator/pull/196
+      pr: https://github.com/canonical/content-cache-k8s-operator/pull/211
       related_doc:
       related_issue:
     visibility: hidden
