@@ -64,11 +64,11 @@ through Juju's clean interface.
 
 This documentation uses the [Diátaxis documentation structure](https://diataxis.fr/).
 
-- The {ref}`Tutorial <tutorial_index>` takes you step-by-step through a basic deployment of the Content Cache K8s charm.
-- {ref}`How-to guides <how_to_index>` assume you have basic familiarity with the Content Cache K8s charm. Learn more about setting up, using, maintaining, and contributing to this charm.
-- {ref}`Reference <reference_index>` provides a guide to actions, configurations, relations, and other technical details.
-- {ref}`Explanation <explanation_index>` includes topic overviews, background and context and detailed discussion.
-- The {ref}`Changelog <changelog>` holds all the release notes for the charm.
+- The {ref}`Tutorial <tutorial_index>` takes you step-by-step through a basic deployment of the Content Cache K8s charm, and shows how the charm serves cached content for a backend application.
+- {ref}`How-to guides <how_to_index>` assume basic familiarity with the charm. They cover key operations and common tasks, such as caching content from an OpenStack Swift container, upgrading the charm, and contributing to the project.
+- {ref}`Reference <reference_index>` provides technical details on actions, configurations, relation endpoints, and the charm architecture.
+- {ref}`Explanation <explanation_index>` includes topic overviews, background, and context, such as the security design of the charm.
+- The {ref}`Changelog <changelog>` lists user-relevant changes for each revision of the charm.
 
 ### Contributing to this documentation
 
