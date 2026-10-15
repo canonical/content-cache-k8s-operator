@@ -44,10 +44,21 @@ through Juju's clean interface.
 
 ## In this documentation
 
-| | |
-|--|--|
-| [Tutorials](tutorial/index) Get started - a hands-on introduction to using the charm for new users | [How-to guides](how-to/index) Step-by-step guides covering key operations and common tasks |
-| [Reference](reference/index) Technical information - specifications, APIs, architecture | [Explanation](explanation/index) Concepts - discussion and clarification of key topics |
+```{list-table}
+   :header-rows: 0
+   :widths: 20 80
+
+* - **Get started**
+  - {ref}`Deploy the charm <tutorial_getting_started>`
+* - **Deployment**
+  - {ref}`Configurations <reference_configurations>` | {ref}`Relation endpoints <reference_integrations>` | {ref}`External access <reference_external_access>`
+* - **Operations**
+  - {ref}`Cache content from OpenStack Swift <how_to_cache_content_with_openstack_swift>` | {ref}`Upgrade <how_to_upgrade>` | {ref}`Redeploy <reference_charm_redeployment>` | {ref}`Actions <reference_actions>`
+* - **Design**
+  - {ref}`Charm architecture <reference_charm_architecture>`
+* - **Security**
+  - {ref}`Security overview <explanation_security>`
+```
 
 ## How this documentation is organized
 
