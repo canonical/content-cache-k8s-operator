@@ -8,7 +8,7 @@ myst:
 
 # Content Cache K8s charm
 
-A [Juju](https://juju.is/) {ref}`charm <juju:charm>` deploying and managing a static
+A [Juju](https://canonical.com/juju) {ref}`charm <juju:charm>` deploying and managing a static
 web content cache with [NGINX](https://www.nginx.com/) on Kubernetes. Use it to cache
 any HTTP or HTTPS web site, and to build a content delivery network (CDN).
 
@@ -28,9 +28,9 @@ scaling, and more. For Content Cache K8s, this includes:
   or caching a web site that you configure directly with the `site` and `backend` options.
 - Observability through the Canonical Observability Stack, with a Grafana dashboard,
   Prometheus metrics, and Loki logs.
-- Deployment on many different Kubernetes platforms, from [MicroK8s](https://microk8s.io)
-  to [Charmed Kubernetes](https://ubuntu.com/kubernetes) and public cloud Kubernetes
-  offerings.
+- Deployment on many different Kubernetes platforms, from
+  [Canonical Kubernetes](https://documentation.ubuntu.com/canonical-kubernetes/latest/)
+  to public cloud Kubernetes offerings.
 
 This service was developed to provide front-end caching for web sites run by Canonical's
 IS team, and to reduce the need for third-party CDNs by providing high-bandwidth access to
