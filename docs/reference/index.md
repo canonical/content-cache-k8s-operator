@@ -24,20 +24,13 @@ integrations
 
 ## Architecture and deployments
 
-The following pages provide more details about the charm architecture and
-a high-level deployment with any required dependencies.
+The following pages provide more details about the charm architecture, a
+high-level deployment with any required dependencies, and the network access
+the charm needs to reach an external backend.
 
 ```{toctree}
 :maxdepth: 1
 charm-architecture
 charm-redeployment
-```
-
-## Advanced topics
-
-The following page provides advanced-level topic on connecting to an external backend.
-
-```{toctree}
-:maxdepth: 1
 external-access
 ```

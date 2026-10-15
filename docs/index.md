@@ -51,9 +51,11 @@ through Juju's clean interface.
 * - **Get started**
   - {ref}`Deploy the charm <tutorial_getting_started>`
 * - **Deployment**
-  - {ref}`Configurations <reference_configurations>` | {ref}`Relation endpoints <reference_integrations>` | {ref}`External access <reference_external_access>`
+  - {ref}`Configurations <reference_configurations>` | {ref}`External access <reference_external_access>`
+* - **Integrations**
+  - {ref}`Relation endpoints <reference_integrations>`
 * - **Operations**
-  - {ref}`Cache content from OpenStack Swift <how_to_cache_content_with_openstack_swift>` | {ref}`Upgrade <how_to_upgrade>` | {ref}`Redeploy <reference_charm_redeployment>` | {ref}`Actions <reference_actions>`
+  - {ref}`Cache content from OpenStack Swift <how_to_cache_content_with_openstack_swift>` | {ref}`Upgrade <how_to_upgrade>` | {ref}`Redeployment <reference_charm_redeployment>` | {ref}`Actions <reference_actions>`
 * - **Design**
   - {ref}`Charm architecture <reference_charm_architecture>`
 * - **Security**
@@ -64,7 +66,7 @@ through Juju's clean interface.
 
 This documentation uses the [Diátaxis documentation structure](https://diataxis.fr/).
 
-- The {ref}`Tutorial <tutorial_index>` takes you step-by-step through a basic deployment of the Content Cache K8s charm, and shows how the charm serves cached content for a backend application.
+- The {ref}`Tutorial <tutorial_index>` takes you step-by-step through a basic deployment of the Content Cache K8s charm, and how to integrate it with a backend application.
 - {ref}`How-to guides <how_to_index>` assume basic familiarity with the charm. They cover key operations and common tasks, such as caching content from an OpenStack Swift container, upgrading the charm, and contributing to the project.
 - {ref}`Reference <reference_index>` provides technical details on actions, configurations, relation endpoints, and the charm architecture.
 - {ref}`Explanation <explanation_index>` includes topic overviews, background, and context, such as the security design of the charm.
