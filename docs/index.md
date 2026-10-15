@@ -8,25 +8,38 @@ myst:
 
 # Content Cache K8s charm
 
-A [Juju](https://juju.is/) {ref}`charm <juju:charm>` deploying and managing
-a static web content cache with [NGINX](https://www.nginx.com/) on Kubernetes.
+A [Juju](https://juju.is/) {ref}`charm <juju:charm>` deploying and managing a static
+web content cache with [NGINX](https://www.nginx.com/) on Kubernetes. Use it to cache
+any HTTP or HTTPS web site, and to build a content delivery network (CDN).
+
+The charm runs NGINX as a caching reverse proxy in front of a web site. When a client
+sends a request, the cache returns a saved copy of the response if it has one and the copy
+is still valid. Otherwise, the cache fetches the response from the backend, stores it, and
+passes it to the client. This lowers the load on the origin web site and shortens response
+times for repeated requests.
 
 Like any Juju charm, this charm supports one-line deployment, configuration, integration,
 scaling, and more. For Content Cache K8s, this includes:
 
-- Caching any HTTP or HTTPS web site.
-- Scaling the number of cache instances.
-- Cache configuration changes.
-
-The Content Cache K8s charm allows for deployment on many different Kubernetes platforms,
-from [MicroK8s](https://microk8s.io) to
-[Charmed Kubernetes](https://ubuntu.com/kubernetes) and public cloud Kubernetes offerings.
+- Caching any HTTP or HTTPS web site, with tuning for the cache size, the cached response
+  codes, and the lifetime of cached content.
+- Scaling the number of cache instances to match your traffic.
+- Serving as the cache for another charmed application that uses the `nginx-proxy` relation,
+  or caching a web site that you configure directly with the `site` and `backend` options.
+- Observability through the Canonical Observability Stack, with a Grafana dashboard,
+  Prometheus metrics, and Loki logs.
+- Deployment on many different Kubernetes platforms, from [MicroK8s](https://microk8s.io)
+  to [Charmed Kubernetes](https://ubuntu.com/kubernetes) and public cloud Kubernetes
+  offerings.
 
 This service was developed to provide front-end caching for web sites run by Canonical's
 IS team, and to reduce the need for third-party CDNs by providing high-bandwidth access to
-web sites via this caching front-end.
+web sites via this caching front-end. It is currently used for services including
+[the Snap Store](https://snapcraft.io/store), most of Canonical's web properties such as
+[ubuntu.com](https://ubuntu.com) and [canonical.com](https://canonical.com), and
+[Ubuntu Extended Security Maintenance](https://ubuntu.com/security/esm).
 
-This charm will make operating a content cache straightforward for DevOps or SRE teams
+This charm will make operating a content cache straightforward for DevOps and SRE teams
 through Juju's clean interface.
 
 ## In this documentation
