@@ -92,8 +92,9 @@ warmly welcomes community projects, contributions, suggestions, fixes, and const
 
 ### Get involved
 
-- [Get support](https://discourse.charmhub.io/)
-- [Join our online chat](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
+- [File a bug](https://github.com/canonical/content-cache-k8s-operator/issues)
+- Get support through the [Discourse forum](https://discourse.charmhub.io/)
+- Join our [online chat](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
 - {ref}`Contribute <how_to_contribute>`
 
 ### Releases
