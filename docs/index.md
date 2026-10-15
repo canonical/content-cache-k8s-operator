@@ -74,11 +74,12 @@ This documentation uses the [Diátaxis documentation structure](https://diataxis
 
 Documentation is an important part of this project, and we take the same open-source approach
 to the documentation as the code. As such, we welcome community contributions, suggestions,
-and constructive feedback on our documentation. See
-{ref}`How to contribute <how_to_contribute>` for more information.
+and constructive feedback on our documentation. Read {ref}`How to contribute <how_to_contribute>`
+to learn how to report a problem or propose a change.
 
 If there's a particular area of documentation that you'd like to see that's missing,
-please [file a bug](https://github.com/canonical/content-cache-k8s-operator/issues).
+please [file a bug](https://github.com/canonical/content-cache-k8s-operator/issues), or open a
+pull request with your change.
 
 ## Project and community
 
