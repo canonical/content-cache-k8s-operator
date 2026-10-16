@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Each revision is versioned by the date of the revision.
 
+## 2026-10-07
+
+- Fix the `cache_all` configuration option being inverted: upstream `Cache-Control` and `Expires` headers are now respected by default, and ignored only when `cache_all` is enabled. Deployments relying on the previous default of ignoring these headers must set `cache_all=true`.
+- Fix nginx failing to start with `unexpected ";"` when `cache_all` is enabled.
+
 ## 2026-09-30
 
 - Add a configuration option to update expired cache items in the background while serving stale responses.

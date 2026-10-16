@@ -387,9 +387,10 @@ class ContentCacheCharm(CharmBase):
                 backend_site_name = urlparse(backend).hostname
             site = str(config["site"]) if config.get("site") else self.app.name
 
+        # The trailing ";" is part of the value so that nginx isn't handed a bare ";" when empty.
         cache_all_configs = ""
-        if not config["cache_all"]:
-            cache_all_configs = "proxy_ignore_headers Cache-Control Expires"
+        if config["cache_all"]:
+            cache_all_configs = "proxy_ignore_headers Cache-Control Expires;"
 
         client_max_body_size = config["client_max_body_size"]
 

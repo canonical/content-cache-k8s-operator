@@ -1,0 +1,20 @@
+# --- Release notes artifact ----
+
+schema_version: 1
+changes:
+  - title: Respect upstream cache headers by default and fix the cache_all option
+    author: medicalwei
+    type: breaking
+    description: |
+      The `cache_all` configuration option was inverted: upstream `Cache-Control` and
+      `Expires` headers were ignored by default and respected when `cache_all` was
+      enabled, and enabling `cache_all` produced an invalid nginx configuration.
+      Upstream cache headers are now respected by default and ignored only when
+      `cache_all` is enabled. Deployments relying on the previous default must set
+      `cache_all=true`.
+    urls:
+      pr: https://github.com/canonical/content-cache-k8s-operator/pull/208
+      related_doc:
+      related_issue: https://github.com/canonical/content-cache-k8s-operator/issues/207
+    visibility: public
+    highlight: true

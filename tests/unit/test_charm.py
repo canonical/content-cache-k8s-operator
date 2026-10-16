@@ -474,7 +474,7 @@ class TestCharm:
         expected["NGINX_BACKEND"] = "http://mybackend.local:80"
         expected["NGINX_KEYS_ZONE"] = harness.charm._generate_keys_zone("mysite.local")
         expected["NGINX_SITE_NAME"] = "mysite.local"
-        expected["NGINX_CACHE_ALL"] = "proxy_ignore_headers Cache-Control Expires"
+        expected["NGINX_CACHE_ALL"] = ""
         assert harness.charm._make_env_config() == expected
 
     def test_make_env_config_with_proxy_relation(self):
@@ -586,6 +586,52 @@ class TestCharm:
         with open("tests/files/nginx_config.txt") as f:
             expected = f.read()
             assert harness.charm._make_nginx_config(env_config) == expected
+
+    def test_make_env_config_cache_all(self):
+        """
+        arrange: enable the cache_all charm config
+        act: generate the env config
+        assert: the upstream cache headers are ignored by the nginx directive
+        """
+        harness = self.harness
+        harness.disable_hooks()
+        config = self.config
+        config["cache_all"] = True
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        assert env_config["NGINX_CACHE_ALL"] == "proxy_ignore_headers Cache-Control Expires;"
+
+    def test_make_nginx_config_cache_all(self):
+        """
+        arrange: enable the cache_all charm config
+        act: render the nginx config
+        assert: the config ignores the upstream cache headers
+        """
+        harness = self.harness
+        harness.disable_hooks()
+        config = self.config
+        config["cache_all"] = True
+        harness.update_config(config)
+        env_config = harness.charm._make_env_config()
+        with open("tests/files/nginx_config_cache_all.txt") as f:
+            expected = f.read()
+            assert harness.charm._make_nginx_config(env_config) == expected
+
+    @pytest.mark.parametrize("cache_all", [False, True])
+    def test_make_nginx_config_cache_all_directive(self, cache_all):
+        """
+        arrange: set the cache_all charm config
+        act: render the nginx config
+        assert: no line is a bare ";" which nginx rejects as a syntax error
+        """
+        harness = self.harness
+        harness.disable_hooks()
+        config = self.config
+        config["cache_all"] = cache_all
+        harness.update_config(config)
+        rendered = harness.charm._make_nginx_config(harness.charm._make_env_config())
+        assert ";" not in [line.strip() for line in rendered.splitlines()]
+        assert ("proxy_ignore_headers Cache-Control Expires;" in rendered) is cache_all
 
     def test_make_nginx_config_backend_site_name(self):
         """
