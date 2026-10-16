@@ -58,7 +58,7 @@ In this documentation
     * - **Integrations**
       - :ref:`Relation endpoints <reference_integrations>`
     * - **Operations**
-      - :ref:`Cache content from OpenStack Swift <how_to_cache_content_with_openstack_swift>` | :ref:`Upgrade <how_to_upgrade>` | :ref:`Redeployment <reference_charm_redeployment>` | :ref:`Actions <reference_actions>`
+      - :ref:`Cache content from OpenStack Swift <how_to_cache_content_with_openstack_swift>` | :ref:`Upgrade <how_to_upgrade>` | :ref:`Actions <reference_actions>`
     * - **Design**
       - :ref:`Charm architecture <reference_charm_architecture>`
     * - **Security**
