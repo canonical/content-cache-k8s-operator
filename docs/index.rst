@@ -62,7 +62,7 @@ In this documentation
     * - **Design**
       - :ref:`Charm architecture <reference_charm_architecture>`
     * - **Security**
-      - :ref:`Security overview <explanation_security>`
+      - :ref:`Overview <explanation_security>`
 
 How this documentation is organized
 -----------------------------------
