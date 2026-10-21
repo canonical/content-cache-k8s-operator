@@ -30,6 +30,7 @@ header:
   - 'content-cache_rock/nginx_cfg.tmpl'
   - 'uv.lock'
   - '.readthedocs.yaml'
+  - '.copier-answers.yml'
   - 'docs/**'
   - '**/MAJOR_VERSION'
   comment: on-failure
