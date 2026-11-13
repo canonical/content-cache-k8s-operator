@@ -1,0 +1,17 @@
+# --- Release notes artifact ----
+
+schema_version: 1
+changes:
+  - title: Add Terraform charm module
+    author: Copilot
+    type: minor
+    description: |
+      Add a CC008-compliant Terraform module under `terraform/charm` to deploy and
+      integrate the `content-cache-k8s` charm, along with the CI workflows that
+      test, release and document it.
+    urls:
+      pr: https://github.com/canonical/content-cache-k8s-operator/pull/211
+      related_doc:
+      related_issue:
+    visibility: hidden
+    highlight: false

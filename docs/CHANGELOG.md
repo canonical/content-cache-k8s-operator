@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Each revision is versioned by the date of the revision.
 
+## 2026-10-19
+
+- Moved the documentation tooling to the centrally managed `platform-engineering-documentation-files` Copier template and added a scheduled workflow that keeps it in sync. There is no change to the charm.
+
+## 2026-09-30
+
+- Add a configuration option to update expired cache items in the background while serving stale responses.
+
+## 2026-06-18
+
+- Migrate the RTD documentation URL under the Canonical domain.
+
 ## 2026-03-31
 
 - Add landing page for each section in the documentation sections.

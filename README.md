@@ -23,12 +23,13 @@ This Kubernetes-based version is built using the same approach as the [machine c
 a situation where your Kubernetes cluster and its ingress controllers have
 a fast connection to the Internet.
 
-For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache K8s Documentation](https://documentation.ubuntu.com/content-cache-k8s-charm/latest/).
+For information about how to deploy, integrate, and manage this charm, see the Official [Content Cache K8s Documentation](https://canonical.com/juju/docs/content-cache-k8s-charm/).
 
 ## Documentation
 
-Our documentation is stored in the `docs` directory.
-It is based on the Canonical starter pack
+Our documentation is stored in the `docs` directory
+and can be viewed at https://canonical.com/juju/docs/content-cache-k8s-charm/.
+It is based on the Canonical Sphinx Stack
 and hosted on [Read the Docs](https://about.readthedocs.com/). In structuring,
 the documentation employs the [Diátaxis](https://diataxis.fr/) approach.
 

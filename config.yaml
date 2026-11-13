@@ -68,3 +68,11 @@ options:
       If the proxied server returns 304 (Not Modified), the cached item will be updated
       without re-downloading the entire content, improving performance.
     default: False
+  proxy_cache_background_update:
+    type: boolean
+    description: >
+      Allows starting a background subrequest to update an expired cache item, while a
+      stale cached response is returned to the client. Note that it is necessary to allow
+      the usage of a stale cached response when it is being updated, i.e. "updating" must
+      be present in the "cache_use_stale" option (which is included in the default value).
+    default: False

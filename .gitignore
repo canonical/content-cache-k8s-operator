@@ -9,6 +9,8 @@ htmlcov/
 __pycache__/
 *.rock
 venv
+**/.terraform/
+**/.terraform.lock.hcl
 # BEGIN VALE WORKFLOW IGNORE
 .vale/styles/*
 !.vale/styles/local
