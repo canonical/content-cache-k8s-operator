@@ -24,13 +24,12 @@ integrations
 
 ## Architecture and deployments
 
-The following pages provide more details about the charm architecture and
+The following page provides more details about the charm architecture and
 a high-level deployment with any required dependencies.
 
 ```{toctree}
 :maxdepth: 1
 charm-architecture
-charm-redeployment
 ```
 
 ## Advanced topics
